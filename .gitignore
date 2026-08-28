@@ -1,0 +1,5 @@
+node_modules/
+dist/
+apidrift-out/
+*.log
+.DS_Store

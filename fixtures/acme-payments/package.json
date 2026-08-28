@@ -1,0 +1,9 @@
+{
+  "name": "acme-payments",
+  "version": "1.0.0",
+  "description": "Sample target repo: a small service that charges customers via Stripe.",
+  "type": "commonjs",
+  "scripts": {
+    "test": "node --test"
+  }
+}

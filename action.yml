@@ -1,0 +1,22 @@
+name: 'APIdrift'
+description: 'Open tested pull requests when a third-party API you depend on changes.'
+branding:
+  icon: 'git-pull-request'
+  color: 'blue'
+runs:
+  using: 'composite'
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+    - name: Build APIdrift
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: |
+        npm ci --omit=dev
+        npm run build
+    - name: Run APIdrift
+      shell: bash
+      run: node "${{ github.action_path }}/dist/runner.js"
+      env:
+        GITHUB_TOKEN: ${{ github.token }}

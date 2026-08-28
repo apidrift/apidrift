@@ -1,0 +1,64 @@
+{
+  "name": "apidrift",
+  "version": "0.1.0",
+  "description": "Open tested pull requests when a third-party API you depend on changes. Detect, fix, verify against your own tests, open a PR.",
+  "type": "module",
+  "bin": {
+    "apidrift": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "action.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "api",
+    "codemod",
+    "migration",
+    "dependabot",
+    "breaking-changes",
+    "stripe",
+    "ast",
+    "pull-request",
+    "devtools"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc",
+    "demo": "tsx src/cli.ts run ./fixtures/acme-payments",
+    "cli": "tsx src/cli.ts",
+    "runner": "tsx src/runner.ts",
+    "test": "tsx --test tests/*.test.ts",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build && npm test"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.65.0",
+    "@octokit/rest": "^21.0.0",
+    "ts-morph": "^24.0.0"
+  },
+  "optionalDependencies": {
+    "@anthropic-ai/bedrock-sdk": "^0.22.0",
+    "@anthropic-ai/vertex-sdk": "^0.11.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.9.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YOUR_ORG/apidrift.git"
+  },
+  "bugs": {
+    "url": "https://github.com/YOUR_ORG/apidrift/issues"
+  },
+  "homepage": "https://github.com/YOUR_ORG/apidrift#readme"
+}
