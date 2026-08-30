@@ -25,9 +25,54 @@ function makeWorkspace(targetDir: string): string {
   const ws = fs.mkdtempSync(path.join(os.tmpdir(), 'apidrift-'));
   fs.cpSync(targetDir, ws, {
     recursive: true,
-    filter: (src) => !src.includes('node_modules') && !src.includes('/.git'),
+    // Exact path-segment match, not a substring test: a naive
+    // `src.includes('/.git')` also matches `/.gitignore`, `/.github`,
+    // `/.gitattributes`, etc. and silently drops them from the workspace —
+    // losing .gitignore in particular means the LocalGitHost baseline commit
+    // (`git add -A`) picks up build/coverage artifacts that were only ever
+    // meant to stay untracked, which can blow up the later `git diff`.
+    filter: (src) => {
+      const segments = src.split(path.sep);
+      return !segments.includes('node_modules') && !segments.includes('.git');
+    },
   });
   return ws;
+}
+
+/**
+ * The workspace copy deliberately excludes `node_modules` (see makeWorkspace),
+ * so the verifier's `npm test` would otherwise fail on a real repo purely for
+ * missing dependencies. Rather than `npm install` in the pipeline — which
+ * would add network I/O and non-determinism the Free tier explicitly does not
+ * promise — link the target's already-installed `node_modules` into the
+ * workspace by symlink. Best-effort: if the clone has no `node_modules` (or
+ * linking fails), the pipeline proceeds without it rather than crashing.
+ *
+ * Must run AFTER host.prepare() (which does the baseline `git init` + commit),
+ * so the symlink is never part of that baseline commit. We also register it
+ * in .git/info/exclude so LocalGitHost's `git add -A` / `git diff` never pick
+ * it up — it's a link to code outside the workspace, not a real change.
+ */
+function linkNodeModules(targetDir: string, workspace: string): void {
+  const src = path.join(targetDir, 'node_modules');
+  if (!fs.existsSync(src)) return;
+
+  const excludePath = path.join(workspace, '.git', 'info', 'exclude');
+  try {
+    const existing = fs.existsSync(excludePath) ? fs.readFileSync(excludePath, 'utf8') : '';
+    if (!existing.split('\n').includes('node_modules')) {
+      const sep = existing.length > 0 && !existing.endsWith('\n') ? '\n' : '';
+      fs.appendFileSync(excludePath, `${sep}node_modules\n`);
+    }
+  } catch {
+    // No .git/info yet (e.g. host.prepare() wasn't a git init) — nothing to exclude from.
+  }
+
+  try {
+    fs.symlinkSync(src, path.join(workspace, 'node_modules'), 'dir');
+  } catch {
+    // Symlinking unsupported on this filesystem: degrade to running without deps.
+  }
 }
 
 async function runCodemod(
@@ -47,6 +92,7 @@ async function runCodemod(
   };
 
   host.prepare();
+  if (!inPlace) linkNodeModules(targetDir, workspace);
 
   const project = loadProject(workspace);
   const matches = findMatches(project, codemod);
