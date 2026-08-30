@@ -28,7 +28,7 @@ Two grounded forces make this urgent:
    fixes get promoted into it (learning loop). Ships as a signed package + OCI
    image, updated continuously. This is the IP a customer can't reproduce alone.
 2. **The Engine (open core).** Match (AST) → fix → verify against your tests →
-   open PR. Host-agnostic and inference-agnostic. Ships as npm (`npx apidrift`),
+   open PR. Host-agnostic and inference-agnostic. Ships as npm (`npx @apidrift/cli`),
    Docker, and a GitHub Action / GitLab component. This is the current repo.
 3. **Control Plane (the service).** Vendor watchers, diff engine, change feed,
    entitlements, metering, dashboard. **Holds metadata only — never code.**

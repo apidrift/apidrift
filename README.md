@@ -1,5 +1,9 @@
 # APIdrift
 
+[![CI](https://github.com/apidrift/apidrift/actions/workflows/ci.yml/badge.svg)](https://github.com/apidrift/apidrift/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/%40apidrift%2Fcli)](https://www.npmjs.com/package/@apidrift/cli)
+[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue)](./LICENSE)
+
 **Dependabot, but for third-party API changes.**
 
 When a vendor you depend on changes their API, APIdrift finds where your code
@@ -21,12 +25,12 @@ Free = the CLI. Your code never leaves your machine. Two inference modes:
   fix changes with no codemod, using *your* key.
 
 ```bash
-# try it
-npx apidrift run .                    # deterministic-only
+# try it (npx installs @apidrift/cli, which provides the `apidrift` command)
+npx @apidrift/cli run .                    # deterministic-only
 ANTHROPIC_API_KEY=sk-ant-... \
-  npx apidrift run . --ai             # + AI fixer (BYOT)
+  npx @apidrift/cli run . --ai             # + AI fixer (BYOT)
 
-apidrift run . --deterministic-only   # force no-model mode
+apidrift run . --deterministic-only        # force no-model mode
 apidrift --help
 ```
 
@@ -34,7 +38,7 @@ Publish it:
 
 ```bash
 npm run build && npm test             # prepublishOnly runs these too
-npm publish                           # ships dist/ + action.yml + README + LICENSE
+npm publish                           # ships dist/ + action.yml + README + LICENSE + NOTICE
 ```
 
 The published package is lean (no fixtures/tests). Bedrock/Vertex are optional
@@ -53,9 +57,9 @@ deps — Free users never install them.
   # then create a Release for that tag on GitHub -> the workflow publishes
   ```
 
-Before the first release you must (a) set `repository` in `package.json` to your
-real repo URL (needed for provenance), and (b) commit `package-lock.json` (needed
-by `npm ci`).
+`repository` in `package.json` must point at the real repo URL (needed for
+provenance) and `package-lock.json` must be committed (needed by `npm ci`) —
+both already true in this repo.
 
 ## Quickstart
 
@@ -116,7 +120,7 @@ still gates everything. Turn it on:
 
 ```bash
 export ANTHROPIC_API_KEY=sk-ant-...
-npx apidrift run .        # AI fixer: ON
+npx @apidrift/cli run .   # AI fixer: ON
 ```
 
 ## Project layout
@@ -151,7 +155,7 @@ docs/
 
 ## The three surfaces (see docs/USAGE.md)
 
-- **Free** — `npm run demo` / `npx apidrift run .` (LocalGitHost, code stays local).
+- **Free** — `npm run demo` / `npx @apidrift/cli run .` (LocalGitHost, code stays local).
 - **Enterprise** — add `examples/enterprise-workflow.yml` to a repo; the engine
   runs in the client CI via `action.yml`, code never leaves.
 - **Pro** — `src/service/job.ts` is the per-repo job our backend runs; `poller.ts`
@@ -172,3 +176,26 @@ A change ships as all four, or it doesn't ship:
 - Automated change detection: poll OpenAPI specs (oasdiff) + SDK releases.
 - `GitHubHost` (Octokit) and `GitLabHost` behind the existing interface.
 - Self-hosted runner (GitHub Action / GitLab CI component).
+
+## Contributing
+
+Bug reports, new `Change`/`Codemod` pairs (see "Adding a supported change"
+above), and fixes are welcome — see [CONTRIBUTING.md](./CONTRIBUTING.md) for
+the workflow, coding conventions (`docs/conventions.md`), and the DoD each PR
+must clear (`npx tsc --noEmit` + `npm test`). Please read the
+[Code of Conduct](./CODE_OF_CONDUCT.md) before participating.
+
+Found a security issue? Please **do not** open a public issue — see
+[SECURITY.md](./SECURITY.md) for how to report it privately.
+
+## License
+
+APIdrift (the engine and the Free CLI) is open source under the
+**[Apache License 2.0](./LICENSE)** — use it, self-host it, modify it,
+redistribute it, including inside a commercial organization, with no
+field-of-use restriction. See [`LICENSE`](./LICENSE) for the full text and
+[`NOTICE`](./NOTICE) for attribution. Pro and Enterprise are separate,
+closed-source offerings built on top of this same engine (hosting,
+support, SLAs) — they don't change the license of what's in this repo.
+
+See [CHANGELOG.md](./CHANGELOG.md) for release history.

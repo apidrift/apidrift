@@ -29,7 +29,7 @@ APIdrift opens a **draft**, never a green PR. A wrong fix cannot merge.
 
 ## Go-to-market (one engine, three wrappers)
 
-- **Free — CLI.** `npx apidrift run <repo>`. Zero trust barrier (code stays
+- **Free — CLI.** `npx @apidrift/cli run <repo>`. Zero trust barrier (code stays
   local). Top of funnel. This is the current MVP.
 - **Pro — Git App.** Install, pick repos; we poll vendors and auto-open PRs.
   Maximum magic, we see their code (ephemeral).
