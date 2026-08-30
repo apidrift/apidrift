@@ -8,18 +8,16 @@ the `0.x` caveat that any minor version may include breaking changes).
 
 ## [Unreleased]
 
-### Changed
+### Fixed
 
-- Relicensed from MIT to the **Apache License 2.0** — no field-of-use
-  restriction; see the "License" section in `README.md`, `LICENSE`, and
-  `NOTICE`.
-- Renamed the npm package from `apidrift` (taken by an unrelated project)
-  to **`@apidrift/cli`**. The CLI binary is unaffected — it's still invoked
-  as `apidrift` (e.g. `npx @apidrift/cli run .`).
-- Added open-source project hygiene: `CONTRIBUTING.md`, `SECURITY.md`,
-  `CODE_OF_CONDUCT.md`, issue/PR templates.
+- Release workflow no longer passes `--provenance` to `npm publish`: npm's
+  sigstore provenance check rejects publishes whose source repo is private,
+  and this repo is currently private. Re-add `--provenance` once the repo
+  goes public.
 
-## [0.1.0] - 2026-08-28
+## [0.1.0] - 2026-08-30
+
+First published release, as `@apidrift/cli` on npm.
 
 ### Added
 
@@ -31,3 +29,14 @@ the `0.x` caveat that any minor version may include breaking changes).
   (Enterprise, via `action.yml`), `src/service/` (Pro, skeleton).
 - `npm test` covers the deterministic happy path, the draft-on-red-suite
   moat, the AI fixer path, and the AI guardrail (agent cannot edit tests).
+
+### Changed
+
+- Relicensed from MIT to the **Apache License 2.0** — no field-of-use
+  restriction; see the "License" section in `README.md`, `LICENSE`, and
+  `NOTICE`.
+- Renamed the npm package from `apidrift` (taken by an unrelated project)
+  to **`@apidrift/cli`**. The CLI binary is unaffected — it's still invoked
+  as `apidrift` (e.g. `npx @apidrift/cli run .`).
+- Added open-source project hygiene: `CONTRIBUTING.md`, `SECURITY.md`,
+  `CODE_OF_CONDUCT.md`, issue/PR templates.
