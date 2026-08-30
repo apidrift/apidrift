@@ -10,11 +10,12 @@ the `0.x` caveat that any minor version may include breaking changes).
 
 ### Changed
 
-- Relicensed from MIT to **Business Source License 1.1** (BUSL-1.1) — free
-  for any use, including inside a commercial organization on your own
-  repositories, with a carve-out against reselling APIdrift as a competing
-  hosted service. Converts to Apache License 2.0 four years after each
-  release. See the "License" section in `README.md` and `LICENSE`.
+- Relicensed from MIT to the **Apache License 2.0** — no field-of-use
+  restriction; see the "License" section in `README.md`, `LICENSE`, and
+  `NOTICE`.
+- Renamed the npm package from `apidrift` (taken by an unrelated project)
+  to **`@apidrift/cli`**. The CLI binary is unaffected — it's still invoked
+  as `apidrift` (e.g. `npx @apidrift/cli run .`).
 - Added open-source project hygiene: `CONTRIBUTING.md`, `SECURITY.md`,
   `CODE_OF_CONDUCT.md`, issue/PR templates.
 

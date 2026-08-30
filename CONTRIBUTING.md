@@ -69,17 +69,20 @@ agent — see `CLAUDE.md`.)
 - Keep it focused: one logical change per PR (e.g. one supported API change,
   or one fix).
 
-## License of your contribution
+## License of your contribution, and sign-off (DCO)
 
-APIdrift is licensed under the [Business Source License 1.1](./LICENSE)
-(BUSL-1.1), converting to Apache 2.0 four years after each release. By
-submitting a contribution, you agree it's provided under the same terms,
-and you grant the maintainers the rights needed to relicense your
-contribution together with the rest of the project at the Change Date (or
-under a commercial license, consistent with the project's dual-license
-model) — the same arrangement used by other BUSL projects (e.g. Sentry).
-If that's not something you can agree to, please open an issue to discuss
-before sending a PR.
+APIdrift is licensed under the [Apache License 2.0](./LICENSE). By
+submitting a contribution, you agree it's provided under the same terms.
+
+We use the lightweight [Developer Certificate of
+Origin](https://developercertificate.org/) instead of a separate CLA:
+please sign off every commit (`git commit -s`, which adds a
+`Signed-off-by: Your Name <you@example.com>` trailer) to certify that you
+wrote the contribution or otherwise have the right to submit it. This is
+what makes it safe for the maintainers to keep reusing your contribution
+across this Apache-2.0 codebase and, unmodified or as a base, in
+APIdrift's separate closed-source Pro/Enterprise offerings — Apache-2.0
+already permits that reuse, the DCO just keeps provenance on record.
 
 ## Code of Conduct
 

@@ -1,5 +1,5 @@
 {
-  "name": "apidrift",
+  "name": "@apidrift/cli",
   "version": "0.1.0",
   "description": "Open tested pull requests when a third-party API you depend on changes. Detect, fix, verify against your own tests, open a PR.",
   "type": "module",
@@ -10,7 +10,8 @@
     "dist",
     "action.yml",
     "README.md",
-    "LICENSE"
+    "LICENSE",
+    "NOTICE"
   ],
   "keywords": [
     "api",
@@ -23,7 +24,7 @@
     "pull-request",
     "devtools"
   ],
-  "license": "BUSL-1.1",
+  "license": "Apache-2.0",
   "author": "APIdrift",
   "engines": {
     "node": ">=20"

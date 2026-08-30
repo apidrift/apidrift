@@ -13,8 +13,8 @@
       tests (`tests/ai-fixer.test.ts`, `tests/pipeline.test.ts`) still pass —
       tests stay read-only to the fixer, and a red suite never yields a
       non-draft PR.
-- [ ] I agree this contribution is licensed under the terms in
-      `CONTRIBUTING.md` § License of your contribution.
+- [ ] All commits are signed off (`git commit -s`) per the DCO — see
+      `CONTRIBUTING.md` § License of your contribution, and sign-off (DCO).
 
 ## Related issue
 

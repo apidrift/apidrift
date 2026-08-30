@@ -10,7 +10,7 @@ The dev runs it against a repo. Code never leaves their machine (workspace mode:
 we operate on a temp copy and emit a branch + patch).
 
 ```bash
-npx apidrift run .                 # or: npm run demo
+npx @apidrift/cli run .            # or: npm run demo
 # -> apidrift-out/PR.md + a .patch you can `git am`
 ```
 
