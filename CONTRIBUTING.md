@@ -62,6 +62,24 @@ agent — see `CLAUDE.md`.)
 `type(scope): short imperative subject` — types: `feat`, `fix`, `refactor`,
 `test`, `docs`, `chore`, `perf`.
 
+## Branching & merging policy
+
+- `main` is the only long-lived branch and is always releasable — every
+  change lands via a pull request, never a direct push.
+- Branch names: `feat/<slug>`, `fix/<slug>`, `chore/<slug>`, `docs/<slug>`
+  (matches the Conventional Commits type). Internal agile-agents-socle work
+  uses `feature/<US-ID>-<slug>` — see `docs/conventions.md`.
+- A PR merges only once `npx tsc --noEmit` and `npm test` are green in CI
+  (Node 20 & 22 — see `.github/workflows/ci.yml`).
+- Merge strategy: **squash**, so `main` has one commit per PR. Branches are
+  deleted automatically on merge (`delete_branch_on_merge` is on).
+- **Enforcement status:** this repo is currently private on GitHub's free
+  plan, where native branch protection / rulesets aren't available (they
+  require the repo to be public, or a paid plan). Until one of those
+  changes, the rules above are convention, not something GitHub blocks for
+  you — please still follow them. Revisit enabling real branch protection
+  once the repo goes public or moves to a paid plan.
+
 ## Opening the PR
 
 - Target `main`.
