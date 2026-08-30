@@ -23,7 +23,8 @@
     "pull-request",
     "devtools"
   ],
-  "license": "MIT",
+  "license": "BUSL-1.1",
+  "author": "APIdrift",
   "engines": {
     "node": ">=20"
   },
@@ -55,10 +56,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/YOUR_ORG/apidrift.git"
+    "url": "git+https://github.com/apidrift/apidrift.git"
   },
   "bugs": {
-    "url": "https://github.com/YOUR_ORG/apidrift/issues"
+    "url": "https://github.com/apidrift/apidrift/issues"
   },
-  "homepage": "https://github.com/YOUR_ORG/apidrift#readme"
+  "homepage": "https://github.com/apidrift/apidrift#readme"
 }

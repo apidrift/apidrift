@@ -1,5 +1,9 @@
 # APIdrift
 
+[![CI](https://github.com/apidrift/apidrift/actions/workflows/ci.yml/badge.svg)](https://github.com/apidrift/apidrift/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/apidrift)](https://www.npmjs.com/package/apidrift)
+[![License: BUSL-1.1](https://img.shields.io/badge/license-BUSL--1.1-blue)](./LICENSE)
+
 **Dependabot, but for third-party API changes.**
 
 When a vendor you depend on changes their API, APIdrift finds where your code
@@ -53,9 +57,9 @@ deps — Free users never install them.
   # then create a Release for that tag on GitHub -> the workflow publishes
   ```
 
-Before the first release you must (a) set `repository` in `package.json` to your
-real repo URL (needed for provenance), and (b) commit `package-lock.json` (needed
-by `npm ci`).
+`repository` in `package.json` must point at the real repo URL (needed for
+provenance) and `package-lock.json` must be committed (needed by `npm ci`) —
+both already true in this repo.
 
 ## Quickstart
 
@@ -172,3 +176,30 @@ A change ships as all four, or it doesn't ship:
 - Automated change detection: poll OpenAPI specs (oasdiff) + SDK releases.
 - `GitHubHost` (Octokit) and `GitLabHost` behind the existing interface.
 - Self-hosted runner (GitHub Action / GitLab CI component).
+
+## Contributing
+
+Bug reports, new `Change`/`Codemod` pairs (see "Adding a supported change"
+above), and fixes are welcome — see [CONTRIBUTING.md](./CONTRIBUTING.md) for
+the workflow, coding conventions (`docs/conventions.md`), and the DoD each PR
+must clear (`npx tsc --noEmit` + `npm test`). Please read the
+[Code of Conduct](./CODE_OF_CONDUCT.md) before participating.
+
+Found a security issue? Please **do not** open a public issue — see
+[SECURITY.md](./SECURITY.md) for how to report it privately.
+
+## License
+
+APIdrift is source-available under the **[Business Source License
+1.1](./LICENSE)** (BUSL-1.1) — free to use, self-host, modify, and run
+(including inside a commercial organization, on your own repositories). The
+one thing you can't do is take the Licensed Work and offer it as a competing
+hosted/managed service. Each version converts to **Apache License 2.0** four
+years after its release (v0.1.0 converts 2030-08-30). This is the same model
+used by Sentry, CockroachDB, and MongoDB — see
+[mariadb.com/bsl11](https://mariadb.com/bsl11) for the license's background,
+and [`LICENSE`](./LICENSE) for the full text and this repo's Additional Use
+Grant. Need different terms (e.g. to build a competing hosted offering)? Open
+an issue to talk about a commercial license.
+
+See [CHANGELOG.md](./CHANGELOG.md) for release history.
