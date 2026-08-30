@@ -1,0 +1,574 @@
+
+> hackathon-starter@10.0.0 test
+> c8 --temp-directory=tmp/coverage --reporter=html --reporter=text --reports-dir=tmp/coverage mocha --timeout=60000 --exit --exclude "test/*links.test.js"
+
+
+[0m[0m
+<claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
+Run this app using "npm start" to include sass/scss/css builds.
+
+[0m  GET /[0m
+App is running on http://localhost:8080 in development mode.
+Press CTRL-C to stop.
+2026-08-30 21:52:38 GET / [32m200[0m 299ms 1.95KB COMPLETE ::ffff:127.0.0.1 Unknown
+  [32m  [32m✔[39m[0m[90m should return 200 OK[0m[31m (376ms)[0m
+
+[0m  GET /login[0m
+2026-08-30 21:52:38 GET /login [32m200[0m 117ms 2.83KB COMPLETE ::ffff:127.0.0.1 Unknown
+  [32m  [32m✔[39m[0m[90m should return 200 OK[0m[31m (123ms)[0m
+
+[0m  GET /signup[0m
+2026-08-30 21:52:38 GET /signup [32m200[0m 76ms 2.15KB COMPLETE ::ffff:127.0.0.1 Unknown
+  [32m  [32m✔[39m[0m[90m should return 200 OK[0m[31m (80ms)[0m
+
+[0m  GET /forgot[0m
+2026-08-30 21:52:38 GET /forgot [32m200[0m 61ms 1.87KB COMPLETE ::ffff:127.0.0.1 Unknown
+  [32m  [32m✔[39m[0m[90m should return 200 OK[0m[33m (65ms)[0m
+
+[0m  GET /contact[0m
+2026-08-30 21:52:38 GET /contact [32m200[0m 71ms 2.19KB COMPLETE ::ffff:127.0.0.1 Unknown
+  [32m  [32m✔[39m[0m[90m should return 200 OK[0m[33m (75ms)[0m
+
+[0m  GET /random-url[0m
+2026-08-30 21:52:38 GET /reset [33m404[0m 2ms 0.01KB COMPLETE ::ffff:127.0.0.1 Unknown
+  [32m  [32m✔[39m[0m[90m should return 404[0m
+
+[0m  Other core GET routes do not cause errors[0m
+2026-08-30 21:52:38 GET /logout [36m302[0m 2ms 0.02KB COMPLETE ::ffff:127.0.0.1 Unknown
+  [32m  [32m✔[39m[0m[90m GET /logout[0m
+2026-08-30 21:52:38 GET /login/2fa [36m302[0m 1ms 0.03KB COMPLETE ::ffff:127.0.0.1 Unknown
+  [32m  [32m✔[39m[0m[90m GET /login/2fa[0m
+2026-08-30 21:52:38 GET /login/2fa/totp [36m302[0m 1ms 0.03KB COMPLETE ::ffff:127.0.0.1 Unknown
+  [32m  [32m✔[39m[0m[90m GET /login/2fa/totp[0m
+2026-08-30 21:52:38 GET /login/webauthn-start [36m302[0m 1ms 0.03KB COMPLETE ::ffff:127.0.0.1 Unknown
+  [32m  [32m✔[39m[0m[90m GET /login/webauthn-start[0m
+2026-08-30 21:52:38 GET /login/verify/testtoken [36m302[0m 1ms 0.03KB COMPLETE ::ffff:127.0.0.1 Unknown
+  [32m  [32m✔[39m[0m[90m GET /login/verify/testtoken[0m
+2026-08-30 21:52:38 GET /reset/testtoken [36m302[0m 1ms 0.03KB COMPLETE ::ffff:127.0.0.1 Unknown
+  [32m  [32m✔[39m[0m[90m GET /reset/testtoken[0m
+2026-08-30 21:52:38 GET /account [36m302[0m 1ms 0.03KB COMPLETE ::ffff:127.0.0.1 Unknown
+  [32m  [32m✔[39m[0m[90m GET /account[0m
+2026-08-30 21:52:38 GET /account/verify [36m302[0m 1ms 0.03KB COMPLETE ::ffff:127.0.0.1 Unknown
+  [32m  [32m✔[39m[0m[90m GET /account/verify[0m
+2026-08-30 21:52:38 GET /account/verify/testtoken [36m302[0m 1ms 0.03KB COMPLETE ::ffff:127.0.0.1 Unknown
+  [32m  [32m✔[39m[0m[90m GET /account/verify/testtoken[0m
+2026-08-30 21:52:38 GET /account/2fa/totp/setup [36m302[0m 1ms 0.03KB COMPLETE ::ffff:127.0.0.1 Unknown
+  [32m  [32m✔[39m[0m[90m GET /account/2fa/totp/setup[0m
+2026-08-30 21:52:38 GET /account/webauthn/register [36m302[0m 1ms 0.03KB COMPLETE ::ffff:127.0.0.1 Unknown
+  [32m  [32m✔[39m[0m[90m GET /account/webauthn/register[0m
+2026-08-30 21:52:38 GET /auth/failure [36m302[0m 1ms 0.02KB COMPLETE ::ffff:127.0.0.1 Unknown
+  [32m  [32m✔[39m[0m[90m GET /auth/failure[0m
+
+[0m  getFileHash[0m
+  [32m  [32m✔[39m[0m[90m returns an 8-character hex string[0m
+  [32m  [32m✔[39m[0m[90m returns the same hash for the same file on repeated calls[0m
+  [32m  [32m✔[39m[0m[90m reads the file from disk only once for repeated calls (caching)[0m
+  [32m  [32m✔[39m[0m[90m returns different hashes for different file contents[0m
+  [32m  [32m✔[39m[0m[90m resolves non-libFiles URLs as a path under public/[0m
+  [32m  [32m✔[39m[0m[90m resolves libFiles URLs using the libFiles value as the path[0m
+  [32m  [32m✔[39m[0m[90m throws when the file read fails[0m
+
+[0m  Contact Controller[0m
+[0m    GET /contact[0m
+    [32m  [32m✔[39m[0m[90m renders the contact form[0m
+[0m    POST /contact[0m
+    [32m  [32m✔[39m[0m[90m rejects missing name/email for unknown user[0m
+    [32m  [32m✔[39m[0m[90m rejects missing message[0m
+    [32m  [32m✔[39m[0m[90m rejects missing reCAPTCHA[0m
+    [32m  [32m✔[39m[0m[90m sends email if all fields are valid[0m
+    [32m  [32m✔[39m[0m[90m handles reCAPTCHA failure[0m
+
+[0m  flash middleware core tests[0m
+  [32m  [32m✔[39m[0m[90m should store a single flash message[0m
+  [32m  [32m✔[39m[0m[90m should accumulate multiple flash messages of same type[0m
+  [32m  [32m✔[39m[0m[90m should store multiple messages passed as array[0m
+  [32m  [32m✔[39m[0m[90m should store messages of different types separately[0m
+  [32m  [32m✔[39m[0m[90m should retrieve and clear messages of a type[0m
+  [32m  [32m✔[39m[0m[90m should retrieve all messages grouped by type[0m
+  [32m  [32m✔[39m[0m[90m should return empty array for unknown type[0m
+  [32m  [32m✔[39m[0m[90m should attach messages to res.locals on render[0m
+
+[0m  flash middleware integration behavior[0m
+  [32m  [32m✔[39m[0m[90m should consume messages after read[0m
+  [32m  [32m✔[39m[0m[90m should expose messages to res.locals.messages for views[0m
+  [32m  [32m✔[39m[0m[90m should have no messages by default[0m
+  [32m  [32m✔[39m[0m[90m should isolate messages between sessions[0m
+
+[0m  User Model[0m
+  [32m  [32m✔[39m[0m[90m should create a new user[0m
+  [32m  [32m✔[39m[0m[90m should return error if user is not created[0m
+  [32m  [32m✔[39m[0m[90m should not create a user with the unique email[0m
+  [32m  [32m✔[39m[0m[90m should find user by email[0m
+  [32m  [32m✔[39m[0m[90m should remove user by email[0m
+  [32m  [32m✔[39m[0m[90m should check password[0m[33m (52ms)[0m
+  [32m  [32m✔[39m[0m[90m should generate gravatar without email and size[0m
+  [32m  [32m✔[39m[0m[90m should generate gravatar with size[0m
+  [32m  [32m✔[39m[0m[90m should generate gravatar with email[0m
+  [32m  [32m✔[39m[0m[90m should define webauthnUserID as a Buffer in the schema[0m
+  [32m  [32m✔[39m[0m[90m should persist webauthnUserID across save and reload[0m[33m (72ms)[0m
+  [32m  [32m✔[39m[0m[90m should enforce global uniqueness of webauthn credentialId[0m[31m (116ms)[0m
+  [32m  [32m✔[39m[0m[90m should persist webauthn publicKey as binary without corruption[0m[33m (56ms)[0m
+  [32m  [32m✔[39m[0m[90m should not regenerate webauthnUserID once set[0m[33m (56ms)[0m
+[0m    Token Verification[0m
+    [32m  [32m✔[39m[0m[90m should verify valid token and IP hash before expiration[0m
+    [32m  [32m✔[39m[0m[90m should reject expired token[0m
+    [32m  [32m✔[39m[0m[90m should reject invalid token[0m
+    [32m  [32m✔[39m[0m[90m should reject invalid IP[0m
+    [32m  [32m✔[39m[0m[90m should handle missing token fields[0m
+[0m    Password Reset Token Verification[0m
+    [32m  [32m✔[39m[0m[90m should verify valid password reset token and IP hash before expiration[0m
+    [32m  [32m✔[39m[0m[90m should reject expired password reset token[0m
+    [32m  [32m✔[39m[0m[90m should reject invalid password reset token[0m
+    [32m  [32m✔[39m[0m[90m should reject invalid IP for password reset[0m
+[0m    Login Token Verification[0m
+    [32m  [32m✔[39m[0m[90m should verify valid login token and IP hash before expiration[0m
+    [32m  [32m✔[39m[0m[90m should reject expired login token[0m
+    [32m  [32m✔[39m[0m[90m should reject invalid login token[0m
+    [32m  [32m✔[39m[0m[90m should reject invalid IP for login[0m
+[0m    Single-use token consumption[0m
+    [32m  [32m✔[39m[0m[90m consumeToken clears a passwordReset token on success and returns true[0m
+    [32m  [32m✔[39m[0m[90m consumeToken does NOT clear the token on failure (wrong IP)[0m
+    [32m  [32m✔[39m[0m[90m consumeToken clears a login token on success and returns true[0m
+    [32m  [32m✔[39m[0m[90m consumeToken clears an emailVerification token on success and returns true[0m
+    [32m  [32m✔[39m[0m[90m consumeToken rejects a candidate token that does not match the stored one[0m
+[0m    IP Hashing[0m
+    [32m  [32m✔[39m[0m[90m should consistently hash the same IP[0m
+    [32m  [32m✔[39m[0m[90m should produce different hashes for different IPs[0m
+[0m    User Model Virtual Properties[0m
+    [32m  [32m✔[39m[0m[90m should check if password reset is expired[0m
+    [32m  [32m✔[39m[0m[90m should check if email verification is expired[0m
+    [32m  [32m✔[39m[0m[90m should check if login token is expired[0m
+    [32m  [32m✔[39m[0m[90m should check if 2FA code is expired[0m
+[0m    User Password Handling[0m
+    [32m  [32m✔[39m[0m[90m should handle error during password comparison[0m
+    [32m  [32m✔[39m[0m[90m should handle password hashing error[0m
+    [32m  [32m✔[39m[0m[90m should reject password shorter than minimum length[0m[33m (55ms)[0m
+    [32m  [32m✔[39m[0m[90m should handle undefined password gracefully[0m
+[0m    Gravatar URL Generation[0m
+    [32m  [32m✔[39m[0m[90m should generate default gravatar URL when email is missing[0m
+    [32m  [32m✔[39m[0m[90m Scenario 1: Gravatar generation when email is present - after save[0m[33m (55ms)[0m
+    [32m  [32m✔[39m[0m[90m Scenario 2: Gravatar update on email change[0m[33m (54ms)[0m
+    [32m  [32m✔[39m[0m[90m Scenario 3: noMultiPictureUpgrade behavior[0m
+    [32m  [32m✔[39m[0m[90m Scenario 4: Preserve non-gravatar pictureSource[0m[33m (53ms)[0m
+    [32m  [32m✔[39m[0m[90m Scenario 5: Preserve non-gravatar pictureSource - noMultiPictureUpgrade[0m
+    [32m  [32m✔[39m[0m[90m Scenario 6: Legacy account upgrade path[0m
+    [32m  [32m✔[39m[0m[90m Scenario 7: Map persistence[0m[33m (54ms)[0m
+    [32m  [32m✔[39m[0m[90m Scenario 8: No duplicate gravatar entries[0m[33m (54ms)[0m
+[0m    Token Cleanup on Save[0m
+    [32m  [32m✔[39m[0m[90m should clear expired tokens before save[0m[33m (54ms)[0m
+[0m    Two-Factor Authentication[0m
+[0m      Code Generation[0m
+      [32m  [32m✔[39m[0m[90m should generate a 6-digit code[0m
+      [32m  [32m✔[39m[0m[90m should generate unique codes[0m
+[0m      2FA Code Verification[0m
+      [32m  [32m✔[39m[0m[90m should verify valid 2FA code and IP before expiration[0m
+      [32m  [32m✔[39m[0m[90m should reject expired 2FA code[0m
+      [32m  [32m✔[39m[0m[90m should reject invalid 2FA code[0m
+      [32m  [32m✔[39m[0m[90m should reject code from different IP[0m
+      [32m  [32m✔[39m[0m[90m should handle missing code fields[0m
+      [32m  [32m✔[39m[0m[90m should reject empty string code[0m
+      [32m  [32m✔[39m[0m[90m should reject null code[0m
+      [32m  [32m✔[39m[0m[90m should reject undefined code[0m
+      [32m  [32m✔[39m[0m[90m should reject code with wrong length[0m
+      [32m  [32m✔[39m[0m[90m should reject code with non-numeric characters[0m
+      [32m  [32m✔[39m[0m[90m should reject when stored code is missing but other fields exist[0m
+      [32m  [32m✔[39m[0m[90m should reject when IP hash is missing but other fields exist[0m
+      [32m  [32m✔[39m[0m[90m should use timing-safe comparison for codes[0m
+[0m      2FA Methods Management[0m
+      [32m  [32m✔[39m[0m[90m should initialize with empty twoFactorMethods array[0m[33m (53ms)[0m
+      [32m  [32m✔[39m[0m[90m should add email to twoFactorMethods[0m[33m (58ms)[0m
+      [32m  [32m✔[39m[0m[90m should add multiple 2FA methods[0m[33m (55ms)[0m
+      [32m  [32m✔[39m[0m[90m should remove individual 2FA method[0m[33m (56ms)[0m
+      [32m  [32m✔[39m[0m[90m should disable 2FA when all methods removed[0m[33m (55ms)[0m
+      [32m  [32m✔[39m[0m[90m should accept email as a valid method[0m[33m (53ms)[0m
+      [32m  [32m✔[39m[0m[90m should accept totp as a valid method[0m[33m (52ms)[0m
+      [32m  [32m✔[39m[0m[90m should reject invalid 2FA method values[0m
+[0m      2FA Virtual Properties[0m
+      [32m  [32m✔[39m[0m[90m should check if 2FA code is not expired[0m
+[0m      2FA Token Cleanup[0m
+      [32m  [32m✔[39m[0m[90m should clear expired 2FA code on save[0m[33m (53ms)[0m
+      [32m  [32m✔[39m[0m[90m should not clear valid 2FA code on save[0m[33m (54ms)[0m
+[0m      clearTwoFactorCode[0m
+      [32m  [32m✔[39m[0m[90m should clear all three 2FA code fields[0m
+      [32m  [32m✔[39m[0m[90m should be safe to call when fields are already undefined[0m
+      [32m  [32m✔[39m[0m[90m should not affect other user fields[0m
+[0m      Code consumption (single-use)[0m
+      [32m  [32m✔[39m[0m[90m should not verify after clearTwoFactorCode is called[0m
+      [32m  [32m✔[39m[0m[90m should persist cleared state after save[0m[33m (58ms)[0m
+
+[0m  Morgan Configuration Tests[0m
+[0m    Status Coloring[0m
+    [32m  [32m✔[39m[0m[90m should color status codes correctly[0m
+    [32m  [32m✔[39m[0m[90m should emit real escape sequences rather than escaped text[0m
+[0m    Custom Token: short-date[0m
+    [32m  [32m✔[39m[0m[90m should format date correctly[0m
+[0m    Custom Token: parsed-user-agent[0m
+    [32m  [32m✔[39m[0m[90m should parse user agent correctly[0m
+    [32m  [32m✔[39m[0m[90m should handle unknown user agent[0m
+[0m    Custom Token: bytes-sent[0m
+    [32m  [32m✔[39m[0m[90m should format bytes correctly[0m
+    [32m  [32m✔[39m[0m[90m should handle missing content length[0m
+[0m    Custom Token: transfer-state[0m
+    [32m  [32m✔[39m[0m[90m should show correct transfer state[0m
+[0m    Complete Morgan Format[0m
+    [32m  [32m✔[39m[0m[90m should combine all tokens correctly in development[0m
+    [32m  [32m✔[39m[0m[90m should exclude IP address in production[0m
+
+[0m  Nodemailer Config[0m
+  [32m  [32m✔[39m[0m[90m should send mail successfully on first try[0m
+WARNING: Self signed certificate in certificate chain. Retrying with the self signed certificate. Use a valid certificate if in production.
+  [32m  [32m✔[39m[0m[90m should retry with lowered security after self-signed certificate error[0m
+[90mundefined[39m Error: General error
+    at Context.<anonymous> [90m(/tmp/us1-target/hackathon-starter/[39mtest/nodemailer.test.js:84:38[90m)[39m
+    at callFn [90m(file:///tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runnable.js:360:23[90m)[39m
+    at Test.run [90m(file:///tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runnable.js:348:7[90m)[39m
+    at Runner.runTest [90m(/tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runner.cjs:809:10[90m)[39m
+    at [90m/tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runner.cjs:959:12
+    at next [90m(/tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runner.cjs:724:14[90m)[39m
+    at [90m/tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runner.cjs:734:7
+    at next [90m(/tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runner.cjs:595:14[90m)[39m
+    at cbHookRun [90m(/tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runner.cjs:682:7[90m)[39m
+    at done [90m(file:///tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runnable.js:304:7[90m)[39m
+    at callFn [90m(file:///tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runnable.js:385:9[90m)[39m
+    at Hook.run [90m(file:///tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runnable.js:348:7[90m)[39m
+    at next [90m(/tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runner.cjs:619:10[90m)[39m
+    at Immediate.<anonymous> [90m(/tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runner.cjs:702:5[90m)[39m
+[90m    at process.processImmediate (node:internal/timers:483:21)[39m
+  [32m  [32m✔[39m[0m[90m should handle general error[0m
+WARNING: Self signed certificate in certificate chain. Retrying with the self signed certificate. Use a valid certificate if in production.
+[90mundefined[39m Error: Retry failed
+    at Context.<anonymous> [90m(/tmp/us1-target/hackathon-starter/[39mtest/nodemailer.test.js:113:134[90m)[39m
+    at callFn [90m(file:///tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runnable.js:360:23[90m)[39m
+    at Test.run [90m(file:///tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runnable.js:348:7[90m)[39m
+    at Runner.runTest [90m(/tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runner.cjs:809:10[90m)[39m
+    at [90m/tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runner.cjs:959:12
+    at next [90m(/tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runner.cjs:724:14[90m)[39m
+    at [90m/tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runner.cjs:734:7
+    at next [90m(/tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runner.cjs:595:14[90m)[39m
+    at cbHookRun [90m(/tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runner.cjs:682:7[90m)[39m
+    at done [90m(file:///tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runnable.js:304:7[90m)[39m
+    at callFn [90m(file:///tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runnable.js:385:9[90m)[39m
+    at Hook.run [90m(file:///tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runnable.js:348:7[90m)[39m
+    at next [90m(/tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runner.cjs:619:10[90m)[39m
+    at Immediate.<anonymous> [90m(/tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runner.cjs:702:5[90m)[39m
+[90m    at process.processImmediate (node:internal/timers:483:21)[39m
+  [32m  [32m✔[39m[0m[90m should handle retry failure after self-signed certificate error[0m
+
+[0m  Passport Config[0m
+[0m    isAuthenticated Middleware[0m
+    [32m  [32m✔[39m[0m[90m should call next() when authenticated[0m
+    [32m  [32m✔[39m[0m[90m should set an error flash and redirect /login when not authenticated[0m
+[0m    serializeUser / deserializeUser[0m
+    [32m  [32m✔[39m[0m[90m serializeUser stores user.id[0m
+    [32m  [32m✔[39m[0m[90m deserializeUser returns user for a valid id[0m
+    [32m  [32m✔[39m[0m[90m deserializeUser calls done with error when findById rejects[0m
+[0m    LocalStrategy (local)[0m
+    [32m  [32m✔[39m[0m[90m should return false with message when user not found[0m
+    [32m  [32m✔[39m[0m[90m should return false when user has no password (OAuth-only account)[0m
+    [32m  [32m✔[39m[0m[90m should return false with invalid message when password is wrong[0m
+    [32m  [32m✔[39m[0m[90m should return the user when credentials are correct[0m
+    [32m  [32m✔[39m[0m[90m should normalize the email to lower-case when looking up user[0m
+    [32m  [32m✔[39m[0m[90m should propagate comparePassword errors through done[0m
+[0m    isAuthorized Middleware[0m
+    [32m  [32m✔[39m[0m[90m Scenario 1: should redirect to auth provider to get new tokens when user has never authenticated with the provider[0m
+    [32m  [32m✔[39m[0m[90m Scenario 2: should proceed when access token exists and is not expired[0m
+    [32m  [32m✔[39m[0m[90m Scenario 3: should redirect to auth provider to get new tokens when access token exists but is expired with no refresh token[0m
+    [32m  [32m✔[39m[0m[90m Scenario 4: should handle expired access token with never-expiring refresh token (no expiration value)[0m
+    [32m  [32m✔[39m[0m[90m Scenario 5: should handle expired access token with non-expired refresh token[0m
+    [32m  [32m✔[39m[0m[90m Scenario 6: should redirect to auth provider to get new tokens when both access and refresh tokens are expired[0m
+Error: Refresh token failed
+    at AuthTokenRefresh.<anonymous> [90m(/tmp/us1-target/hackathon-starter/[39mtest/passport.test.js:328:18[90m)[39m
+    at Object.invoke [90m(/tmp/us1-target/hackathon-starter/[39mnode_modules/[4msinon[24m/lib/sinon/behavior.js:182:32[90m)[39m
+    at AuthTokenRefresh.functionStub [90m(/tmp/us1-target/hackathon-starter/[39mnode_modules/[4msinon[24m/lib/sinon/stub.js:61:43[90m)[39m
+    at Function.invoke [90m(/tmp/us1-target/hackathon-starter/[39mnode_modules/[4msinon[24m/lib/sinon/proxy-invoke.js:77:47[90m)[39m
+    at AuthTokenRefresh.requestNewAccessToken [90m(/tmp/us1-target/hackathon-starter/[39mnode_modules/[4msinon[24m/lib/sinon/proxy.js:289:26[90m)[39m
+    at newTokens [90m(/tmp/us1-target/hackathon-starter/[39mconfig/passport.js:936:21[90m)[39m
+    at new Promise (<anonymous>)
+    at exports.isAuthorized [90m(/tmp/us1-target/hackathon-starter/[39mconfig/passport.js:935:35[90m)[39m
+    at Context.<anonymous> [90m(/tmp/us1-target/hackathon-starter/[39mtest/passport.test.js:338:7[90m)[39m
+    at callFnAsync [90m(file:///tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runnable.js:390:23[90m)[39m
+    at Test.run [90m(file:///tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runnable.js:332:9[90m)[39m
+    at Runner.runTest [90m(/tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runner.cjs:809:10[90m)[39m
+    at [90m/tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runner.cjs:959:12
+    at next [90m(/tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runner.cjs:724:14[90m)[39m
+    at [90m/tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runner.cjs:734:7
+    at next [90m(/tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runner.cjs:595:14[90m)[39m
+    at cbHookRun [90m(/tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runner.cjs:682:7[90m)[39m
+    at done [90m(file:///tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runnable.js:304:7[90m)[39m
+    at [90mfile:///tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runnable.js:412:9
+    at Context.<anonymous> [90m(/tmp/us1-target/hackathon-starter/[39mtest/passport.test.js:204:7[90m)[39m
+    at callFnAsync [90m(file:///tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runnable.js:390:23[90m)[39m
+    at Hook.run [90m(file:///tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runnable.js:332:9[90m)[39m
+    at next [90m(/tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runner.cjs:619:10[90m)[39m
+    at Immediate.<anonymous> [90m(/tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runner.cjs:702:5[90m)[39m
+[90m    at process.processImmediate (node:internal/timers:483:21)[39m
+    [32m  [32m✔[39m[0m[90m Scenario 7: should redirect to auth provider to get new tokens when refresh token exists but refresh attempt fails[0m
+[0m    _saveOAuth2UserTokens Tests:[0m
+    [32m  [32m✔[39m[0m[90m Scenario 1: should add new tokens when user has no tokens for provider[0m
+    [32m  [32m✔[39m[0m[90m Scenario 2: should update existing access token for provider[0m
+    [32m  [32m✔[39m[0m[90m Scenario 3: should handle refresh token when provided[0m
+    [32m  [32m✔[39m[0m[90m Scenario 4: should not remove existing refresh token if one has not been provided and we have an existing refresh token[0m
+    [32m  [32m✔[39m[0m[90m Scenario 5: should correctly convert expiration times from seconds[0m
+    [32m  [32m✔[39m[0m[90m Scenario 6a: should handle access token without expiration[0m
+    [32m  [32m✔[39m[0m[90m Scenario 6b: should handle refresh token without expiration[0m
+    [32m  [32m✔[39m[0m[90m Scenario 7a: should clear access token expiration when updating with a new access token that has no expiration[0m
+    [32m  [32m✔[39m[0m[90m Scenario 7b: should clear refresh token expiration when updating with a new refresh token that has no expiration[0m
+    [32m  [32m✔[39m[0m[90m Scenario 8: should correctly associate provider account ID with token if a provider account ID is provided[0m
+    [32m  [32m✔[39m[0m[90m Scenario 9: should correctly save token to the right user[0m
+    [32m  [32m✔[39m[0m[90m Scenario 10: should preserve other provider tokens when updating[0m
+    [32m  [32m✔[39m[0m[90m Scenario 11: should maintain token data structure consistency[0m
+    [32m  [32m✔[39m[0m[90m Scenario 12: should handle new unsaved user (when creating a new user instead of linking a provider to an existing user)[0m
+[0m    handleAuthLogin Tests[0m
+    [32m  [32m✔[39m[0m[90m Scenario 1: Link flow - successful provider link[0m
+    [32m  [32m✔[39m[0m[90m Scenario 2: Link flow - provider collision[0m
+    [32m  [32m✔[39m[0m[90m Scenario 3: Login flow - returning user by provider ID[0m
+    [32m  [32m✔[39m[0m[90m Scenario 4: Login flow - email collision[0m
+    [32m  [32m✔[39m[0m[90m Scenario 5: Login flow - new user creation[0m
+    [32m  [32m✔[39m[0m[90m Scenario 6: Email normalization[0m
+    [32m  [32m✔[39m[0m[90m Scenario 7: providerProfile.email undefined AND sessionAlreadyLoggedIn = false (should throw EMAIL_REQUIRED)[0m
+    [32m  [32m✔[39m[0m[90m Scenario 8: providerProfile.email undefined AND sessionAlreadyLoggedIn = true (should succeed)[0m
+    [32m  [32m✔[39m[0m[90m Scenario 9: Link flow - legacy upgrade (no pictures map)[0m
+    [32m  [32m✔[39m[0m[90m Scenario 10: Link flow - legacy upgrade (missing pictureSource)[0m
+    [32m  [32m✔[39m[0m[90m Scenario 11: Link flow - gravatar upgraded to provider[0m
+    [32m  [32m✔[39m[0m[90m Scenario 12: Link flow - preserve non-gravatar primary picture[0m
+    [32m  [32m✔[39m[0m[90m Scenario 13: Link flow - relink same provider updates picture entry[0m
+
+[0m  Session Model[0m
+  [32m  [32m✔[39m[0m[90m treats invalid userId as a no-op[0m
+  [32m  [32m✔[39m[0m[90m builds a regex that matches the exact quoted ObjectId string[0m
+
+[0m  Token Revocation[0m
+[0m    providerRevocationConfig structure[0m
+    [32m  [32m✔[39m[0m[90m every entry should have revokeURL and authMethod[0m
+[0m    revokeProviderTokens[0m
+    [32m  [32m✔[39m[0m[90m should be a no-op for providers not in the registry[0m
+    [32m  [32m✔[39m[0m[90m should be a no-op when tokenData is null or undefined[0m
+    [32m  [32m✔[39m[0m[90m should revoke only the access token when no refresh token exists[0m
+    [32m  [32m✔[39m[0m[90m should revoke both refresh and access tokens when both exist[0m
+    [32m  [32m✔[39m[0m[90m should POST to the configured revokeURL[0m
+    [32m  [32m✔[39m[0m[90m basic: should use HTTP Basic auth header and not put credentials in body[0m
+    [32m  [32m✔[39m[0m[90m body: should include client_id, client_secret, and token_type_hint in form body[0m
+    [32m  [32m✔[39m[0m[90m token_only: should send only the token in form body[0m
+    [32m  [32m✔[39m[0m[90m client_id_only: should include client_id but not client_secret[0m
+    [32m  [32m✔[39m[0m[90m json_body: should send JSON with token and client credentials[0m
+    [32m  [32m✔[39m[0m[90m trakt: should send JSON body with trakt-api-key and trakt-api-version headers[0m
+    [32m  [32m✔[39m[0m[90m facebook: should send DELETE with access_token as query param[0m
+    [32m  [32m✔[39m[0m[90m github: should send DELETE with Basic auth and JSON body containing access_token[0m
+    [32m  [32m✔[39m[0m[90m oauth1: should send POST with OAuth Authorization header[0m
+Token revocation: https://test.example.com/revoke/token_only responded with HTTP 503
+    [32m  [32m✔[39m[0m[90m should not throw when server returns a non-200 status[0m
+Token revocation: request to https://test.example.com/revoke/token_only failed — ECONNREFUSED
+    [32m  [32m✔[39m[0m[90m should not throw on network errors[0m
+Token revocation: skipping basic — missing config: clientId, clientSecret
+    [32m  [32m✔[39m[0m[90m should skip revocation when required config fields are missing[0m
+    [32m  [32m✔[39m[0m[90m should pass an AbortController signal to fetch[0m
+[0m    revokeAllProviderTokens[0m
+    [32m  [32m✔[39m[0m[90m should be a no-op when tokens is empty, null, or undefined[0m
+    [32m  [32m✔[39m[0m[90m should skip providers not in the registry[0m
+    [32m  [32m✔[39m[0m[90m should revoke tokens for multiple providers[0m
+Token revocation: request to https://test.example.com/revoke/token_only failed — network down
+    [32m  [32m✔[39m[0m[90m should continue revoking other providers if one fails[0m
+
+[0m  User Controller[0m
+[0m    qr package API contract[0m
+    [32m  [32m✔[39m[0m[90m should export a callable default function[0m
+    [32m  [32m✔[39m[0m[90m should generate a non-empty SVG string for a TOTP URI[0m
+[0m    getTotpSetup[0m
+    [32m  [32m✔[39m[0m[90m should render totp-setup with a valid SVG data URI as qrImage[0m
+    [32m  [32m✔[39m[0m[90m should store the TOTP secret in the session[0m
+    [32m  [32m✔[39m[0m[90m should redirect to /account if user has no password[0m
+    [32m  [32m✔[39m[0m[90m should redirect to /account if email is not verified[0m
+[0m    postLogin[0m
+    [32m  [32m✔[39m[0m[90m should flash error and redirect /login for invalid email[0m
+    [32m  [32m✔[39m[0m[90m should flash error and redirect /login when password is blank[0m
+    [32m  [32m✔[39m[0m[90m should send email link and redirect /login for email-link login when user exists[0m
+Login by email link: User not found
+    [32m  [32m✔[39m[0m[90m should redirect /login with generic info flash when email-link user not found (anti-enumeration)[0m
+    [32m  [32m✔[39m[0m[90m should redirect to /login/2fa/totp when user has totp method enabled[0m
+    [32m  [32m✔[39m[0m[90m should redirect to /login/2fa when user has email 2FA enabled[0m
+    [32m  [32m✔[39m[0m[90m should log in and redirect to / when passport authentication succeeds without 2FA[0m
+    [32m  [32m✔[39m[0m[90m should flash errors and redirect /login when passport returns no user[0m
+[0m    postSignup[0m
+    [32m  [32m✔[39m[0m[90m should flash error and redirect /signup for invalid email[0m
+    [32m  [32m✔[39m[0m[90m should flash error and redirect /signup when password is too short[0m
+    [32m  [32m✔[39m[0m[90m should flash error and redirect /signup when passwords do not match[0m
+    [32m  [32m✔[39m[0m[90m should flash error for disposable email addresses[0m
+    [32m  [32m✔[39m[0m[90m should send login link and redirect /login when email already exists (anti-enumeration)[0m
+    [32m  [32m✔[39m[0m[90m should create user, send passwordless link, and redirect / for passwordless signup[0m
+    [32m  [32m✔[39m[0m[90m should create user and log in for regular signup[0m
+[0m    postUpdateProfile[0m
+    [32m  [32m✔[39m[0m[90m should flash error and redirect /account for invalid email[0m
+    [32m  [32m✔[39m[0m[90m should block email change when email 2FA is the only method[0m
+    [32m  [32m✔[39m[0m[90m should allow email change when TOTP is also enabled alongside email 2FA[0m
+    [32m  [32m✔[39m[0m[90m should update profile fields successfully[0m
+    [32m  [32m✔[39m[0m[90m should reject invalid picture source[0m
+    [32m  [32m✔[39m[0m[90m should update picture source when valid source provided[0m
+Duplicate email address when trying to update the profile email.
+    [32m  [32m✔[39m[0m[90m should flash generic error on duplicate email (err.code 11000)[0m
+[0m    postUpdatePassword[0m
+    [32m  [32m✔[39m[0m[90m should flash error when password is too short[0m
+    [32m  [32m✔[39m[0m[90m should flash error when passwords do not match[0m
+    [32m  [32m✔[39m[0m[90m should save new password and redirect /account on success[0m
+[0m    postDeleteAccount[0m
+    [32m  [32m✔[39m[0m[90m should revoke tokens, delete AI data, delete user, and redirect /[0m
+    [32m  [32m✔[39m[0m[90m should call next(err) if an unexpected error occurs[0m
+[0m    getOauthUnlink[0m
+    [32m  [32m✔[39m[0m[90m should unlink provider, revoke token, and redirect /account[0m
+    [32m  [32m✔[39m[0m[90m should block unlink when it would remove the last login method[0m
+    [32m  [32m✔[39m[0m[90m should fall back to gravatar picture when unlinked provider was active picture source[0m
+    [32m  [32m✔[39m[0m[90m should clear picture source when no fallback picture exists[0m
+[0m    getLoginByEmail[0m
+    [32m  [32m✔[39m[0m[90m should flash error and redirect /login for non-hex token[0m
+    [32m  [32m✔[39m[0m[90m should flash error and redirect /login when token not found or invalid[0m
+    [32m  [32m✔[39m[0m[90m should mark emailVerified, log in, and redirect on success[0m
+    [32m  [32m✔[39m[0m[90m should redirect to returnTo URL if set in session[0m
+    [32m  [32m✔[39m[0m[90m should redirect to / if already authenticated[0m
+    [32m  [32m✔[39m[0m[90m should invalidate the login token on success so the link is single-use[0m
+[0m    getReset[0m
+    [32m  [32m✔[39m[0m[90m should redirect / when user is already authenticated[0m
+    [32m  [32m✔[39m[0m[90m should flash error and redirect /forgot for non-hex token[0m
+    [32m  [32m✔[39m[0m[90m should flash error and redirect /forgot when token is invalid[0m
+    [32m  [32m✔[39m[0m[90m should render reset page for valid token[0m
+[0m    postReset[0m
+    [32m  [32m✔[39m[0m[90m should flash error when password is too short[0m
+    [32m  [32m✔[39m[0m[90m should flash error when passwords do not match[0m
+    [32m  [32m✔[39m[0m[90m should flash error for non-hex token[0m
+    [32m  [32m✔[39m[0m[90m should flash error when token is invalid or expired[0m
+    [32m  [32m✔[39m[0m[90m should redirect /forgot without throwing when the token matches no user[0m
+    [32m  [32m✔[39m[0m[90m should update password, set emailVerified, send email, and redirect / on success[0m
+    [32m  [32m✔[39m[0m[90m should invalidate the reset token on success so the link is single-use[0m
+[0m    postForgot[0m
+    [32m  [32m✔[39m[0m[90m should flash error for invalid email[0m
+Forgot password: User not found
+    [32m  [32m✔[39m[0m[90m should show generic message and not send email when user not found (anti-enumeration)[0m
+    [32m  [32m✔[39m[0m[90m should generate token, save user, and send reset email for known user[0m
+[0m    postLogoutEverywhere[0m
+    [32m  [32m✔[39m[0m[90m should remove all sessions, logout, and redirect /[0m
+    [32m  [32m✔[39m[0m[90m should call next(err) when session removal fails[0m
+[0m    getTwoFactor[0m
+    [32m  [32m✔[39m[0m[90m should redirect /login when no twoFactorPendingUserId in session[0m
+    [32m  [32m✔[39m[0m[90m should generate new code when no valid code exists, send email, and render page[0m
+    [32m  [32m✔[39m[0m[90m should reuse existing valid code without sending another email[0m
+    [32m  [32m✔[39m[0m[90m should redirect to /login/2fa/totp if user does not have email in twoFactorMethods[0m
+[0m    postTwoFactor[0m
+    [32m  [32m✔[39m[0m[90m should flash error and redirect /login/2fa for non-numeric code[0m
+    [32m  [32m✔[39m[0m[90m should flash error and redirect /login/2fa for code that is not 6 digits[0m
+    [32m  [32m✔[39m[0m[90m should flash error and redirect /login when session expired[0m
+    [32m  [32m✔[39m[0m[90m should flash error and redirect /login/2fa for invalid code[0m
+    [32m  [32m✔[39m[0m[90m should clear code, log in, and redirect to / on valid code[0m
+[0m    resendTwoFactorCode[0m
+    [32m  [32m✔[39m[0m[90m should flash error and redirect /login when session has no pending user[0m
+    [32m  [32m✔[39m[0m[90m should generate new code when no valid code exists and send email[0m
+    [32m  [32m✔[39m[0m[90m should reuse existing valid code and resend it with appropriate message[0m
+    [32m  [32m✔[39m[0m[90m should redirect to /login/2fa/totp if email 2FA not in user methods[0m
+[0m    postEnable2FA[0m
+    [32m  [32m✔[39m[0m[90m should flash error when user has no password[0m
+    [32m  [32m✔[39m[0m[90m should flash error when email is not verified[0m
+    [32m  [32m✔[39m[0m[90m should enable 2FA and add email method on success[0m
+    [32m  [32m✔[39m[0m[90m should not add duplicate email method if already present[0m
+[0m    postRemoveTotp[0m
+    [32m  [32m✔[39m[0m[90m should remove totpSecret and totp from methods[0m
+    [32m  [32m✔[39m[0m[90m should disable 2FA entirely when totp was the only method[0m
+[0m    postRemoveEmail2FA[0m
+    [32m  [32m✔[39m[0m[90m should remove email from twoFactorMethods and call clearTwoFactorCode[0m
+    [32m  [32m✔[39m[0m[90m should disable 2FA entirely when email was the only method[0m
+[0m    postTotpSetup[0m
+    [32m  [32m✔[39m[0m[90m should flash error when code is not 6 numeric digits[0m
+    [32m  [32m✔[39m[0m[90m should flash error and redirect /account when session totpSecret is missing[0m
+    [32m  [32m✔[39m[0m[90m should flash error and redirect /account/2fa/totp/setup for invalid TOTP code[0m
+    [32m  [32m✔[39m[0m[90m should enable TOTP and redirect /account on valid code[0m
+[0m    getTotpVerify[0m
+    [32m  [32m✔[39m[0m[90m should redirect /login when no pending 2FA session[0m
+    [32m  [32m✔[39m[0m[90m should render two-factor page when TOTP is configured[0m
+    [32m  [32m✔[39m[0m[90m should flash error and redirect /login when user has no totpSecret[0m
+[0m    postTotpVerify[0m
+    [32m  [32m✔[39m[0m[90m should flash error and redirect /login/2fa/totp for non-numeric code[0m
+    [32m  [32m✔[39m[0m[90m should flash error for invalid TOTP code[0m
+    [32m  [32m✔[39m[0m[90m should log in and redirect / on valid TOTP code[0m
+[0m    getVerifyEmail[0m
+    [32m  [32m✔[39m[0m[90m should flash info and redirect /account if already verified[0m
+    [32m  [32m✔[39m[0m[90m should flash error for disposable email[0m
+    [32m  [32m✔[39m[0m[90m should generate token, save user, and send verification email[0m
+[0m    getVerifyEmailToken[0m
+    [32m  [32m✔[39m[0m[90m should flash info and redirect /account if already verified[0m
+    [32m  [32m✔[39m[0m[90m should flash error for invalid token format[0m
+    [32m  [32m✔[39m[0m[90m should flash error when token does not match[0m
+    [32m  [32m✔[39m[0m[90m should set emailVerified, save, and redirect /account on valid token[0m
+    [32m  [32m✔[39m[0m[90m should invalidate the verification token on success so the link is single-use[0m
+
+[0m  WebAuthn Controller[0m
+[0m    Controller Unit Tests[0m
+[0m      postRegisterStart[0m
+      [32m  [32m✔[39m[0m[90m Scenario 1: Generates webauthnUserID when missing[0m
+      [32m  [32m✔[39m[0m[90m Scenario 2: Does not regenerate webauthnUserID if already present[0m
+      [32m  [32m✔[39m[0m[90m Scenario 3: Passes existing credentials to excludeCredentials[0m
+      [32m  [32m✔[39m[0m[90m Scenario 4: Stores challenge and renders registration page[0m
+Error in postRegisterStart: Error: WebAuthn error
+    at Context.<anonymous> [90m(/tmp/us1-target/hackathon-starter/[39mtest/webauthn.test.js:170:49[90m)[39m
+    at callFnAsync [90m(file:///tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runnable.js:390:23[90m)[39m
+    at Test.run [90m(file:///tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runnable.js:332:9[90m)[39m
+    at Runner.runTest [90m(/tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runner.cjs:809:10[90m)[39m
+    at [90m/tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runner.cjs:959:12
+    at next [90m(/tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runner.cjs:724:14[90m)[39m
+    at [90m/tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runner.cjs:734:7
+    at next [90m(/tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runner.cjs:595:14[90m)[39m
+    at cbHookRun [90m(/tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runner.cjs:682:7[90m)[39m
+    at done [90m(file:///tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runnable.js:304:7[90m)[39m
+    at callFn [90m(file:///tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runnable.js:385:9[90m)[39m
+    at Hook.run [90m(file:///tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runnable.js:348:7[90m)[39m
+    at next [90m(/tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runner.cjs:619:10[90m)[39m
+    at Immediate.<anonymous> [90m(/tmp/us1-target/hackathon-starter/[39mnode_modules/[4mmocha[24m/lib/runner.cjs:702:5[90m)[39m
+[90m    at process.processImmediate (node:internal/timers:483:21)[39m
+      [32m  [32m✔[39m[0m[90m Scenario 5: Error handling redirects to /account[0m
+      [32m  [32m✔[39m[0m[90m Scenario 6: Rejects registration start when email is not verified[0m
+[0m      postRegisterVerify[0m
+      [32m  [32m✔[39m[0m[90m Scenario 1: Missing credential or challenge[0m
+      [32m  [32m✔[39m[0m[90m Scenario 4: Successful registration[0m
+      [32m  [32m✔[39m[0m[90m Scenario 5: Rejects duplicate credentialId on same user[0m
+      [32m  [32m✔[39m[0m[90m Scenario 6: Handles Mongo E11000 duplicate key error[0m
+      [32m  [32m✔[39m[0m[90m Scenario 7: Rejects registration verify when email is not verified[0m
+[0m      postLoginStart[0m
+      [32m  [32m✔[39m[0m[90m Scenario 1: Sets email scoping when enabled[0m
+      [32m  [32m✔[39m[0m[90m Scenario 2: Generates challenge and renders login page[0m
+[0m      postLoginVerify[0m
+      [32m  [32m✔[39m[0m[90m Scenario 1: Missing credential or challenge[0m
+      [32m  [32m✔[39m[0m[90m Scenario 5: Successful login[0m
+[0m      postRemove[0m
+      [32m  [32m✔[39m[0m[90m Scenario 1: Clears credentials and userID[0m
+
+[0m  WebAuthn Contract Tests (Real @simplewebauthn/server)[0m
+[0m    Registration Options Generation[0m
+    [32m  [32m✔[39m[0m[90m generates valid registration options[0m
+    [32m  [32m✔[39m[0m[90m handles excludeCredentials correctly[0m
+[0m    Authentication Options Generation[0m
+    [32m  [32m✔[39m[0m[90m generates valid authentication options[0m
+    [32m  [32m✔[39m[0m[90m handles empty allowCredentials[0m
+
+
+[92m [0m[32m 328 passing[0m[90m (9s)[0m
+
+-------------------------------|---------|----------|---------|---------|---------------------------
+File                           | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s         
+-------------------------------|---------|----------|---------|---------|---------------------------
+[33;1mAll files                     [0m | [33;1m  54.16[0m | [32;1m   80.99[0m | [31;1m  48.25[0m | [33;1m  54.16[0m | [31;1m                         [0m 
+[32;1m hackathon-starter            [0m | [32;1m  88.12[0m | [31;1m   48.71[0m | [33;1m  66.66[0m | [32;1m  88.12[0m | [31;1m                         [0m 
+[32;1m  app.js                      [0m | [32;1m  88.12[0m | [31;1m   48.71[0m | [33;1m  66.66[0m | [32;1m  88.12[0m | [31;1m...35-436,449-454,456-457[0m 
+[33;1m hackathon-starter/config     [0m | [33;1m  71.52[0m | [32;1m   89.83[0m | [32;1m   91.3[0m | [33;1m  71.52[0m | [31;1m                         [0m 
+[32;1m  cacheBust.js                [0m | [32;1m    100[0m | [32;1m     100[0m | [32;1m    100[0m | [32;1m    100[0m | [33;1m                         [0m 
+[32;1m  flash.js                    [0m | [32;1m    100[0m | [33;1m   76.19[0m | [32;1m    100[0m | [32;1m    100[0m | [33;1m7,20,35-36               [0m 
+[32;1m  morgan.js                   [0m | [32;1m  96.24[0m | [32;1m   82.92[0m | [32;1m    100[0m | [32;1m  96.24[0m | [31;1m50-51,66-67,76           [0m 
+[32;1m  nodemailer.js               [0m | [32;1m    100[0m | [32;1m     100[0m | [32;1m    100[0m | [32;1m    100[0m | [33;1m                         [0m 
+[33;1m  passport.js                 [0m | [33;1m  60.33[0m | [32;1m   94.59[0m | [33;1m  71.42[0m | [33;1m  60.33[0m | [31;1m...12-718,738-777,798-832[0m 
+[32;1m  token-revocation.js         [0m | [32;1m  98.65[0m | [32;1m   91.66[0m | [32;1m    100[0m | [32;1m  98.65[0m | [31;1m115-116                  [0m 
+[31;1m hackathon-starter/controllers[0m | [31;1m  43.04[0m | [33;1m   76.64[0m | [31;1m  33.07[0m | [31;1m  43.04[0m | [31;1m                         [0m 
+[31;1m  ai-agent.js                 [0m | [31;1m   33.8[0m | [33;1m   66.66[0m | [31;1m   5.88[0m | [31;1m   33.8[0m | [31;1m...75-593,608-631,645-707[0m 
+[31;1m  ai.js                       [0m | [31;1m  25.14[0m | [32;1m     100[0m | [31;1m      0[0m | [31;1m  25.14[0m | [31;1m...95-814,822-828,840-874[0m 
+[31;1m  api.js                      [0m | [31;1m  14.31[0m | [32;1m     100[0m | [31;1m      0[0m | [31;1m  14.31[0m | [31;1m...73,1583-1699,1703-1738[0m 
+[32;1m  contact.js                  [0m | [32;1m  90.59[0m | [33;1m   66.66[0m | [32;1m    100[0m | [32;1m  90.59[0m | [31;1m...62,70-72,86-88,115-116[0m 
+[32;1m  home.js                     [0m | [32;1m    100[0m | [32;1m     100[0m | [32;1m    100[0m | [32;1m    100[0m | [33;1m                         [0m 
+[32;1m  user.js                     [0m | [32;1m  92.28[0m | [33;1m    78.8[0m | [32;1m  96.77[0m | [32;1m  92.28[0m | [31;1m...99,1118-1119,1138-1139[0m 
+[32;1m  webauthn.js                 [0m | [32;1m   83.6[0m | [33;1m   69.64[0m | [32;1m    100[0m | [32;1m   83.6[0m | [31;1m...17-218,222-226,240-243[0m 
+[32;1m hackathon-starter/models     [0m | [32;1m  98.14[0m | [32;1m   96.96[0m | [32;1m  94.73[0m | [32;1m  98.14[0m | [31;1m                         [0m 
+[32;1m  Session.js                  [0m | [32;1m    100[0m | [32;1m     100[0m | [32;1m    100[0m | [32;1m    100[0m | [33;1m                         [0m 
+[32;1m  User.js                     [0m | [32;1m  97.91[0m | [32;1m   96.82[0m | [32;1m  94.44[0m | [32;1m  97.91[0m | [31;1m208,242-244,264-265      [0m 
+-------------------------------|---------|----------|---------|---------|---------------------------
