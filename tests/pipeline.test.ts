@@ -19,7 +19,9 @@ test('happy path: migrates the fixture and opens a non-draft PR with passing tes
   assert.strictEqual(r.matches.length, 1, 'should match exactly one usage');
   assert.strictEqual(r.verify?.passed, true, 'the fixture tests should pass after migration');
   assert.strictEqual(r.draft, false, 'a passing fix opens a real PR, not a draft');
-  assert.ok(fs.existsSync(r.prPath!), 'PR.md should exist');
+  // Artifacts are named after the branch/change id (`apidrift-<change-id>.md`),
+  // not a fixed `PR.md` — see src/githost/local.ts's `publish()`.
+  assert.ok(fs.existsSync(r.prPath!), 'the PR body artifact (apidrift-<change-id>.md) should exist');
 });
 
 test('the moat: a fix that breaks tests opens a DRAFT and does not claim success', async () => {

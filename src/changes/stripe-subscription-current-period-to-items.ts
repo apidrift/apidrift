@@ -1,6 +1,7 @@
-import { Node } from 'ts-morph';
+import { Node, SyntaxKind } from 'ts-morph';
 import type { Identifier, Project } from 'ts-morph';
 import type { Change, Codemod, Match } from '../types.js';
+import { rootIsNotProvablyForeign } from '../matcher/symbol.js';
 
 /**
  * Stripe moved a Subscription's billing period onto its items.
@@ -119,6 +120,39 @@ function bindingIdentifierOf(call: Node): Identifier | undefined {
 }
 
 /**
+ * Is `node` a `<root>.subscriptions.<retrieve|create|update>(...)` call whose
+ * root is not provably some other, concrete thing?
+ *
+ * US-5 AC3: the two segments below (`subscriptions`, the method name) alone
+ * let `db.subscriptions.retrieve(id)` false-positive — `db` was never
+ * checked. `rootIsNotProvablyForeign` adds that check, reusing the same
+ * root-resolution primitive US-2's generic matcher uses.
+ *
+ * Also used (AC2, below) to decide whether a REASSIGNMENT of a tracked
+ * binding still points at a subscriptions call, not just the original
+ * anchor — same shape, same rule, called from two places.
+ */
+function isSubscriptionReturningCall(node: Node): boolean {
+  if (!Node.isCallExpression(node)) return false;
+
+  const callee = node.getExpression(); // e.g. stripe.subscriptions.retrieve
+  if (!Node.isPropertyAccessExpression(callee)) return false;
+  if (!SUBSCRIPTION_RETURNING_METHODS.includes(callee.getName())) return false;
+
+  const receiver = callee.getExpression(); // e.g. stripe.subscriptions
+  if (!Node.isPropertyAccessExpression(receiver)) return false;
+  if (receiver.getName() !== 'subscriptions') return false;
+
+  const root = receiver.getExpression(); // e.g. `stripe` in stripe.subscriptions.retrieve
+  return rootIsNotProvablyForeign(root, change.vendor);
+}
+
+/** Unwraps `await x` to `x`; returns `node` unchanged otherwise. */
+function unwrapAwait(node: Node): Node {
+  return Node.isAwaitExpression(node) ? node.getExpression() : node;
+}
+
+/**
  * Matches reads of `current_period_start` / `current_period_end` on a value
  * that provably came from a `<x>.subscriptions.<retrieve|create|update>(...)`
  * call.
@@ -129,6 +163,21 @@ function bindingIdentifierOf(call: Node): Identifier | undefined {
  * doesn't either. References are resolved through the language service
  * (`findReferencesAsNodes`), so no type declarations / `node_modules` are
  * required.
+ *
+ * ## AC2 — a reassigned binding stops tracking
+ * `findReferencesAsNodes()` returns every reference to the binding's symbol,
+ * including ones written AFTER the binding was reassigned to something else
+ * entirely (`sub = await stripe.invoices.retrieve(b)`), which would otherwise
+ * be rewritten as if it still held the original subscription. Before matching
+ * a read, this walks the binding's own reassignments (`sub = <expr>`, i.e. an
+ * assignment whose LEFT is a reference to the binding) in source order and
+ * asks the CLOSEST one that precedes the read whether its new value is
+ * itself a subscriptions-returning call (`isSubscriptionReturningCall`,
+ * unwrapping `await`). A reassignment to something else cuts tracking off for
+ * every read that follows it; a reassignment to ANOTHER subscriptions call
+ * keeps it going (the anchor loop below independently discovers only
+ * `const`/`let`-declared anchors — see `bindingIdentifierOf` — a plain
+ * reassignment is picked up here, not there).
  */
 function find(project: Project): Match[] {
   const matches: Match[] = [];
@@ -136,26 +185,44 @@ function find(project: Project): Match[] {
 
   for (const sourceFile of project.getSourceFiles()) {
     sourceFile.forEachDescendant((node) => {
-      if (!Node.isCallExpression(node)) return;
-
-      const callee = node.getExpression(); // e.g. stripe.subscriptions.retrieve
-      if (!Node.isPropertyAccessExpression(callee)) return;
-      if (!SUBSCRIPTION_RETURNING_METHODS.includes(callee.getName())) return;
-
-      const receiver = callee.getExpression(); // e.g. stripe.subscriptions
-      if (!Node.isPropertyAccessExpression(receiver)) return;
-      if (receiver.getName() !== 'subscriptions') return;
+      if (!isSubscriptionReturningCall(node)) return;
 
       const binding = bindingIdentifierOf(node);
       if (!binding) return;
 
-      for (const reference of binding.findReferencesAsNodes()) {
+      const references = binding.findReferencesAsNodes();
+
+      // Reassignment points (`sub = <expr>`) in source order, each carrying
+      // whether the new value still traces back to a subscriptions call.
+      const reassignments: Array<{ pos: number; stillSubscription: boolean }> = [];
+      for (const reference of references) {
+        const assignment = reference.getParent();
+        if (!assignment || !Node.isBinaryExpression(assignment)) continue;
+        if (assignment.getOperatorToken().getKind() !== SyntaxKind.EqualsToken) continue;
+        if (assignment.getLeft() !== reference) continue; // must be the assignment TARGET, not its RHS
+        reassignments.push({
+          pos: reference.getStart(),
+          stillSubscription: isSubscriptionReturningCall(unwrapAwait(assignment.getRight())),
+        });
+      }
+      reassignments.sort((a, b) => a.pos - b.pos);
+
+      for (const reference of references) {
         const access = reference.getParent();
         if (!access || !Node.isPropertyAccessExpression(access)) continue;
         // The reference must be the RECEIVER of the access (`sub.x`), not the
         // property name of someone else's access (`other.sub`).
         if (access.getExpression() !== reference) continue;
         if (!MOVED_FIELDS.includes(access.getName())) continue;
+
+        // AC2: the closest PRECEDING reassignment (if any) decides whether
+        // this read still tracks a subscription — not the original binding.
+        let stillTracksSubscription = true;
+        for (const reassignment of reassignments) {
+          if (reassignment.pos > access.getStart()) break;
+          stillTracksSubscription = reassignment.stillSubscription;
+        }
+        if (!stillTracksSubscription) continue;
 
         const refFile = access.getSourceFile();
         const key = `${refFile.getFilePath()}:${access.getStart()}`;

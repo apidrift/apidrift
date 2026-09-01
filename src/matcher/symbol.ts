@@ -131,7 +131,7 @@ function resolveIdentifierToVendor(id: Identifier, moduleName: string): boolean 
  * module, or refuses. `root` is whatever `matchesSuffix` peeled the target
  * symbol's segments off of.
  */
-function resolveRootToVendor(root: Node, moduleName: string): boolean {
+export function resolveRootToVendor(root: Node, moduleName: string): boolean {
   if (Node.isIdentifier(root)) return resolveIdentifierToVendor(root, moduleName);
   if (Node.isCallExpression(root)) return isVendorFactoryCall(root, moduleName); // require('stripe')(key).x.y()
   if (Node.isNewExpression(root)) return isVendorConstructor(root, moduleName); // new Stripe(key).x.y()
@@ -139,6 +139,54 @@ function resolveRootToVendor(root: Node, moduleName: string): boolean {
     return resolveThisPropertyToVendor(root.getName(), root, moduleName);
   }
   return false; // unresolvable root: fail closed, never match "just in case"
+}
+
+/**
+ * Looser sibling of `resolveRootToVendor`, for the two HAND-WRITTEN Stripe
+ * codemods (`stripe-charges-to-intents.ts`,
+ * `stripe-subscription-current-period-to-items.ts`) — see US-5 AC3.
+ *
+ * Those two symbols are hand-picked and human-reviewed, unlike a symbol
+ * emitted by the (unreviewed) detection poller that feeds the generic matcher
+ * above. So unlike `resolveRootToVendor`, an UNRESOLVABLE root — most
+ * commonly a plain function parameter, the dependency-injection shape this
+ * project's own fixtures use to pass a (real or mocked) Stripe client around
+ * (`function chargeCustomer(stripe, ...)`) — is tolerated here, exactly as it
+ * was before this hardening. Only a root that resolves to something
+ * CONCRETELY ELSE — a `require(...)`/`new X(...)` bound to a different value,
+ * i.e. the `db.subscriptions.retrieve(id)` false-positive this function
+ * exists to close — is rejected. Reuses the exact same resolution primitive
+ * (`resolveRootToVendor`) for the "is it the vendor" question; it only
+ * changes what happens on "can't tell".
+ *
+ * Known gap, left open on purpose (same "hand-reviewed symbol" reasoning as
+ * above): a `this.<prop>` root assigned to a concrete non-vendor value (e.g.
+ * `this.db = someDbConnection`) is NOT rejected here — only the Identifier /
+ * CallExpression / NewExpression root shapes are. Out of scope for AC3's
+ * test list; would need `resolveThisPropertyToVendor` to also report
+ * "resolved to something, just not the vendor" instead of a single boolean.
+ */
+export function rootIsNotProvablyForeign(root: Node, moduleName: string): boolean {
+  if (resolveRootToVendor(root, moduleName)) return true;
+
+  // A root that is itself a concrete construction (`new X(...)`, `f(...)`)
+  // and isn't the vendor's shape is provably foreign — reject.
+  if (Node.isNewExpression(root) || Node.isCallExpression(root)) return false;
+
+  if (Node.isIdentifier(root)) {
+    const symbol = root.getSymbol();
+    if (!symbol) return true; // nothing to check against: permissive
+    for (const decl of symbol.getDeclarations()) {
+      if (!Node.isVariableDeclaration(decl)) continue; // e.g. a Parameter: untraceable here, permissive
+      const init = decl.getInitializer();
+      if (init && (Node.isNewExpression(init) || Node.isCallExpression(init))) {
+        return false; // bound to a concrete, non-vendor construction: provably foreign
+      }
+    }
+    return true; // no traceable construction: permissive
+  }
+
+  return true; // anything else (e.g. `this.prop`, see the gap noted above): permissive
 }
 
 /**

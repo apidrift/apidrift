@@ -1,6 +1,7 @@
 import { Node, SyntaxKind } from 'ts-morph';
 import type { Project } from 'ts-morph';
 import type { Change, Codemod, Match } from '../types.js';
+import { rootIsNotProvablyForeign } from '../matcher/symbol.js';
 
 /**
  * Stripe deprecated the Charges API in favor of PaymentIntents.
@@ -56,6 +57,12 @@ const change: Change = {
  * Matches call expressions shaped like `<obj>.charges.create(...)`.
  * AST-based: resolves the property-access chain instead of grepping text,
  * so it ignores comments, strings, and unrelated `.create(` calls.
+ *
+ * US-5 AC3: the two segments above (`charges`, `create`) alone let
+ * `db.charges.create(...)` false-positive — `db` was never checked. The
+ * RECEIVER'S root must additionally not be provably some other, concrete
+ * thing (see `rootIsNotProvablyForeign`, reusing the same root-resolution
+ * primitive US-2's generic matcher uses).
  */
 function find(project: Project): Match[] {
   const matches: Match[] = [];
@@ -71,6 +78,9 @@ function find(project: Project): Match[] {
       const receiver = callee.getExpression(); // e.g. stripe.charges
       if (!Node.isPropertyAccessExpression(receiver)) return;
       if (receiver.getName() !== 'charges') return;
+
+      const root = receiver.getExpression(); // e.g. `stripe` in stripe.charges.create
+      if (!rootIsNotProvablyForeign(root, change.vendor)) return;
 
       const { line } = sourceFile.getLineAndColumnAtPos(node.getStart());
       matches.push({
