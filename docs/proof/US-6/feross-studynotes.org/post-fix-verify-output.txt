@@ -1,0 +1,12 @@
+
+> studynotes@2.0.0 test
+> standard && tape test/*.js
+
+standard: Use JavaScript Standard Style (https://standardjs.com)
+standard: Run `standard --fix` to automatically fix some problems.
+  /tmp/us6-verify-studynotes/routes/order.js:9:26: Missing space before function parentheses.
+  /tmp/us6-verify-studynotes/routes/order.js:10:30: Missing space before function parentheses.
+  /tmp/us6-verify-studynotes/routes/order.js:18:29: Missing space before function parentheses.
+  /tmp/us6-verify-studynotes/routes/order.js:30:39: Missing space before function parentheses.
+  /tmp/us6-verify-studynotes/routes/order.js:40:28: Missing space before function parentheses.
+  /tmp/us6-verify-studynotes/routes/order.js:45:16: Missing space before function parentheses.

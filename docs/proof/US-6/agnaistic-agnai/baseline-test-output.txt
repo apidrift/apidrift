@@ -1,0 +1,91 @@
+
+> agnai@1.0.27 test
+> mocha --inline-diffs --exit "tests/**.spec.js"
+
+
+[0m[0m
+[0m  Chat Completion Example Dialogue::[0m
+  [32m  [32m✔[39m[0m[90m should properly convert <START> (case insensitive) and split basic messages[0m
+  [32m  [32m✔[39m[0m[90m should properly understand the first conversation even if it doesnt begin with <START>[0m
+  [32m  [32m✔[39m[0m[90m will interpret everything up to the first name+colon (or <start>) as a system message if the sampleChat string doesnt begin with a name+colon[0m
+  [32m  [32m✔[39m[0m[90m should understand when multiple <Start> are used in the sample chat and turn them all into the defined System message saying a new conversation has started[0m
+  [32m  [32m✔[39m[0m[90m should understand that strings written after <START>, up until the first name+colon, should be a system message.[0m
+  [32m  [32m✔[39m[0m[90m will trim result into budget[0m
+  [32m  [32m✔[39m[0m[90m should correctly separate out system messages it is explicitly handed, such as a post-sample marker string[0m
+  [32m  [32m✔[39m[0m[90m will parse random within depth prompt[0m
+
+[0m  Template parser tests[0m
+  [32m  [32m✔[39m[0m[90m will render a basic template[0m
+  [32m  [32m✔[39m[0m[90m will render conditional[0m
+  [32m  [32m✔[39m[0m[90m will not render missing conditional[0m
+  [32m  [32m✔[39m[0m[90m will iterate over messages[0m
+  [32m  [32m✔[39m[0m[90m will conditionally render regular chat embeds[0m
+  [32m  [32m✔[39m[0m[90m will iterate over chat embed[0m
+  [32m  [32m✔[39m[0m[90m will create a full template[0m
+  [32m  [32m✔[39m[0m[90m will handle history conditions correctly[0m
+  [32m  [32m✔[39m[0m[90m will render a random placeholder[0m
+
+[0m  Placeholder tests[0m
+  [32m  [32m✔[39m[0m[90m will not include duplicates in {{all_personalities}}[0m
+
+[0m  Prompt building[0m
+  [32m  [32m✔[39m[0m[90m will build a basic prompt[0m
+  [32m  [32m✔[39m[0m[90m will build a continue prompt[0m
+  [32m  [32m✔[39m[0m[90m will exclude sample chat when gaslight contains sample chat placeholder[0m
+  [32m  [32m✔[39m[0m[90m will include sample chat when gaslight does not contain sample chat placeholder[0m
+  [32m  [32m✔[39m[0m[90m will include two memories by weight when triggered[0m
+  [32m  [32m✔[39m[0m[90m will exclude lowest priority memory to fit in budget[0m
+  [32m  [32m✔[39m[0m[90m will order by trigger position when weight tie occurs[0m
+  [32m  [32m✔[39m[0m[90m will exclude matches that are not a whole word match[0m
+  [32m  [32m✔[39m[0m[90m will exclude memories triggered outside of memory depth[0m
+  [32m  [32m✔[39m[0m[90m will include gaslight for non-turbo adapter[0m
+  [32m  [32m✔[39m[0m[90m will include placeholders in the gaslight[0m
+  [32m  [32m✔[39m[0m[90m will not use the gaslight when set to false[0m
+  [32m  [32m✔[39m[0m[90m uses the correct replaces for all instances of {{char}}, {{user}} case insensitive[0m
+  [32m  [32m✔[39m[0m[90m will use correct placeholders in scenario and sample chat[0m
+  [32m  [32m✔[39m[0m[90m will omit sample chat when replyAs has no samplechat[0m
+  [32m  [32m✔[39m[0m[90m will include example dialogue with omitted from template (no longer true)[0m
+  [32m  [32m✔[39m[0m[90m will include ujb when omitted from gaslight[0m
+  [32m  [32m✔[39m[0m[90m will exclude scenario when empty in condition[0m
+  [32m  [32m✔[39m[0m[90m will include scenario when populated in condition[0m
+  [32m  [32m✔[39m[0m[90m will use currently speaking character book[0m
+  [32m  [32m✔[39m[0m[90m will not use other character book[0m
+  [32m  [32m✔[39m[0m[90m will put char book entries with higher weight after mem book entries[0m
+  [32m  [32m✔[39m[0m[90m will put mem book entries with higher weight after char book entries[0m
+  [32m  [32m✔[39m[0m[90m will allow using wildcards in keywords[0m
+  [32m  [32m✔[39m[0m[90m will disallow injecting arbitrary regexes[0m
+
+[0m  Resolve scenario[0m
+  [32m  [32m✔[39m[0m[90m will use main character scenario when chat does not override characters[0m
+  [32m  [32m✔[39m[0m[90m will use chat scenario when chat override is on[0m
+  [32m  [32m✔[39m[0m[90m will append additional scenarios to the main character scenario[0m
+  [32m  [32m✔[39m[0m[90m will not append additional scenarios to the overriding chat scenario[0m
+  [32m  [32m✔[39m[0m[90m will overwrite main character scenario when the additional scenario has overwrite flag[0m
+  [32m  [32m✔[39m[0m[90m will not overwrite chat scenario when override is on and the additional scenario has overwrite flag[0m
+
+[0m  extractSystemPrompt[0m
+  [32m  [32m✔[39m[0m[90m Works per defined test cases[0m
+
+[0m  trimSentence[0m
+  [32m  [32m✔[39m[0m[90m should trim a sentence correctly when the sentence ends with a punctuation mark[0m
+  [32m  [32m✔[39m[0m[90m should ignore a single orphan sentence[0m
+  [32m  [32m✔[39m[0m[90m should trim a sentence correctly when the sentence contains non-Latin characters[0m
+  [32m  [32m✔[39m[0m[90m should trim a sentence correctly when the sentence contains a colon[0m
+  [32m  [32m✔[39m[0m[90m should trim a sentence to new line ignoring orphaned punctuation[0m
+  [32m  [32m✔[39m[0m[90m should trim a sentence to new line ignoring any number of orphans[0m
+  [32m  [32m✔[39m[0m[90m should ignore possessive apostrophes[0m
+  [32m  [32m✔[39m[0m[90m should ignore allowed punctuation inside words themselves[0m
+  [32m  [32m✔[39m[0m[90m should trim orphaned punctuation at the end of a sentence[0m
+  [32m  [32m✔[39m[0m[90m should trim orphaned punctuation at the end of a sentence along with incomplete sentence[0m
+  [32m  [32m✔[39m[0m[90m should trim repeated orphaned punctuation[0m
+  [32m  [32m✔[39m[0m[90m should stop at HTML tags[0m
+  [32m  [32m✔[39m[0m[90m should stop at self-closing HTML tags[0m
+  [32m  [32m✔[39m[0m[90m should stop and opening HTML tags[0m
+  [32m  [32m✔[39m[0m[90m should trim math operands[0m
+  [32m  [32m✔[39m[0m[90m should stop at HTML comments[0m
+  [32m  [32m✔[39m[0m[90m should trim incomplete HTML comments[0m
+  [32m  [32m✔[39m[0m[90m will not trim code block at end of text[0m
+
+
+[92m [0m[32m 68 passing[0m[90m (162ms)[0m
+

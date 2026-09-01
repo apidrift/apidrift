@@ -1,0 +1,9 @@
+
+> agnai@1.0.27 typecheck /tmp/us6-verify-agnai
+> tsc --version && tsc -p tsconfig.json --noEmit && tsc -p srv.tsconfig.json --noEmit
+
+Version 5.8.2
+srv/api/billing/checkout.ts(88,59): error TS2339: Property 'current_period_start' does not exist on type 'SubscriptionItem'.
+srv/api/billing/checkout.ts(89,58): error TS2339: Property 'current_period_end' does not exist on type 'SubscriptionItem'.
+srv/api/billing/modify.ts(63,50): error TS2339: Property 'current_period_end' does not exist on type 'SubscriptionItem'.
+[41m[30m ELIFECYCLE [39m[49m [31mCommand failed with exit code 2.[39m
