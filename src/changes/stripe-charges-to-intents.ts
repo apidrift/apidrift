@@ -96,6 +96,9 @@ function find(project: Project): Match[] {
  *      require a `return_url` the old Charges API call never had.
  */
 function apply(match: Match): void {
+  // `Match.node` is a generic `Node` (a codemod may match something other than
+  // a call — see src/types.ts), so narrow before using the call-only API.
+  if (!Node.isCallExpression(match.node)) return;
   const call = match.node;
   const callee = call.getExpression();
   if (!Node.isPropertyAccessExpression(callee)) return;
