@@ -1,6 +1,6 @@
 {
   "name": "@apidrift/cli",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Open tested pull requests when a third-party API you depend on changes. Detect, fix, verify against your own tests, open a PR.",
   "type": "module",
   "bin": {
