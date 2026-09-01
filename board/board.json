@@ -2599,6 +2599,333 @@
       "actor": "orchestrateur",
       "us": "US-5",
       "note": "review>done"
+    },
+    {
+      "ts": "2026-09-01T20:55:35.394Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T20:55:50.512Z",
+      "type": "move",
+      "actor": "architecte",
+      "us": "US-6",
+      "note": "ready"
+    },
+    {
+      "ts": "2026-09-01T20:55:50.556Z",
+      "type": "move",
+      "actor": "dev#1",
+      "us": "US-6",
+      "note": "ready>in_progress"
+    },
+    {
+      "ts": "2026-09-01T20:56:21.873Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T20:57:08.879Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T20:57:56.063Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T20:58:42.693Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T20:59:29.208Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T21:00:17.310Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T21:01:03.595Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T21:01:49.932Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T21:02:36.128Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T21:03:23.086Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T21:04:13.233Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T21:04:59.833Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T21:05:47.709Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T21:06:36.905Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T21:07:23.661Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T21:08:10.564Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T21:08:57.800Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T21:09:44.605Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T21:10:32.820Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T21:11:19.658Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T21:12:05.747Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T21:12:52.035Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T21:13:39.986Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T21:14:26.182Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T21:15:13.351Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T21:16:02.767Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T21:16:50.171Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T21:17:37.440Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T21:18:24.404Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T21:19:11.568Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T21:19:58.456Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T21:20:45.579Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T21:21:32.680Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T21:22:20.315Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T21:23:07.085Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T21:24:24.460Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T21:25:12.864Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T21:26:00.224Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T21:26:48.444Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T21:27:36.534Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T21:28:23.659Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T21:29:10.697Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T21:29:58.433Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T21:30:36.483Z",
+      "type": "move",
+      "actor": "dev#1",
+      "us": "US-6",
+      "note": "in_progress>review"
+    },
+    {
+      "ts": "2026-09-01T21:30:44.881Z",
+      "type": "report",
+      "actor": "dev#1",
+      "us": "US-6",
+      "payload": {
+        "us": "US-6",
+        "agent": "dev",
+        "status": "needs_review",
+        "pr": "https://github.com/apidrift/apidrift/pull/9",
+        "repos": [
+          {
+            "repo": "agnaistic/agnai@fccee00",
+            "pattern": "stripe-subscription-current-period-to-items (2nd change)",
+            "baseline": "68 passing exit 0",
+            "apres_fix": "68 passing exit 0, non-draft; typecheck NEW failure (SubscriptionItem has no current_period_*) due to pinned stripe apiVersion 2023-08-16 predating Basil",
+            "match": "checkout.ts:88-89, modify.ts:63 (3 fields / 2 files)"
+          },
+          {
+            "repo": "feross/studynotes.org@7556fd6",
+            "pattern": "stripe-charges-create-to-payment-intents (1st change)",
+            "baseline": "9/9 tape passing, standard clean",
+            "apres_fix": "draft: standard lint fails (6 errors) due to src/fixer/index.ts formatText() whole-file collateral reformat, unrelated to the actual fix",
+            "match": "routes/order.js:19"
+          }
+        ],
+        "obstacles_non_bloquants": [
+          "Pas de ANTHROPIC_API_KEY dans cet environnement: chemin --detect/tier-2 IA non exerce (candidat identifie: boxyhq/saas-starter-kit, destructuring event.data.object, hors portee du codemod deterministe par design)",
+          "2 findings generalisables documentes mais non corriges dans src/ (decision architecture requise): formatText() blast radius (src/fixer/index.ts), et absence de verification du apiVersion Stripe epingle avant application du codemod subscription"
+        ],
+        "gate_humain": [
+          "PR upstream vs preuve interne pour agnaistic/agnai (le fix casse potentiellement le typecheck/runtime pour les comptes epingles a une apiVersion pre-Basil)",
+          "PR upstream vs preuve interne pour feross/studynotes.org (licence non detectee + fix actuellement en draft)"
+        ]
+      }
+    },
+    {
+      "ts": "2026-09-01T21:30:46.789Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
     }
   ]
 }

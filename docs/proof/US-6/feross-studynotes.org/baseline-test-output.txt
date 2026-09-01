@@ -1,0 +1,26 @@
+
+> studynotes@2.0.0 test
+> standard && tape test/*.js
+
+TAP version 13
+# util.hitsPerDay
+ok 1 should be strictly equal
+# util.sanitizeHTML
+ok 2 should be strictly equal
+ok 3 should be strictly equal
+# util.randomBytes
+ok 4 default length is 20
+ok 5 explicit length
+# util.randomInt
+ok 6 should be strictly equal
+ok 7 should be truthy
+# util.addQueryParams
+ok 8 should be strictly equal
+ok 9 should be strictly equal
+
+1..9
+# tests 9
+# pass  9
+
+# ok
+

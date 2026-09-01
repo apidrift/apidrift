@@ -271,6 +271,29 @@
         "US-3"
       ],
       "assignee": "orchestrateur"
+    },
+    {
+      "id": "US-6",
+      "title": "Preuve sur 2 repos OSS reels supplementaires (DoD MVP: 3 repos)",
+      "why": "La DoD du MVP (CLAUDE.md) exige la preuve de bout en bout sur 3 repos OSS reels. US-1 en a fourni 1 (sahat/hackathon-starter, pattern charges->paymentIntents). Le 2e change Stripe (subscription current_period_*) et la detection --detect (tier 2 IA) nont jamais ete prouves sur du code reel, seulement sur la fixture acme-payments.",
+      "acceptance_criteria": [
+        "2 nouveaux repos OSS reels (distincts de sahat/hackathon-starter), JS/TS, npm test existant, portant un pattern supporte.",
+        "Priorite a la valeur de preuve: au moins un repo exercant le 2e change (subscription) et/ou --detect (tier 2 IA); a defaut, un 2e repo charges->intents reste acceptable.",
+        "Pour chaque repo: methodologie US-1 reproduite (clone, apidrift run, baseline avant, npm test du repo cible apres fix, patch + PR.md valides).",
+        "Documentation dans docs/proof/US-6/<nom-repo>/ (README, baseline-test-output.txt, post-fix-verify-output.txt, fix.patch, PR.md) meme structure que docs/proof/US-1/.",
+        "Aucune vraie PR/fork/push sur les repos upstream tiers -- preuve interne uniquement; question PR-upstream-vs-preuve-interne documentee (non tranchee) pour chaque repo.",
+        "npx tsc --noEmit et npm test verts sur apidrift lui-meme."
+      ],
+      "status": "review",
+      "priority": 5,
+      "component": "proof",
+      "epic": "EPIC-mvp-proof",
+      "dependencies": [
+        "US-1",
+        "US-2",
+        "US-3"
+      ],
+      "assignee": "dev#1"
     }
   ]
 }

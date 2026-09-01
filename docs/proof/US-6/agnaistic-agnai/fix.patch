@@ -1,0 +1,50 @@
+From 34403b40857018a5c82b4e31ee84826ecf6db8f6 Mon Sep 17 00:00:00 2001
+From: "apidrift[bot]" <bot@apidrift.dev>
+Date: Tue, 1 Sep 2026 23:16:16 +0200
+Subject: [PATCH] Read subscription billing periods off subscription items
+ (Basil 2025-03-31)
+
+---
+ srv/api/billing/checkout.ts | 6 +++---
+ srv/api/billing/modify.ts   | 2 +-
+ 2 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/srv/api/billing/checkout.ts b/srv/api/billing/checkout.ts
+index 70c9b7a..ad2423c 100644
+--- a/srv/api/billing/checkout.ts
++++ b/srv/api/billing/checkout.ts
+@@ -85,8 +85,8 @@ export const assignSubscription = handle(async ({ body, log }) => {
+     throw new StatusError('Cannot find user', 404)
+   }
+ 
+-  const lastRenewed = new Date(subscription.current_period_start * 1000).toISOString()
+-  const validUntil = new Date(subscription.current_period_end * 1000).toISOString()
++  const lastRenewed = new Date(subscription.items.data[0].current_period_start * 1000).toISOString()
++  const validUntil = new Date(subscription.items.data[0].current_period_end * 1000).toISOString()
+   const customerId = subscription.customer as string
+   const priceId = subscription.items.data[0].price.id
+   const productId = subscription.items.data[0].price.product as string
+@@ -163,7 +163,7 @@ export const finishCheckout = handle(async ({ body, userId }) => {
+           username: user?.username || '',
+         },
+       })
+-      .catch(() => {})
++      .catch(() => { })
+ 
+     const now = new Date()
+     const lastRenewed = now.toISOString()
+diff --git a/srv/api/billing/modify.ts b/srv/api/billing/modify.ts
+index 86436f6..4586f1d 100644
+--- a/srv/api/billing/modify.ts
++++ b/srv/api/billing/modify.ts
+@@ -60,7 +60,7 @@ export const modifySubscription = handle(async ({ body, userId }) => {
+       metadata: { tierId: body.tierId },
+       items: [{ id: item.id, price: tier.priceId }],
+     })
+-    const activeAt = new Date(next.current_period_end * 1000)
++    const activeAt = new Date(next.items.data[0].current_period_end * 1000)
+     await subsCmd.downgrade(userId, {
+       activeAt: activeAt.toISOString(),
+       priceId: tier.priceId,
+-- 
+2.39.5

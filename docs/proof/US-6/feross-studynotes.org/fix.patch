@@ -1,0 +1,66 @@
+From 702975e212fb3913b7f4846906e0edd8851a7c2e Mon Sep 17 00:00:00 2001
+From: "apidrift[bot]" <bot@apidrift.dev>
+Date: Tue, 1 Sep 2026 23:16:55 +0200
+Subject: [PATCH] Migrate deprecated Charges.create to PaymentIntents.create
+
+---
+ routes/order.js | 20 +++++++++++---------
+ 1 file changed, 11 insertions(+), 9 deletions(-)
+
+diff --git a/routes/order.js b/routes/order.js
+index b112488..65bacc4 100644
+--- a/routes/order.js
++++ b/routes/order.js
+@@ -6,8 +6,8 @@ const secret = require('../secret')
+ 
+ const stripe = require('stripe')(secret.stripe)
+ 
+-module.exports = function (app) {
+-  app.post('/order', function (req, res, next) {
++module.exports = function(app) {
++  app.post('/order', function(req, res, next) {
+     const product = req.body.product
+     const desc = config.product[product].desc
+     const amount = config.product[product].price
+@@ -15,17 +15,19 @@ module.exports = function (app) {
+     const referrer = req.body.referrer
+ 
+     auto({
+-      stripeCharge: function (cb) {
+-        stripe.charges.create({
++      stripeCharge: function(cb) {
++        stripe.paymentIntents.create({
+           amount: amount,
+           currency: 'usd',
+-          source: req.body.id,
++          payment_method: req.body.id,
+           description: desc + ' (' + email + ')',
+-          receipt_email: email
++          receipt_email: email,
++          confirm: true,
++          automatic_payment_methods: { enabled: true, allow_redirects: 'never' }
+         }, cb)
+       },
+ 
+-      order: ['stripeCharge', function (r, cb) {
++      order: ['stripeCharge', function(r, cb) {
+         const order = new model.Order({
+           stripeEmail: email,
+           stripeToken: req.body.id,
+@@ -35,12 +37,12 @@ module.exports = function (app) {
+           freeEssays: req.session.free,
+           stripeCharge: JSON.stringify(r.stripeCharge)
+         })
+-        order.save(function (err, order) {
++        order.save(function(err, order) {
+           cb(err, order)
+         })
+       }]
+ 
+-    }, function (err, r) {
++    }, function(err, r) {
+       if (err) {
+         if (err.type === 'StripeCardError') {
+           debug('Card declined: %s', err.message)
+-- 
+2.39.5
