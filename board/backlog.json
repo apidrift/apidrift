@@ -263,13 +263,14 @@
         "Le message dassertion tests/pipeline.test.ts:22 PR.md should exist est obsolete depuis le nommage par branche: corriger le message.",
         "npx tsc --noEmit et npm test verts"
       ],
-      "status": "backlog",
+      "status": "done",
       "priority": 4,
       "component": "changes",
       "epic": "EPIC-mvp-proof",
       "dependencies": [
         "US-3"
-      ]
+      ],
+      "assignee": "orchestrateur"
     }
   ]
 }

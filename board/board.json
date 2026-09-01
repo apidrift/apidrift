@@ -2454,6 +2454,151 @@
       "actor": "orchestrateur",
       "us": "US-2",
       "note": "review>done"
+    },
+    {
+      "ts": "2026-09-01T19:51:19.377Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T19:54:19.071Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T19:57:52.760Z",
+      "type": "gate",
+      "actor": "orchestrateur",
+      "us": "US-5",
+      "note": "AC1 (optional chaining) deja resolu par le fix merge sur PR #6 (US-3), a confirmer par QA plutot que re-implementer. Decision AC3: durcir (pas documenter), en reutilisant l'approche de resolution de racine deja prouvee dans src/matcher/symbol.ts (US-2), pour la coherence tier1/tier2."
+    },
+    {
+      "ts": "2026-09-01T19:57:52.816Z",
+      "type": "move",
+      "actor": "orchestrateur",
+      "us": "US-5",
+      "note": "ready"
+    },
+    {
+      "ts": "2026-09-01T19:57:52.870Z",
+      "type": "move",
+      "actor": "dev#5",
+      "us": "US-5",
+      "note": "ready>in_progress"
+    },
+    {
+      "ts": "2026-09-01T20:12:14.013Z",
+      "type": "report",
+      "actor": "dev",
+      "us": "US-5",
+      "payload": {
+        "pr": "https://github.com/apidrift/apidrift/pull/8",
+        "branche": "feature/US-5-soundness-codemod-subscription",
+        "tests": {
+          "passed": 77,
+          "failed": 0
+        },
+        "ac1": "deja resolu par US-3/PR#6, confirme non retouche",
+        "ac3_deviation": "reuse partiel: rootIsNotProvablyForeign (permissif si racine non resoluble, rejette seulement si racine prouvee autre chose) au lieu du fail-closed strict de src/matcher/symbol.ts, pour ne pas casser le pattern client Stripe injecte en parametre de fonction (fixtures/acme-payments)"
+      }
+    },
+    {
+      "ts": "2026-09-01T20:12:14.064Z",
+      "type": "move",
+      "actor": "dev",
+      "us": "US-5",
+      "note": "in_progress>review"
+    },
+    {
+      "ts": "2026-09-01T20:13:22.166Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T20:14:13.177Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T20:14:58.824Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T20:15:43.167Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T20:16:32.036Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T20:18:17.649Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T20:19:03.413Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T20:19:48.612Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T20:20:33.691Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T20:21:13.488Z",
+      "type": "report",
+      "actor": "qa",
+      "us": "US-5",
+      "payload": {
+        "verdict": "accepte",
+        "ac1": "confirme deja resolu par US-3, non retouche",
+        "ac2": "binding reassigne couvert par test dedie, rejoue",
+        "ac3": "cas exact de AC (db=require(other-lib)) rejete, 0 match, verifie. Trou residuel documente et accepte: parametre de fonction jamais lie a Stripe matche encore a tort (renewSubscription(db,id)) - dette explicite, coherente avec larbitrage US-2 qui reserve le fail-closed strict au matcher generique non audite",
+        "ac4": "message obsolete corrige",
+        "dod": "tsc clean, npm test 77/77, dod.sh vert, tout rejoue independamment"
+      }
+    },
+    {
+      "ts": "2026-09-01T20:21:13.539Z",
+      "type": "move",
+      "actor": "qa",
+      "us": "US-5",
+      "note": "review>review"
+    },
+    {
+      "ts": "2026-09-01T20:36:56.404Z",
+      "type": "gate",
+      "actor": "humain",
+      "us": "US-5",
+      "note": "PR #8 mergee sur main."
+    },
+    {
+      "ts": "2026-09-01T20:36:56.449Z",
+      "type": "move",
+      "actor": "orchestrateur",
+      "us": "US-5",
+      "note": "review>done"
     }
   ]
 }
