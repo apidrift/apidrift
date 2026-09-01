@@ -1,4 +1,4 @@
-import type { CallExpression, Project } from 'ts-morph';
+import type { Node, Project } from 'ts-morph';
 
 /**
  * The normalized description of one vendor API change.
@@ -23,12 +23,20 @@ export interface Change {
   confidence: 'high' | 'medium' | 'low';
 }
 
-/** One place in the codebase affected by a Change. */
+/**
+ * One place in the codebase affected by a Change.
+ *
+ * `node` is the node the codemod's `apply()` rewrites — deliberately typed as
+ * the generic `Node`, not `CallExpression`. Not every migration is anchored on
+ * a call: `stripe-subscription-current-period-to-items` matches a
+ * `PropertyAccessExpression` read off the *result* of a call. Each codemod
+ * narrows with the `Node.isX()` guards before touching it.
+ */
 export interface Match {
   filePath: string;
   line: number;
   snippet: string;
-  node: CallExpression;
+  node: Node;
 }
 
 /**
