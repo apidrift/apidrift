@@ -103,6 +103,69 @@ test('a non-awaited binding is matched too', () => {
   assert.match(migrated, /sub\.items\.data\[0\]\.current_period_end/);
 });
 
+// ── Nullability: the rewrite must not move the `?.` guard ──────────────────
+
+test('an optional read keeps its short-circuit on the original receiver', () => {
+  const migrated = migrate(`
+    async function f(stripe, id) {
+      const sub = await stripe.subscriptions.retrieve(id);
+      return sub?.current_period_end;
+    }
+  `);
+
+  // The guard stays on \`sub\`: a null \`sub\` still yields undefined, exactly as
+  // it did before the migration.
+  assert.match(migrated, /return sub\?\.items\.data\[0\]\.current_period_end;/);
+  // ...and it must NOT have migrated onto the inserted \`data[0]\`, which would
+  // turn a previously safe read into a TypeError on a null subscription.
+  assert.ok(!migrated.includes('data[0]?.'), 'the `?.` must not move onto data[0]');
+  assert.ok(!migrated.includes('sub.items'), 'the receiver must stay optional');
+});
+
+test('optional and non-optional reads coexist in one file after the rewrite', () => {
+  const migrated = migrate(`
+    async function f(stripe, id) {
+      const sub = await stripe.subscriptions.retrieve(id);
+      const start = sub.current_period_start;
+      const end = sub?.current_period_end;
+      return { start, end };
+    }
+  `);
+
+  assert.match(migrated, /const start = sub\.items\.data\[0\]\.current_period_start;/);
+  assert.match(migrated, /const end = sub\?\.items\.data\[0\]\.current_period_end;/);
+  assert.ok(!migrated.includes('data[0]?.'), 'the `?.` must not move onto data[0]');
+  assert.doesNotMatch(migrated, /sub\??\.current_period_/, 'no subscription-level read may survive');
+});
+
+test('the receiver of a match is always the binding identifier itself', () => {
+  // Guards the rule apply() relies on: the node it rewrites is
+  // `<binding><.|?.><moved field>`, so the only `?.` it can ever move is the
+  // one on the matched access. An indirect receiver (`state?.sub.…`) is not the
+  // binding identifier, so find() leaves it to the tier-2 agent.
+  const { project } = projectFrom(`
+    async function f(stripe, id) {
+      const sub = await stripe.subscriptions.retrieve(id);
+      const state = { sub };
+      return state?.sub.current_period_end;
+    }
+  `);
+
+  assert.strictEqual(codemod.find(project).length, 0, 'an indirect receiver is out of scope');
+
+  const { project: direct } = projectFrom(`
+    async function f(stripe, id) {
+      const sub = await stripe.subscriptions.retrieve(id);
+      return sub?.current_period_end;
+    }
+  `);
+  const matches = codemod.find(direct);
+  assert.strictEqual(matches.length, 1);
+  const access = matches[0].node.asKindOrThrow(SyntaxKind.PropertyAccessExpression);
+  assert.strictEqual(access.getExpression().getKind(), SyntaxKind.Identifier);
+  assert.strictEqual(access.hasQuestionDotToken(), true, 'the optional read is matched, `?.` and all');
+});
+
 test('idempotence: applying the codemod twice changes nothing the second time', () => {
   const once = migrate(LEGACY);
   const twice = migrate(once);

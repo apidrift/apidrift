@@ -178,10 +178,22 @@ function find(project: Project): Match[] {
 
 /**
  * Rewrites one matched read in place:
- *   sub.current_period_end -> sub.items.data[0].current_period_end
+ *   sub.current_period_end    ->   sub.items.data[0].current_period_end
+ *   sub?.current_period_end   ->   sub?.items.data[0].current_period_end
  *
- * Only the receiver is rewritten; the property name is untouched (the vendor
- * kept both field names, it only moved them onto the item).
+ * The property name is untouched (the vendor kept both field names, it only
+ * moved them onto the item).
+ *
+ * ## Nullability rule
+ * The `?.` guard stays on the receiver it guarded before the migration. Moving
+ * it onto the inserted segment (`sub.items.data[0]?.current_period_end`) would
+ * change the code's meaning: a null `sub` used to short-circuit to `undefined`,
+ * and would instead throw on `sub.items`. So the question dot token is read off
+ * the matched access (`hasQuestionDotToken()`, AST — never guessed from source
+ * text) and re-emitted on the receiver, and the matched access becomes a plain
+ * `.` — `sub?.items.data[0].current_period_end` still short-circuits the whole
+ * chain on a null `sub`, exactly as before. find() only ever matches
+ * `<binding><.|?.><moved field>`, so this is the one guard that can be at play.
  */
 function apply(match: Match): void {
   // `applyFix()` applies matches in sequence, and each `replaceWithText`
@@ -194,7 +206,13 @@ function apply(match: Match): void {
   if (!Node.isPropertyAccessExpression(match.node)) return;
 
   const receiver = match.node.getExpression(); // e.g. `subscription`
-  receiver.replaceWithText(`${receiver.getText()}.items.data[0]`);
+  const guard = match.node.hasQuestionDotToken() ? '?.' : '.';
+
+  // One replacement covering the whole access, so the question dot token is
+  // relocated and consumed in a single re-parse instead of two.
+  match.node.replaceWithText(
+    `${receiver.getText()}${guard}items.data[0].${match.node.getName()}`,
+  );
 }
 
 export const stripeSubscriptionPeriodToItems: Codemod = { change, find, apply };
