@@ -2926,6 +2926,33 @@
       "type": "gate",
       "actor": "dod",
       "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T21:48:59.494Z",
+      "type": "report",
+      "actor": "qa",
+      "us": "US-6",
+      "payload": {
+        "verdict": "accepte",
+        "finding_agnai": "confirme independamment, patch reproduit bit-a-bit identique, erreurs typecheck reproduites a lidentique",
+        "finding_studynotes": "confirme, cause isolee par QA elle-meme avec un patch minimal main (migration seule sans formatText) qui laisse standard/tape verts",
+        "dod": "tsc clean, npm test 77/77, dod.sh vert, diff limite a docs/proof/US-6 et board",
+        "recommandation": "accepter US-6 en letat, ouvrir 2 US de suivi immediatement: API-version-awareness du modele Change, et blast radius de formatText()"
+      }
+    },
+    {
+      "ts": "2026-09-01T21:48:59.540Z",
+      "type": "gate",
+      "actor": "humain",
+      "us": "US-6",
+      "note": "PR #9 mergee sur main. Decision upstream: preuve interne uniquement pour agnaistic/agnai et feross/studynotes.org (fix conditionnellement incorrect a runtime pour agnai selon apiVersion epinglee; licence non detectee + fix actuellement draft pour studynotes.org)."
+    },
+    {
+      "ts": "2026-09-01T21:48:59.584Z",
+      "type": "move",
+      "actor": "orchestrateur",
+      "us": "US-6",
+      "note": "review>done"
     }
   ]
 }

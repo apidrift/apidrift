@@ -284,7 +284,7 @@
         "Aucune vraie PR/fork/push sur les repos upstream tiers -- preuve interne uniquement; question PR-upstream-vs-preuve-interne documentee (non tranchee) pour chaque repo.",
         "npx tsc --noEmit et npm test verts sur apidrift lui-meme."
       ],
-      "status": "review",
+      "status": "done",
       "priority": 5,
       "component": "proof",
       "epic": "EPIC-mvp-proof",
@@ -293,7 +293,46 @@
         "US-2",
         "US-3"
       ],
-      "assignee": "dev#1"
+      "assignee": "orchestrateur"
+    },
+    {
+      "id": "US-7",
+      "title": "Le modele Change ignore la version d API vendor epinglee par la cible",
+      "why": "US-6 a prouve sur agnaistic/agnai que le codemod subscription migre du code CORRECT (pour un compte epingle sur stripe apiVersion 2023-08-16, pre-Basil) vers une forme que Stripe ne renverra jamais a ce compte -- fix silencieusement incorrect a runtime, non capte par npm test (le repo cible a un typecheck CI separe qui laurait attrape, mais apidrift ne lance que scripts.test). Ce nest pas specifique a agnai: tout Change base sur un changelog de version dAPI vendor est potentiellement inapplicable a une cible epinglee sur une version anterieure.",
+      "acceptance_criteria": [
+        "Decision de conception explicite (architecte): comment/si detecter la version dAPI Stripe epinglee par la cible avant dappliquer un Change base sur un changelog versionne (ex: new Stripe(key, {apiVersion}) ou variable denvironnement STRIPE_API_VERSION)",
+        "Si detectable et anterieure a la version du changelog source du Change: le Change nest pas applique (comportement fail-safe), avec une explication claire dans PR.md/le rapport",
+        "Si non detectable: comportement actuel documente comme limite assumee (pas de regression silencieuse dans les deux sens)",
+        "Cas de non-regression: fixtures/acme-payments et les 2 changes existants ne sont pas affectes si aucune version nest epinglee",
+        "Test dedie reproduisant le cas agnai (client Stripe avec apiVersion anterieure au changelog du Change): le Change nest plus applique, ou le rapport signale explicitement le risque",
+        "npx tsc --noEmit et npm test verts"
+      ],
+      "status": "backlog",
+      "priority": 2,
+      "component": "changes",
+      "epic": "EPIC-mvp-proof",
+      "dependencies": [
+        "US-6"
+      ]
+    },
+    {
+      "id": "US-8",
+      "title": "formatText() du fixer reformate tout le fichier touche, pas seulement la plage editee",
+      "why": "US-6 a prouve sur feross/studynotes.org quun fix Stripe par ailleurs correct fait basculer une PR en draft a cause dun effet de bord: src/fixer/index.ts appelle sf.formatText() sur le FICHIER ENTIER apres chaque codemod, reformatant des lignes jamais touchees (ex: function (x) -> function(x)) et declenchant le linter standard du repo cible. Cest une violation du principe blast radius only de CLAUDE.md: le fix touche du code hors de son perimetre reel.",
+      "acceptance_criteria": [
+        "Decision de conception explicite (architecte): formater uniquement la plage AST reellement editee (pas tout le fichier), ou une alternative documentee si ts-morph ne lexpose pas proprement",
+        "Sur le cas studynotes.org (docs/proof/US-6/feross-studynotes.org/): le patch genere ne modifie plus que la ligne du call stripe.charges.create et les cles ajoutees/renommees -- aucune ligne hors de cette zone",
+        "Regression check: les tests existants bases sur des assertions de formatage exact (si il y en a) sont mis a jour consciemment, pas casses silencieusement",
+        "Test dedie: un fichier avec un style de formatage delibere different du defaut TypeScript (ex: pas despace avant les parentheses de fonction) garde ce style sur les lignes non touchees apres un fix",
+        "npx tsc --noEmit et npm test verts"
+      ],
+      "status": "backlog",
+      "priority": 3,
+      "component": "fixer",
+      "epic": "EPIC-mvp-proof",
+      "dependencies": [
+        "US-6"
+      ]
     }
   ]
 }
