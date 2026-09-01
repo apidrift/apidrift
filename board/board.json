@@ -1803,6 +1803,326 @@
       "note": "DoD ok"
     },
     {
+      "ts": "2026-09-01T18:29:27.354Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T18:53:38.609Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T18:54:00.404Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T18:54:41.242Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T18:55:22.682Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T18:56:33.678Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T18:58:15.359Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T18:58:56.844Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T19:00:27.052Z",
+      "type": "update",
+      "actor": "architecte",
+      "us": "US-2",
+      "payload": {
+        "fields": [
+          "definition_of_ready"
+        ],
+        "before": {},
+        "after": {
+          "definition_of_ready": {
+            "cadre_par": "architecte",
+            "date": "2026-09-01",
+            "verdict": "NOT READY - le cadrage technique est complet et verifie, mais 3 arbitrages relevent du PO (voir arbitrages_po). Aucun n'est un redesign : ce sont 3 questions fermees avec une recommandation architecte. Des qu'elles sont tranchees, US-2 passe ready sans autre travail de cadrage.",
+            "faisabilite_ac3": {
+              "question": "AC3 exige qu'un Change produit dynamiquement soit executable par le pipeline SANS find()/apply() ecrits a la main pour ce change - donc un matcher generique pilote par change.target.symbol.",
+              "verdict": "FAISABLE, mais uniquement pour les changes de forme #1 (le symbole EST le noeud edite). C'est la limite AC8 etablie par US-3/PR #6 (commentaire en bas de src/changes/stripe-subscription-current-period-to-items.ts). Elle est assumee et documentee, PAS contournee.",
+              "apport_nouveau_du_cadrage": "La limite AC8 etait une observation sur le code. Elle devient ici un DISCRIMINANT MACHINE-VERIFIABLE sur la source de detection elle-meme, donc le poller peut classer tout seul ce qu'il a le droit d'emettre comme auto-executable.",
+              "discriminant": {
+                "regle": "Dans le tableau '#### Node.js' de la section '## Changes' d'une page de detail changelog, chaque cellule 'Resources or methods' contient des liens dont l'URL est /api/<resource_path>/<segment>.",
+                "forme_1_auto_executable": "Le lien pointe une METHODE (/api/subscriptions/create, /api/payment_intents/confirm...) => le change porte sur la REQUETE => le noeud affecte EST le CallExpression => find() generique pilote par target.symbol FAISABLE.",
+                "forme_2_non_auto_executable": "Le lien pointe l'objet (/api/subscriptions/object, ancre #<resource>_object-<field>) => le change porte sur la REPONSE => le noeud edite est une lecture de propriete sur le resultat d'un appel => target.symbol ne peut nommer que l'ancrage => find() generique INFAISABLE tant que src/types.ts n'a pas les deux champs manquants (separation ancrage/cible, et un op cote reponse). Detecte et rapporte, mais marque non auto-executable : ces changes exigent un codemod ecrit a la main (regle des 4 pieces).",
+                "exclusion_supplementaire": "Un lien de la forme Resource#method.chemin.imbrique ou avec [] (ex. Invoice#create_preview.schedule_details.phases[]) est exclu du auto-executable : l'edition ne porte pas sur une cle de premier niveau de l'objet d'options.",
+                "validation_sur_les_2_echantillons_existants": "La page du change US-3 (deprecate-subscription-current-period-start-and-end.md, consultee 2026-09-01) ne pointe QUE /api/subscriptions/object et /api/subscription_items/object => classee forme #2 par la regle, ce qui est coherent avec le fait qu'elle a exige ~25 lignes de find() ecrites a la main. La regle est donc verifiee sur l'echantillon qui la motive.",
+                "validation_sur_un_cas_reel_mixte": "deprecate-singular-coupon-promotion-code.md (basil 2025-03-31, consultee 2026-09-01) porte les DEUX formes dans la meme page : la ligne 'promotion_code | Removed' ne pointe que des methodes (Subscription#create, Subscription#update, Customer#create, Customer#update) => forme #1 ; la ligne 'discount | Removed' ne pointe que des objets (Invoice, Subscription) => forme #2. Le discriminant se comporte correctement a l'interieur d'une seule entree de changelog."
+              },
+              "consequence_assumee": "Le poller ne detecte de facon EXPLOITABLE (auto-executable) que les changes de forme #1. C'est une limite assumee et ecrite, pas un bug. AC3 dit deja 'au moins un changement', ce qui l'admet.",
+              "reformulation_ac3_proposee_au_po": "Au moins un changement detecte automatiquement declenche le pipeline existant sans modification manuelle du registre ni find()/apply() ecrit pour ce change. Limite assumee et documentee : seuls les changes de forme #1 (le changement porte sur la requete, donc le symbole EST le noeud affecte) sont auto-executables ; les changes de forme #2 (champ de reponse deplace) sont detectes, classes et rapportes comme necessitant un codemod ecrit a la main. Le fix d'un change auto-detecte est produit par le tier 2 (IA), gate par le verifier.",
+              "nature_de_la_reformulation": "Clarification de faisabilite, l'intention metier (prouver le push model de bout en bout sur un vrai change detecte) est intacte. Documentee ici et non imposee : acceptance_criteria n'a PAS ete edite par l'architecte."
+            },
+            "contrainte_prealable_segment_vendor": {
+              "fait_verifie_dans_le_code_2026_09_01": "Les deux find() existants n'exploitent que les 2 derniers segments de target.symbol. src/changes/stripe-charges-to-intents.ts lignes 69-73 teste callee.getName()==='create' puis receiver.getName()==='charges' et ne regarde JAMAIS receiver.getExpression(). Idem src/changes/stripe-subscription-current-period-to-items.ts lignes 143-147. Donc db.subscriptions.retrieve(id) matche. Constat QA sur US-3, deja porte par US-5 AC3.",
+              "pourquoi_c_est_mineur_aujourd_hui": "2 symboles Stripe, tous deux choisis et relus par un humain. US-5 le classe non bloquant a juste titre.",
+              "pourquoi_c_est_disqualifiant_pour_un_matcher_generique": "Le symbole ne serait plus audite par un humain : il vient d'une ligne de tableau markdown. Des symboles a nom generique (stripe.prices.create, stripe.customers.update, stripe.sessions.create, stripe.accounts.update) matcheraient db.prices.create(), redis.sessions.create(), etc. Le fichier serait ensuite confie au fixer IA avec une instruction de migration Stripe, sur du code d'un tout autre domaine. Un matcher generique qui herite du defaut est STRICTEMENT PIRE que deux find() laxistes : il l'applique a des vendors et des symboles non verifies. C'est l'inverse du principe 'blast radius only' (CLAUDE.md).",
+              "prerequis_dur": "Le find() generique DOIT resoudre le segment 1 (la racine) jusqu'au module vendor, pas se contenter du nom d'identifiant. Le nom litteral ne suffit pas : les vrais repos ecrivent stripeClient, client, this.stripe. La resolution doit etre AST/language service (definition du binding -> new Stripe(...) ou require('stripe')(...) -> import/require du module 'stripe'), sans exiger node_modules (precedent : findReferencesAsNodes fonctionne deja sans node_modules dans le codemod subscription).",
+              "regle_de_surete": "Si la racine n'est pas resoluble jusqu'au module vendor : NE PAS matcher. Echec sur, jamais de match 'au cas ou'. Un faux negatif ne coute qu'une PR non ouverte ; un faux positif fait editer du code sans rapport.",
+              "non_concu_ici": "Le COMMENT exact (quelles API ts-morph, quelles formes de binding couvertes) est du ressort du dev. Ce qui est pose ici, c'est le prerequis et la regle de surete.",
+              "conflit_de_sequencement": "US-5 AC3 porte deja explicitement cette decision ('la decision est consignee car elle conditionne US-2') mais US-5 est priorite 4, APRES US-2 (priorite 2). C'est l'arbitrage PO #3."
+            },
+            "choix_techniques": {
+              "ou_vit_le_poller": {
+                "nouveau_composant": "detection (nouveau repertoire src/detection/), ajoute a architecture/architecture.json en status planned.",
+                "decoupage": [
+                  "src/detection/stripe-changelog.ts : parsing PUR (string markdown -> Change[] + classification forme #1 / forme #2). Zero I/O, zero reseau, zero ts-morph.",
+                  "src/detection/index.ts : detectChanges({ fetcher, release }) - orchestre index puis pages de detail.",
+                  "l'acces reseau est isole derriere une interface injectable minimale (type Fetcher = (url: string) => Promise<string>), de la meme facon que Llm est injectable dans src/fixer/llm.ts."
+                ],
+                "articulation_avec_l_existant": "src/service/poller.ts est le squelette Pro dont l'etape 2 du flow documente est exactement 'diff -> Change records, ceci remplace le registre hardcode de src/changes'. Il consomme detectChanges(). Son fan-out multi-repo reste un squelette (hors scope).",
+                "seam_pipeline": "src/pipeline.ts expose deja RunOptions.codemods (ligne 21) qui permet d'injecter des codemods sans toucher au registre. FAIT VERIFIE : aucun point d'entree ne l'utilise aujourd'hui (grep sur src/cli.ts, src/runner.ts, src/service/job.ts, src/config.ts : zero occurrence) - seuls les tests s'en servent. US-2 doit cabler EXACTEMENT UN point d'entree sur ce seam.",
+                "point_d_entree_recommande": "Un flag CLI explicite et opt-in sur src/cli.ts (ex. apidrift run <repo> --detect [--release <api-version>]). Le reseau ne doit JAMAIS etre implicite dans le tier Free : sans le flag, comportement inchange (registre hardcode uniquement)."
+              },
+              "source_de_detection": {
+                "retenue": "Le changelog Stripe en variante Markdown, sans aucune cle API.",
+                "endpoints_verifies_2026_09_01": [
+                  "https://docs.stripe.com/changelog.md - index complet, HTTP 200, 204832 octets. Structure : heading '## <date>.<release>', sous-heading '### <domaine produit>', puis tableaux markdown a 4 colonnes : Title (lien vers la page de detail) | Affected Products | Breaking change? (Breaking / Non-breaking) | Category (api / stripejs / ...). 308 lignes marquees Breaking au total.",
+                  "https://docs.stripe.com/changelog/<release>/<date>/<slug>.md - page de detail, HTTP 200. Sections exploitables : '## Why is this a breaking change?', '## Impact' (prose de migration), '## Changes' avec un sous-tableau par SDK ('#### REST API', '#### Node.js', '#### Python'...). Le tableau '#### Node.js' a les colonnes Parameter(s) | Change (Removed / Added) | Resources or methods."
+                ],
+                "cle_de_parsing": "C'est le CHEMIN D'URL du lien qui est exploitable, pas le texte du lien. /api/payment_intents/create -> resource 'payment_intents', methode 'create'. Le texte du lien est specifique au SDK et instable d'une page a l'autre (PaymentIntentCreateParams, Checkout::Session::CollectedInformation, V2\\Core\\BatchJob.create().$params).",
+                "mapping_resource_vers_namespace_stripe_node": "lowerCamelCase des segments snake_case du chemin d'URL : payment_intents -> paymentIntents, subscriptions -> subscriptions, checkout/sessions -> checkout.sessions. C'est une HEURISTIQUE assumee, pas une deduction : elle doit etre couverte par une table de cas en test, et elle est une des raisons de confidence 'low'.",
+                "notion_de_diff": "Il n'y a AUCUN diff a calculer. Le changelog EST le diff, deja publie et qualifie (Breaking / Non-breaking) par le vendor. Le MVP cible une release explicite (--release), pas une detection d'incrementalite. Le snapshot des slugs deja vus (pour un vrai 'nouveau depuis le dernier poll') est HORS SCOPE.",
+                "limite_de_couverture_verifiee": "Le changelog couvre les changements de VERSION D'API, pas les depreciations produit/SDK. Le change #1 du registre (charges.create -> paymentIntents.create) N'EST PAS une entree de changelog : sa source est un guide de migration (docs.stripe.com/payments/payment-intents/migration). Consequence a assumer : le change auto-detecte d'AC3 sera un TROISIEME change, pas la redecouverte d'un des deux existants."
+              },
+              "change_minimal_produit": {
+                "granularite": "UN Change par couple (ligne du tableau Node.js x lien de methode). Une seule ligne peut donner plusieurs symboles - verifie sur deprecate-singular-coupon-promotion-code.md ou la ligne 'promotion_code | Removed' pointe 4 methodes (Subscription#create, Subscription#update, Customer#create, Customer#update). Le modele Change n'a qu'un target.symbol : le poller fan-out, il ne bricole pas un symbole multiple.",
+                "champs": {
+                  "id": "stripe-<release>-<slug>-<resource>-<method>-<param> (deterministe, stable d'un poll a l'autre, sert de nom de branche apidrift/<id>)",
+                  "vendor": "stripe",
+                  "source": "changelog",
+                  "kind": "breaking (le MVP ne retient que les lignes Breaking de l'index)",
+                  "title": "le titre de la ligne d'index, verbatim",
+                  "target": "{ type: 'symbol', symbol: 'stripe.<namespace>.<method>' } derive du chemin d'URL du lien",
+                  "migration.op": "'removed' pour une ligne Removed. AUCUNE extension de l'enum : si une ligne ne rentre dans aucune valeur existante, elle est classee non auto-executable plutot que forcee dans une etiquette fausse (stance etablie en US-3).",
+                  "migration.detail": "nom(s) du/des parametre(s) + le paragraphe '## Impact' de la page de detail cite VERBATIM. Jamais vide, jamais paraphrase (regle US-4 : source lue, jamais reformulee de memoire).",
+                  "references": "[URL de la page de detail + date de consultation, URL de l'index + date de consultation]",
+                  "confidence": "'low' - toujours. Un Change derive par machine n'est jamais 'high'. Rendu dans le corps de PR (src/pr.ts ligne 90)."
+                },
+                "contrainte_dure_sur_migration_detail": "FAIT VERIFIE : migration.detail et references[0] alimentent A LA FOIS le corps de PR (src/pr.ts lignes 91-92) ET le prompt de l'agent IA (src/fixer/agent.ts lignes 88-89). Pour un change detecte, qui n'a pas d'apply(), migration.detail est la SEULE instruction de migration que voit le fixer. Il doit etre auto-suffisant. Un detail vide produit litteralement 'Migration: undefined' dans le prompt."
+              },
+              "matcher_generique": {
+                "ou": "src/matcher/ (nouveau module, ex. src/matcher/symbol.ts). L'AST reste dans src/matcher/ - CLAUDE.md. src/detection/ ne connait pas ts-morph.",
+                "forme": "Une fabrique qui prend change.target.symbol et rend une fonction find(project) conforme a Codemod['find']. Le Change detecte est ensuite emballe en { change, find } SANS apply.",
+                "reutilisation": "Le module generique ne remplace PAS les deux find() ecrits a la main. Aucune refacto des codemods existants dans US-2 : ils restent la reference deterministe (tier 1), le generique sert le tier 2. Une eventuelle convergence se decide sur preuve, plus tard."
+              },
+              "qui_produit_le_fix": {
+                "fait": "Par construction un Change emis par le poller n'a pas de codemod deterministe. src/fixer/index.ts lignes 29-51 : pas d'apply() -> runAgent (tier 2 IA). C'est le chemin normal, pas une entorse : CLAUDE.md dit 'reach for a codemod; use the AI tier only when there isn't one'.",
+                "consequence_sur_ac3": "AC3 exige un Llm. En CI, Llm injecte (pattern deja en place et teste dans tests/ai-fixer.test.ts, qui fait deja tourner un Codemod sans apply de bout en bout). En reel, ANTHROPIC_API_KEY. Sans Llm, src/pipeline.ts lignes 103-106 skippe proprement le change - comportement acceptable, mais alors AC3 n'est pas demontre.",
+                "garde_fous_inchanges": "Le verifier reste la moat : suite rouge -> PR draft, aucun assouplissement. L'agent ne peut pas editer de test (garde-fou dans le code de l'outil, pas dans le prompt). Blast radius = les fichiers contenant des matches (src/fixer/index.ts ligne 49). Un change auto-detecte en confidence 'low' est precisement le cas ou la moat compte le plus."
+              },
+              "testabilite_et_reseau": {
+                "regle": "npm test ne doit dependre d'AUCUN reseau. Le parsing est une fonction pure sur une string markdown ; le fetch est derriere le Fetcher injectable ; les tests tournent sur des fixtures markdown commitees.",
+                "precedent": "US-4 a deja commite un extrait de source vendor : fixtures/stripe-spec/payment_intents_create.extract.json. Meme approche pour le changelog (ex. fixtures/stripe-changelog/), avec date de consultation dans le fichier ou son voisin.",
+                "cas_a_figer_en_fixture": "au minimum : une page forme #1 pure, une page forme #2 pure (deprecate-subscription-current-period-start-and-end.md), et la page mixte deprecate-singular-coupon-promotion-code.md qui exerce le discriminant dans les deux sens."
+              }
+            },
+            "hors_scope_explicite": [
+              "Multi-vendor : Stripe uniquement. Aucune abstraction Vendor, aucun registre de vendors, aucun systeme de plugin (scope guard CLAUDE.md).",
+              "oasdiff / diff de spec OpenAPI : voir arbitrage PO #2.",
+              "Scheduler cron reel, base de donnees, file d'attente, fan-out multi-repo : src/service/poller.ts reste un squelette sur ces points.",
+              "UI / dashboard / webhooks GitHub App.",
+              "Snapshot d'etat 'deja vu' entre deux polls.",
+              "Toute extension des enums de src/types.ts (migration.op, target.type) et tout ajout de champ Change - y compris la separation ancrage/cible qu'exigerait la forme #2. Stance etablie en US-3, N=2 echantillons ne suffisent pas.",
+              "Toute refacto des deux find() ecrits a la main pour les faire passer par le matcher generique.",
+              "Ecriture automatique dans src/changes/index.ts : le poller n'ecrit jamais dans le registre, il alimente run(dir, { codemods })."
+            ],
+            "arbitrages_po": [
+              {
+                "n": 1,
+                "objet": "Reformulation d'AC3 pour y inscrire la limite 'forme #1 uniquement'.",
+                "recommandation_architecte": "Confirmer la reformulation proposee dans faisabilite_ac3.reformulation_ac3_proposee_au_po. C'est une clarification de faisabilite, l'intention metier ne bouge pas. L'architecte ne l'a pas ecrite dans acceptance_criteria de sa propre autorite.",
+                "impact_si_refus": "AC3 en l'etat serait infaisable : il exigerait d'etendre le modele Change (2 champs) sur N=2 echantillons, ce que US-3 a explicitement ecarte."
+              },
+              {
+                "n": 2,
+                "objet": "Le titre d'US-2 dit 'poll oasdiff sur un changelog Stripe reel', qui melange deux sources differentes. oasdiff diffe des specs OpenAPI ; le changelog est une publication editoriale du vendor.",
+                "fait": "La spec Stripe publique (github.com/stripe/openapi, spec3.json) donne des deltas de SCHEMA, pas des instructions de migration : elle ne dit ni 'ceci est breaking', ni comment migrer. Prouver une suppression par absence dans un schema est faible et bruyant - constat deja fait en US-4, qui a du aller chercher la regle conditionnelle de return_url dans la doc et non dans la spec. Le changelog, lui, publie explicitement Removed/Added, le drapeau Breaking et un paragraphe Impact exploitable comme instruction de migration.",
+                "recommandation_architecte": "Retirer oasdiff du perimetre et du titre. Titre propose : 'Detection automatisee MVP (poll du changelog Stripe reel)'. La spec OpenAPI reste utile en CORROBORATION d'une regle (usage US-4), pas en detection. Le changement de titre releve du PO.",
+                "impact_si_refus": "Il faudrait implementer un diff de spec en plus du parsing changelog, pour une information strictement plus pauvre. Cout eleve, valeur negative."
+              },
+              {
+                "n": 3,
+                "objet": "Qui porte le durcissement du segment vendor de target.symbol (contrainte_prealable_segment_vendor) ? US-5 AC3 le porte deja mais US-5 est priorite 4, apres US-2 (priorite 2).",
+                "recommandation_architecte": "US-2 porte le durcissement POUR LE FIND() GENERIQUE uniquement - il en est inseparable, un matcher generique laxiste est un defaut de blast radius, pas une imperfection. US-5 conserve l'alignement des deux find() ecrits a la main plus ses deux autres defauts de soundness (optional chaining, binding reassigne). Alternative acceptable : repriorer US-5 avant US-2. Ce qui n'est PAS acceptable : livrer le matcher generique sans trancher.",
+                "impact_si_refus": "Un poller emettant stripe.prices.create ou stripe.customers.update declencherait le fixer IA sur du code sans rapport (db.prices.create()). AC3 serait 'vert' sur un faux positif."
+              }
+            ],
+            "criteres_manquants_a_ajouter_par_le_po": [
+              "Un critere de surete : aucune racine non resolue au module vendor ne produit de match (test dedie sur db.subscriptions.retrieve / stripeClient.subscriptions.retrieve).",
+              "Un critere de classification : une page de changelog forme #2 est detectee, classee non auto-executable et n'est PAS injectee dans le pipeline (test sur la fixture deprecate-subscription-current-period-start-and-end.md).",
+              "Un critere d'hermeticite : npm test ne fait aucun appel reseau ; le parsing est teste sur fixture commitee.",
+              "Un critere de non-regression du registre : un run sans le flag de detection produit exactement les memes resultats qu'avant US-2."
+            ],
+            "dependances": {
+              "US-1": "done - la preuve sur repo reel (docs/proof) donne le contexte d'execution.",
+              "US-3": "done - fournit l'echantillon #2 et l'observation AC8, qui est l'input factuel de ce cadrage.",
+              "US-5": "backlog - conditionne US-2 via son AC3 (arbitrage PO #3)."
+            },
+            "faisabilite_globale": "Le chemin est entierement instrumente par du code deja en place : le seam RunOptions.codemods existe, le tier 2 sans apply() est deja teste de bout en bout (tests/ai-fixer.test.ts), le verifier gate deja, le pattern d'injection (Llm) est deja etabli et se transpose au Fetcher, et le precedent de fixture vendor commitee existe (US-4). Le travail neuf est : un parser markdown pur, un classifieur, un find() generique avec resolution de racine, et un flag CLI. Aucune extension du modele de donnees."
+          }
+        }
+      },
+      "note": "DoR US-2: NOT READY, 3 arbitrages PO (reformulation AC3 forme #1, retrait oasdiff du titre, portage du durcissement racine vendor US-2 vs US-5)"
+    },
+    {
+      "ts": "2026-09-01T19:00:37.834Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T19:01:18.968Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T19:01:50.513Z",
+      "type": "peer_message",
+      "actor": "architecte",
+      "target": "po",
+      "us": "US-2",
+      "note": "DoR US-2 ecrite (champ definition_of_ready). Verdict NOT READY: 3 arbitrages PO fermes, avec recommandation pour chacun. (1) Confirmer la reformulation d'AC3 limitant l'auto-execution aux changes de forme #1 (proposee dans faisabilite_ac3.reformulation_ac3_proposee_au_po) - clarification de faisabilite, acceptance_criteria non edite par l'architecte. (2) Retirer oasdiff du perimetre et du titre au profit du changelog Stripe (.md) - la spec OpenAPI ne dit ni ce qui est breaking ni comment migrer. (3) Trancher qui porte le durcissement de la racine vendor de target.symbol: US-2 pour le find() generique (recommande) ou repriorisation d'US-5 avant US-2 - un matcher generique laxiste ferait editer du code hors Stripe par le fixer IA. Voir aussi criteres_manquants_a_ajouter_par_le_po (4 criteres de surete/hermeticite)."
+    },
+    {
+      "ts": "2026-09-01T19:02:00.350Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T19:02:41.272Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T19:03:57.829Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T19:04:38.944Z",
+      "type": "update",
+      "actor": "po",
+      "us": "US-2",
+      "payload": {
+        "fields": [
+          "title",
+          "why",
+          "acceptance_criteria"
+        ],
+        "before": {
+          "title": "Detection automatisee MVP (poll oasdiff sur un changelog Stripe reel)",
+          "why": "Le registre de changes est hardcode (src/changes/index.ts). Le push model (docs/YC.md) depend dune vraie source de detection, meme minimale (un seul vendor).",
+          "acceptance_criteria": [
+            "Un job/poller recupere un diff de spec ou changelog Stripe reel",
+            "Le diff est normalise en Change record compatible avec src/changes",
+            "Au moins un changement detecte automatiquement declenche le pipeline existant sans modification manuelle du registre"
+          ]
+        },
+        "after": {
+          "title": "Detection automatisee MVP (poll du changelog Stripe reel)",
+          "why": "Le registre de changes est hardcode (src/changes/index.ts). Le push model (docs/YC.md) depend d'une vraie source de detection, meme minimale (un seul vendor). Le changelog Stripe publie explicitement Breaking/Non-breaking et Impact exploitable comme instruction de migration, contrairement a la spec OpenAPI (qui ne dit ni ce qui casse ni comment migrer).",
+          "acceptance_criteria": [
+            "Un job/poller recupere le changelog Stripe reel (https://docs.stripe.com/changelog.md). Structure: heading ## <date>.<release>, tableaux a 4 colonnes Title(lien)|Affected Products|Breaking change?(Breaking/Non-breaking)|Category. Pages de detail https://docs.stripe.com/changelog/<release>/<date>/<slug>.md contiennent sections '## Impact' (prose migration) et '## Changes' avec tableaux par SDK (#### Node.js: Parameter(s) | Change(Removed/Added) | Resources or methods).",
+            "Le diff de changelog est normalise en Change record compatible avec src/changes/. Champs requis: id (deterministe, stable, sert de nom de branche), vendor=stripe, source=changelog, kind=breaking, title (du changelog verbatim), target={type:'symbol', symbol:'stripe.<namespace>.<method>'}, migration={op, detail VERBATIM depuis la page}, references[]=URLs+dates consultation, confidence='low' pour tout detecte en machine.",
+            "Au moins un changement detecte automatiquement declenche le pipeline existant sans modification manuelle du registre. Limite assumee et documentee: seuls les changes de forme #1 (changement porte sur la REQUETE, le symbole EST le noeud affecte - URL /api/<resource>/<method>) sont auto-executables via matcher generique. Les changes de forme #2 (champ de REPONSE deplace, URL /api/<resource>/object) sont detectes, classes et rapportes comme non auto-executable (necessitent codemod ecrit a la main). Matcher generique doit resoudre la racine jusqu'au module vendor (sans node_modules requis) - racine non resoluble = PAS de match (sûrete: jamais de faux positif).",
+            "Surete racine: aucune racine non resolue au module vendor ne produit de match. Test: db.subscriptions.retrieve(...) ne matche pas un change sur stripe.subscriptions.retrieve.",
+            "Classification forme #2: une page de changelog /api/<resource>/object est detectee, classee non auto-executable et n'est PAS injectee dans le pipeline. Test sur fixture deprecate-subscription-current-period-start-and-end.md (forme #2 pure).",
+            "Hermeticite reseau: npm test ne fait aucun appel reseau. Parsing est fonction pure sur string markdown, acces reseau isole derriere Fetcher injectable (modele Llm). Tests tournent sur fixtures markdown commitees (precedent: fixtures/stripe-spec/).",
+            "Non-regression du registre: un run sans le flag de detection produit exactement les memes resultats qu'avant US-2 (memes changes detectes, memes artefacts). Registre hardcode src/changes/index.ts inchange par la detection."
+          ]
+        }
+      }
+    },
+    {
+      "ts": "2026-09-01T19:09:32.137Z",
+      "type": "gate",
+      "actor": "humain",
+      "us": "US-2",
+      "note": "Backlog raffine approuve: titre, AC3 (limite forme #1), sequencement US-5 apres US-2 pour le durcissement racine."
+    },
+    {
+      "ts": "2026-09-01T19:09:32.183Z",
+      "type": "move",
+      "actor": "architecte",
+      "us": "US-2",
+      "note": "ready"
+    },
+    {
+      "ts": "2026-09-01T19:09:32.230Z",
+      "type": "move",
+      "actor": "dev#4",
+      "us": "US-2",
+      "note": "ready>in_progress"
+    },
+    {
+      "ts": "2026-09-01T19:09:44.757Z",
+      "type": "delegate",
+      "actor": "orchestrateur",
+      "target": "dev#4",
+      "us": "US-2",
+      "payload": {
+        "goal": "Implementer la detection automatisee MVP (poll changelog Stripe reel) selon la Definition of Ready d US-2",
+        "dor_source": "board/backlog.json definition_of_ready de US-2 (redigee par architecte, arbitrages tranches par po)",
+        "contraintes": [
+          "AST reste dans src/matcher/, src/detection/ ne connait pas ts-morph",
+          "migration.op ne s etend pas au-dela de l enum existant: une ligne non classable = non auto-executable, jamais force",
+          "aucune extension de src/types.ts (pas de separation ancrage/cible, pas d op cote reponse)",
+          "npm test hermetic: zero reseau, Fetcher injectable comme Llm, fixtures markdown commitees",
+          "flag CLI opt-in explicite, jamais de reseau implicite en Free",
+          "racine du symbole doit resoudre jusqu au module vendor stripe (via AST/binding), sinon pas de match",
+          "pas de refacto des deux find() ecrits a la main existants"
+        ],
+        "livrables_attendus": [
+          "src/detection/stripe-changelog.ts (parsing pur markdown -> Change[] + classification forme #1/#2)",
+          "src/detection/index.ts (detectChanges({fetcher, release}))",
+          "matcher generique dans src/matcher/ pilote par target.symbol avec resolution de racine",
+          "branchement sur le seam RunOptions.codemods existant via un flag CLI (ex --detect [--release])",
+          "fixtures/stripe-changelog/ avec au moins: 1 page forme #1 pure, deprecate-subscription-current-period-start-and-end.md (forme #2 pure), deprecate-singular-coupon-promotion-code.md (mixte)",
+          "tests couvrant: parsing, classification #1/#2, surete racine (db.subscriptions.retrieve ne matche pas), non-injection des changes forme #2, hermeticite reseau, non-regression sans le flag"
+        ],
+        "dod": "npx tsc --noEmit + npm test verts (scripts/dod.sh)"
+      }
+    },
+    {
+      "ts": "2026-09-01T19:10:30.762Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
       "ts": "2026-09-01T19:10:52.721Z",
       "type": "gate",
       "actor": "dod",
@@ -1995,6 +2315,145 @@
         "dod": "npx tsc --noEmit exit 0; npm test 68/68 pass, 0 fail, 0 appel reseau dans la suite",
         "status": "done"
       }
+    },
+    {
+      "ts": "2026-09-01T19:35:15.872Z",
+      "type": "report",
+      "actor": "dev#4",
+      "us": "US-2",
+      "payload": {
+        "pr": "https://github.com/apidrift/apidrift/pull/7",
+        "branche": "feature/US-2-detection-changelog-poll",
+        "tests": {
+          "passed": 68,
+          "failed": 0
+        },
+        "livrables": [
+          "src/detection/stripe-changelog.ts",
+          "src/detection/index.ts",
+          "src/matcher/symbol.ts",
+          "src/cli.ts --detect flag",
+          "fixtures/stripe-changelog/*",
+          "tests/detection.test.ts",
+          "tests/matcher-symbol.test.ts",
+          "tests/detection-pipeline.test.ts"
+        ],
+        "smoke_test_manuel": "apidrift run --detect --release 2026-08-26.preview sur changelog Stripe reel: 5 changes forme #1 detectes et classes, registre hardcode (2 changes) inchange"
+      }
+    },
+    {
+      "ts": "2026-09-01T19:35:15.926Z",
+      "type": "move",
+      "actor": "dev#4",
+      "us": "US-2",
+      "note": "in_progress>review"
+    },
+    {
+      "ts": "2026-09-01T19:36:25.050Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T19:37:06.932Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T19:37:49.748Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T19:38:34.933Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T19:39:18.988Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T19:40:02.173Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T19:40:44.541Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T19:41:26.544Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T19:42:10.736Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T19:42:53.175Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T19:43:37.704Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T19:45:52.231Z",
+      "type": "report",
+      "actor": "qa",
+      "us": "US-2",
+      "payload": {
+        "verdict": "accepte",
+        "ac_verifies": [
+          "AC1/AC2 parsing pur + schema Change",
+          "AC3 pipeline sans toucher registre (diff vide sur src/changes/index.ts, methode=ai)",
+          "AC4 surete racine (cas db.subscriptions.retrieve=0 match, stripeClient.subscriptions.retrieve=1 match, teste independamment)",
+          "AC5 forme #2 non injectee",
+          "AC6 hermeticite reseau (fetch patche pour throw, 68/68 toujours vert)",
+          "AC7 non-regression (sortie identique octet-pres sans --detect)"
+        ],
+        "scope_guards": "src/types.ts et les 2 find() manuels non touches, pas de regex sur code cible",
+        "dod": "tsc clean, npm test 68/68, scripts/dod.sh exit 0, tous rejoues independamment",
+        "non_bloquant": "architecture.json non mis a jour avec le composant detection (dette doc, meme pattern que US-3->US-5)"
+      }
+    },
+    {
+      "ts": "2026-09-01T19:45:52.278Z",
+      "type": "move",
+      "actor": "qa",
+      "us": "US-2",
+      "note": "review>review"
+    },
+    {
+      "ts": "2026-09-01T19:48:47.640Z",
+      "type": "gate",
+      "actor": "humain",
+      "us": "US-2",
+      "note": "PR #7 mergee sur main."
+    },
+    {
+      "ts": "2026-09-01T19:48:47.686Z",
+      "type": "move",
+      "actor": "orchestrateur",
+      "us": "US-2",
+      "note": "review>done"
     }
   ]
 }

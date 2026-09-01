@@ -10,8 +10,12 @@
       "responsibility": "src/cli.ts — point d'entrée local. resolveInference/resolveLlm choisissent déterministe-only vs BYOT depuis flags/env/apidrift.json.",
       "type": "ui",
       "status": "stable",
-      "depends_on": ["pipeline"],
-      "interfaces": ["apidrift run <repo> [--ai] [--deterministic-only] [--model] [--out]"]
+      "depends_on": [
+        "pipeline"
+      ],
+      "interfaces": [
+        "apidrift run <repo> [--ai] [--deterministic-only] [--model] [--out]"
+      ]
     },
     {
       "id": "runner",
@@ -19,8 +23,13 @@
       "responsibility": "src/runner.ts — tourne dans la CI du client (action.yml, examples/enterprise-workflow.yml). Utilise GitHubHost : seul l'appel pulls.create sort du runner.",
       "type": "service",
       "status": "stable",
-      "depends_on": ["pipeline", "githost"],
-      "interfaces": ["GitHub Action"]
+      "depends_on": [
+        "pipeline",
+        "githost"
+      ],
+      "interfaces": [
+        "GitHub Action"
+      ]
     },
     {
       "id": "service",
@@ -28,7 +37,9 @@
       "responsibility": "src/service/ — job.ts (job par repo, implémenté). poller.ts : squelette non implémenté pour le poll+diff+fan-out amont.",
       "type": "service",
       "status": "planned",
-      "depends_on": ["pipeline"],
+      "depends_on": [
+        "pipeline"
+      ],
       "interfaces": []
     },
     {
@@ -37,8 +48,19 @@
       "responsibility": "src/pipeline.ts — orchestre changes → matcher → fixer → verifier → githost sur une copie jetable du workspace (ou in-place). Partagé par les trois entrées.",
       "type": "service",
       "status": "stable",
-      "depends_on": ["changes", "matcher", "fixer", "verifier", "githost"],
-      "interfaces": ["runPipeline()"]
+      "depends_on": [
+        "changes",
+        "matcher",
+        "fixer",
+        "verifier",
+        "githost"
+      ],
+      "interfaces": [
+        "runPipeline()"
+      ],
+      "constraints": [
+        "FAIT (vérifié 2026-09-01) : src/pipeline.ts expose RunOptions.codemods (ligne 21) — le seam permettant d'injecter des codemods sans toucher au registre src/changes/index.ts. AUCUN point d'entrée ne l'utilise aujourd'hui (grep sur src/cli.ts, src/runner.ts, src/service/job.ts, src/config.ts : zéro occurrence) ; seuls les tests s'en servent. C'est le point d'accroche de la détection automatisée (US-2) : le poller n'écrit jamais dans le registre."
+      ]
     },
     {
       "id": "changes",
@@ -57,6 +79,30 @@
       ]
     },
     {
+      "id": "detection",
+      "name": "Détection (poll changelog vendor)",
+      "responsibility": "src/detection/ — NON IMPLÉMENTÉ. Cadré par la DoR d'US-2 (2026-09-01) : transformer le changelog Stripe publié en Change records normalisés, alimentant le seam RunOptions.codemods du pipeline sans jamais écrire dans src/changes/index.ts. Découpage prévu : stripe-changelog.ts (parsing PUR d'une string markdown, zéro I/O, zéro ts-morph), index.ts (detectChanges({ fetcher, release })), accès réseau isolé derrière un Fetcher injectable sur le modèle de Llm (src/fixer/llm.ts). src/service/poller.ts en est le consommateur amont (son étape 2 documentée).",
+      "type": "service",
+      "status": "planned",
+      "depends_on": [
+        "changes",
+        "pipeline",
+        "matcher"
+      ],
+      "interfaces": [],
+      "constraints": [
+        "SOURCE VÉRIFIÉE 2026-09-01, sans aucune clé API : https://docs.stripe.com/changelog.md (HTTP 200, 204832 octets) est l'index — heading « ## <date>.<release> », sous-heading « ### <domaine> », tableaux à 4 colonnes Title(lien) | Affected Products | Breaking change? (Breaking/Non-breaking) | Category (api/stripejs/…), 308 lignes Breaking. https://docs.stripe.com/changelog/<release>/<date>/<slug>.md est la page de détail (HTTP 200) : « ## Impact » (prose de migration) puis « ## Changes » avec un sous-tableau par SDK, dont « #### Node.js » aux colonnes Parameter(s) | Change (Removed/Added) | Resources or methods. Envoyer Accept-Language: en-US. Voir aussi la contrainte de sourcing des changes (variante .md, jamais le HTML).",
+        "CLÉ DE PARSING : c'est le CHEMIN D'URL du lien qui est exploitable (/api/payment_intents/create → resource payment_intents, méthode create), PAS le texte du lien, spécifique au SDK et instable (PaymentIntentCreateParams, Checkout::Session::CollectedInformation, V2\\Core\\BatchJob.create().$params). Le mapping resource → namespace stripe-node (lowerCamelCase des segments snake_case) est une HEURISTIQUE assumée, à couvrir par une table de cas en test — une des raisons de forcer confidence: 'low' sur tout Change dérivé par machine.",
+        "DISCRIMINANT forme #1 / forme #2, machine-vérifiable, qui opérationnalise la LIMITE DU MODÈLE consignée sur le composant changes : un lien vers une MÉTHODE (/api/subscriptions/create) = change côté REQUÊTE, le nœud affecté EST le CallExpression → forme #1, find() générique piloté par target.symbol faisable ; un lien vers l'objet (/api/subscriptions/object, ancre #<resource>_object-<field>) = change côté RÉPONSE → forme #2, find() générique INFAISABLE tant que src/types.ts n'a pas la séparation ancrage/cible et un op côté réponse — détecté et rapporté, mais jamais injecté dans le pipeline. Exclure aussi les liens à chemin imbriqué (Invoice#create_preview.schedule_details.phases[]). RÈGLE VÉRIFIÉE sur les sources réelles (2026-09-01) : la page du change n°2 (deprecate-subscription-current-period-start-and-end.md) ne pointe que /object → classée forme #2, cohérent avec ses ~25 lignes de find() écrites à la main ; deprecate-singular-coupon-promotion-code.md porte les DEUX formes dans la même page (ligne promotion_code → 4 méthodes = forme #1 ; ligne discount → 2 objets = forme #2).",
+        "GRANULARITÉ : un Change par couple (ligne du tableau Node.js × lien de méthode). Une seule ligne peut désigner plusieurs symboles (vérifié : promotion_code → Subscription#create, Subscription#update, Customer#create, Customer#update). Change n'a qu'un target.symbol : la détection fan-out, elle ne fabrique pas un symbole multiple. Aucune extension des enums de src/types.ts : une ligne qui ne rentre dans aucune valeur de migration.op est classée non auto-exécutable plutôt que forcée dans une étiquette fausse.",
+        "COUVERTURE : le changelog couvre les changements de VERSION D'API, pas les dépréciations produit/SDK. VÉRIFIÉ 2026-09-01 : le change n°1 du registre (charges.create → paymentIntents.create) n'est PAS une entrée de changelog — sa source est un guide de migration (docs.stripe.com/payments/payment-intents/migration). Une détection par changelog ne peut donc pas redécouvrir les deux changes existants.",
+        "oasdiff / diff de spec OpenAPI NON RETENU (DoR US-2) : la spec publique (stripe/openapi, spec3.json) donne des deltas de SCHÉMA, sans dire ce qui est breaking ni comment migrer, et prouver une suppression par absence dans un schéma est faible et bruyant (constat US-4, qui a dû chercher la règle conditionnelle de return_url dans la doc et non dans la spec). La spec reste un outil de CORROBORATION d'une règle, pas de détection.",
+        "HERMÉTICITÉ : le parsing est une fonction pure sur une string markdown, le réseau vit derrière le Fetcher injectable, les tests tournent sur des fixtures markdown commitées (précédent : fixtures/stripe-spec/payment_intents_create.extract.json, US-4). npm test ne doit faire aucun appel réseau. Côté CLI Free, le réseau ne doit jamais être implicite : détection opt-in par flag explicite.",
+        "Le fix d'un Change détecté est produit par le TIER 2 (IA) : par construction il n'a pas de codemod déterministe, donc src/fixer/index.ts part sur runAgent. Ce n'est pas une entorse au « deterministic-first » (il n'y a pas de codemod pour ce change) mais ça rend un Llm nécessaire ; sans Llm, src/pipeline.ts lignes 103-106 skippe proprement. Le verifier reste la moat, sans assouplissement : un Change auto-détecté en confidence 'low' est le cas où elle compte le plus.",
+        "MONO-VENDOR (scope guard CLAUDE.md) : Stripe uniquement. Aucune abstraction Vendor, aucun registre de vendors, aucun plugin. Hors scope également : scheduler cron réel, base de données, file d'attente, fan-out multi-repo, snapshot d'état « déjà vu » entre deux polls."
+      ]
+    },
+    {
       "id": "matcher",
       "name": "Matcher",
       "responsibility": "src/matcher/ — matching AST via ts-morph. AST, jamais regex. loadProject() scanne tout l'arbre du repo (<repo>/**/*.{js,ts,jsx,tsx}) depuis US-1, avec une liste d'exclusions fixe. findMatches() délègue entièrement à codemod.find().",
@@ -67,7 +113,8 @@
       "constraints": [
         "RÉSOLU en US-1 : le périmètre de scan n'est plus src/** mais tout l'arbre du repo. Un seul glob par défaut, pas de flag CLI ni de config par repo — la portée du matcher reste inconfigurable, c'est du contrôle de blast radius.",
         "Exclusions obligatoires (dans le code) : node_modules, dist, build, out, coverage, .next, vendor, examples, *.d.ts, *.test.*, *.spec.*, test/**, tests/**, __tests__/**. Conséquence : un fichier de fixture doit vivre hors de test/** pour être vu, et les tests du repo cible sont structurellement hors de portée du fixer.",
-        "Le matcher n'a aucune logique de matching propre : toute la sélection vit dans codemod.find(), du code écrit à la main. C'est le verrou que US-2 (AC3) doit lever et que US-3 instrumente avec un 2e échantillon."
+        "Le matcher n'a aucune logique de matching propre : toute la sélection vit dans codemod.find(), du code écrit à la main. C'est le verrou que US-2 (AC3) doit lever et que US-3 instrumente avec un 2e échantillon.",
+        "DÉFAUT CONNU (constaté 2026-09-01 au cadrage d'US-2, déjà porté par US-5 AC3) : les deux find() du registre n'exploitent que les DEUX DERNIERS segments de Change.target.symbol. src/changes/stripe-charges-to-intents.ts lignes 69-73 teste callee.getName()==='create' puis receiver.getName()==='charges' et ne lit JAMAIS receiver.getExpression() ; idem src/changes/stripe-subscription-current-period-to-items.ts lignes 143-147. Conséquence factuelle : `db.subscriptions.retrieve(id)` matche. Sur 2 symboles choisis et relus par un humain c'est mineur ; sur un find() GÉNÉRIQUE alimenté par une source de détection le symbole n'est plus audité et le défaut devient un problème de blast radius (des symboles à nom générique — prices.create, customers.update, sessions.create — matcheraient du code d'un tout autre domaine, ensuite confié au fixer IA). Prérequis posé par la DoR d'US-2 : un find() générique doit résoudre le segment racine jusqu'au module vendor via l'AST (définition du binding → new Stripe(...) / require('stripe')(...) → import du module 'stripe'), sans exiger node_modules ; racine non résoluble = PAS de match."
       ]
     },
     {
@@ -76,8 +123,16 @@
       "responsibility": "src/fixer/ — tier 1 déterministe (codemod.apply, chemin rapide) ou tier 2 IA (agent.ts, gardé derrière le verifier, ne touche jamais aux tests). providers.ts résout le client LLM, llm.ts est l'interface injectable.",
       "type": "service",
       "status": "stable",
-      "depends_on": ["matcher"],
-      "interfaces": ["codemod.apply()", "agent.ts (tier 2, ANTHROPIC_API_KEY)"]
+      "depends_on": [
+        "matcher"
+      ],
+      "interfaces": [
+        "codemod.apply()",
+        "agent.ts (tier 2, ANTHROPIC_API_KEY)"
+      ],
+      "constraints": [
+        "FAIT (vérifié 2026-09-01) : change.migration.detail et change.references[0] alimentent À LA FOIS le corps de PR (src/pr.ts lignes 91-92) et le prompt de l'agent IA (src/fixer/agent.ts lignes 88-89). Pour un Change SANS apply() — le cas de tout Change produit par une source de détection — migration.detail est la SEULE instruction de migration que voit le fixer ; absent, le prompt contient littéralement « Migration: undefined ». Un Change émis par une détection doit donc porter un migration.detail auto-suffisant."
+      ]
     },
     {
       "id": "verifier",
@@ -101,7 +156,9 @@
       "type": "service",
       "status": "stable",
       "depends_on": [],
-      "interfaces": ["GitHost"],
+      "interfaces": [
+        "GitHost"
+      ],
       "constraints": [
         "DÉFAUT CORRIGÉ en US-3 (PR #6) : LocalGitHost.publish() nomme désormais les DEUX artefacts d'après la branche (les '/' de `input.branch` remplacés par '-'), soit <outputDir>/apidrift-<change-id>.md et <outputDir>/apidrift-<change-id>.patch. Plus de PR.md à nom fixe : un run qui matche plusieurs codemods n'écrase plus le corps de PR du précédent et chaque PipelineResult.prPath pointe son propre fichier.",
         "LocalGitHost.diff() exclut package-lock.json — garde-fou blast radius, ne pas assouplir."
@@ -113,8 +170,15 @@
       "responsibility": "Composant non-code : la preuve de bout en bout du MVP sur un vrai repo OSS (clone hors du repo APIdrift, artefacts patch + PR.md + provenance archivés dans docs/proof/). Ne crée aucun module ; consomme le CLI Free en mode workspace + LocalGitHost.",
       "type": "process",
       "status": "planned",
-      "depends_on": ["cli", "matcher", "verifier", "githost"],
-      "interfaces": ["apidrift run <clone> --deterministic-only --out <dir>"],
+      "depends_on": [
+        "cli",
+        "matcher",
+        "verifier",
+        "githost"
+      ],
+      "interfaces": [
+        "apidrift run <clone> --deterministic-only --out <dir>"
+      ],
       "constraints": [
         "Le clone du repo cible vit HORS de l'arborescence APIdrift (jamais commité).",
         "Repo cible : JS/TS, package unique à la racine, scripts.test réel, suite verte hors réseau et sans secret, node_modules gitignoré et installé avant le run.",

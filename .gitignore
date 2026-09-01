@@ -8,3 +8,4 @@ apidrift-out/
 .worktrees/
 worktrees/
 *.review.html
+.lavish/

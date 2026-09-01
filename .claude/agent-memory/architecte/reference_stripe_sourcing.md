@@ -21,6 +21,17 @@ Entry points that worked (verified 2026-09-01):
 - `https://docs.stripe.com/upgrades.md` — versioning policy, what Stripe
   considers backward-compatible.
 
+Structure exploitable par machine (relevée 2026-09-01) :
+- l'index : heading `## <date>.<release>`, sous-heading `### <domaine>`, puis
+  tableaux à 4 colonnes `Title (lien) | Affected Products | Breaking change?
+  (Breaking/Non-breaking) | Category (api/stripejs/…)`. 308 lignes `Breaking`.
+- la page de détail : `## Impact` (prose de migration, citable telle quelle)
+  puis `## Changes` avec un sous-tableau par SDK, dont `#### Node.js` aux
+  colonnes `Parameter(s) | Change (Removed/Added) | Resources or methods`.
+  Le texte des liens de la 3e colonne est spécifique au SDK et instable —
+  n'exploiter que le chemin d'URL. Voir
+  [[decision-detection-change-shape]].
+
 Content comes back in the locale of the request; the changelog index is
 localized but URLs/slugs are stable in English. Send
 `Accept-Language: en-US` to get English detail pages.
