@@ -1,8 +1,4 @@
 
-> hackathon-starter@10.0.0 test
-> c8 --temp-directory=tmp/coverage --reporter=html --reporter=text --reports-dir=tmp/coverage mocha --timeout=60000 --exit --exclude "test/*links.test.js"
-
-
 [0m[0m
 <claude-code-hint v="1" type="plugin" value="stripe@claude-plugins-official" />
 Run this app using "npm start" to include sass/scss/css builds.
@@ -10,53 +6,53 @@ Run this app using "npm start" to include sass/scss/css builds.
 [0m  GET /[0m
 App is running on http://localhost:8080 in development mode.
 Press CTRL-C to stop.
-2026-08-30 21:52:38 GET / [32m200[0m 299ms 1.95KB COMPLETE ::ffff:127.0.0.1 Unknown
-  [32m  [32m✔[39m[0m[90m should return 200 OK[0m[31m (376ms)[0m
+2026-08-30 23:34:21 GET / [32m200[0m 367ms 1.95KB COMPLETE ::ffff:127.0.0.1 Unknown
+  [32m  [32m✔[39m[0m[90m should return 200 OK[0m[31m (458ms)[0m
 
 [0m  GET /login[0m
-2026-08-30 21:52:38 GET /login [32m200[0m 117ms 2.83KB COMPLETE ::ffff:127.0.0.1 Unknown
-  [32m  [32m✔[39m[0m[90m should return 200 OK[0m[31m (123ms)[0m
+2026-08-30 23:34:21 GET /login [32m200[0m 123ms 2.84KB COMPLETE ::ffff:127.0.0.1 Unknown
+  [32m  [32m✔[39m[0m[90m should return 200 OK[0m[31m (132ms)[0m
 
 [0m  GET /signup[0m
-2026-08-30 21:52:38 GET /signup [32m200[0m 76ms 2.15KB COMPLETE ::ffff:127.0.0.1 Unknown
-  [32m  [32m✔[39m[0m[90m should return 200 OK[0m[31m (80ms)[0m
+2026-08-30 23:34:21 GET /signup [32m200[0m 79ms 2.16KB COMPLETE ::ffff:127.0.0.1 Unknown
+  [32m  [32m✔[39m[0m[90m should return 200 OK[0m[31m (85ms)[0m
 
 [0m  GET /forgot[0m
-2026-08-30 21:52:38 GET /forgot [32m200[0m 61ms 1.87KB COMPLETE ::ffff:127.0.0.1 Unknown
-  [32m  [32m✔[39m[0m[90m should return 200 OK[0m[33m (65ms)[0m
+2026-08-30 23:34:21 GET /forgot [32m200[0m 65ms 1.87KB COMPLETE ::ffff:127.0.0.1 Unknown
+  [32m  [32m✔[39m[0m[90m should return 200 OK[0m[33m (69ms)[0m
 
 [0m  GET /contact[0m
-2026-08-30 21:52:38 GET /contact [32m200[0m 71ms 2.19KB COMPLETE ::ffff:127.0.0.1 Unknown
-  [32m  [32m✔[39m[0m[90m should return 200 OK[0m[33m (75ms)[0m
+2026-08-30 23:34:22 GET /contact [32m200[0m 75ms 2.19KB COMPLETE ::ffff:127.0.0.1 Unknown
+  [32m  [32m✔[39m[0m[90m should return 200 OK[0m[31m (80ms)[0m
 
 [0m  GET /random-url[0m
-2026-08-30 21:52:38 GET /reset [33m404[0m 2ms 0.01KB COMPLETE ::ffff:127.0.0.1 Unknown
+2026-08-30 23:34:22 GET /reset [33m404[0m 3ms 0.01KB COMPLETE ::ffff:127.0.0.1 Unknown
   [32m  [32m✔[39m[0m[90m should return 404[0m
 
 [0m  Other core GET routes do not cause errors[0m
-2026-08-30 21:52:38 GET /logout [36m302[0m 2ms 0.02KB COMPLETE ::ffff:127.0.0.1 Unknown
+2026-08-30 23:34:22 GET /logout [36m302[0m 3ms 0.02KB COMPLETE ::ffff:127.0.0.1 Unknown
   [32m  [32m✔[39m[0m[90m GET /logout[0m
-2026-08-30 21:52:38 GET /login/2fa [36m302[0m 1ms 0.03KB COMPLETE ::ffff:127.0.0.1 Unknown
+2026-08-30 23:34:22 GET /login/2fa [36m302[0m 1ms 0.03KB COMPLETE ::ffff:127.0.0.1 Unknown
   [32m  [32m✔[39m[0m[90m GET /login/2fa[0m
-2026-08-30 21:52:38 GET /login/2fa/totp [36m302[0m 1ms 0.03KB COMPLETE ::ffff:127.0.0.1 Unknown
+2026-08-30 23:34:22 GET /login/2fa/totp [36m302[0m 1ms 0.03KB COMPLETE ::ffff:127.0.0.1 Unknown
   [32m  [32m✔[39m[0m[90m GET /login/2fa/totp[0m
-2026-08-30 21:52:38 GET /login/webauthn-start [36m302[0m 1ms 0.03KB COMPLETE ::ffff:127.0.0.1 Unknown
+2026-08-30 23:34:22 GET /login/webauthn-start [36m302[0m 1ms 0.03KB COMPLETE ::ffff:127.0.0.1 Unknown
   [32m  [32m✔[39m[0m[90m GET /login/webauthn-start[0m
-2026-08-30 21:52:38 GET /login/verify/testtoken [36m302[0m 1ms 0.03KB COMPLETE ::ffff:127.0.0.1 Unknown
+2026-08-30 23:34:22 GET /login/verify/testtoken [36m302[0m 1ms 0.03KB COMPLETE ::ffff:127.0.0.1 Unknown
   [32m  [32m✔[39m[0m[90m GET /login/verify/testtoken[0m
-2026-08-30 21:52:38 GET /reset/testtoken [36m302[0m 1ms 0.03KB COMPLETE ::ffff:127.0.0.1 Unknown
+2026-08-30 23:34:22 GET /reset/testtoken [36m302[0m 1ms 0.03KB COMPLETE ::ffff:127.0.0.1 Unknown
   [32m  [32m✔[39m[0m[90m GET /reset/testtoken[0m
-2026-08-30 21:52:38 GET /account [36m302[0m 1ms 0.03KB COMPLETE ::ffff:127.0.0.1 Unknown
+2026-08-30 23:34:22 GET /account [36m302[0m 1ms 0.03KB COMPLETE ::ffff:127.0.0.1 Unknown
   [32m  [32m✔[39m[0m[90m GET /account[0m
-2026-08-30 21:52:38 GET /account/verify [36m302[0m 1ms 0.03KB COMPLETE ::ffff:127.0.0.1 Unknown
+2026-08-30 23:34:22 GET /account/verify [36m302[0m 1ms 0.03KB COMPLETE ::ffff:127.0.0.1 Unknown
   [32m  [32m✔[39m[0m[90m GET /account/verify[0m
-2026-08-30 21:52:38 GET /account/verify/testtoken [36m302[0m 1ms 0.03KB COMPLETE ::ffff:127.0.0.1 Unknown
+2026-08-30 23:34:22 GET /account/verify/testtoken [36m302[0m 1ms 0.03KB COMPLETE ::ffff:127.0.0.1 Unknown
   [32m  [32m✔[39m[0m[90m GET /account/verify/testtoken[0m
-2026-08-30 21:52:38 GET /account/2fa/totp/setup [36m302[0m 1ms 0.03KB COMPLETE ::ffff:127.0.0.1 Unknown
+2026-08-30 23:34:22 GET /account/2fa/totp/setup [36m302[0m 1ms 0.03KB COMPLETE ::ffff:127.0.0.1 Unknown
   [32m  [32m✔[39m[0m[90m GET /account/2fa/totp/setup[0m
-2026-08-30 21:52:38 GET /account/webauthn/register [36m302[0m 1ms 0.03KB COMPLETE ::ffff:127.0.0.1 Unknown
+2026-08-30 23:34:22 GET /account/webauthn/register [36m302[0m 1ms 0.03KB COMPLETE ::ffff:127.0.0.1 Unknown
   [32m  [32m✔[39m[0m[90m GET /account/webauthn/register[0m
-2026-08-30 21:52:38 GET /auth/failure [36m302[0m 1ms 0.02KB COMPLETE ::ffff:127.0.0.1 Unknown
+2026-08-30 23:34:22 GET /auth/failure [36m302[0m 2ms 0.02KB COMPLETE ::ffff:127.0.0.1 Unknown
   [32m  [32m✔[39m[0m[90m GET /auth/failure[0m
 
 [0m  getFileHash[0m
@@ -105,10 +101,10 @@ Press CTRL-C to stop.
   [32m  [32m✔[39m[0m[90m should generate gravatar with size[0m
   [32m  [32m✔[39m[0m[90m should generate gravatar with email[0m
   [32m  [32m✔[39m[0m[90m should define webauthnUserID as a Buffer in the schema[0m
-  [32m  [32m✔[39m[0m[90m should persist webauthnUserID across save and reload[0m[33m (72ms)[0m
+  [32m  [32m✔[39m[0m[90m should persist webauthnUserID across save and reload[0m[31m (76ms)[0m
   [32m  [32m✔[39m[0m[90m should enforce global uniqueness of webauthn credentialId[0m[31m (116ms)[0m
   [32m  [32m✔[39m[0m[90m should persist webauthn publicKey as binary without corruption[0m[33m (56ms)[0m
-  [32m  [32m✔[39m[0m[90m should not regenerate webauthnUserID once set[0m[33m (56ms)[0m
+  [32m  [32m✔[39m[0m[90m should not regenerate webauthnUserID once set[0m[33m (57ms)[0m
 [0m    Token Verification[0m
     [32m  [32m✔[39m[0m[90m should verify valid token and IP hash before expiration[0m
     [32m  [32m✔[39m[0m[90m should reject expired token[0m
@@ -142,20 +138,20 @@ Press CTRL-C to stop.
 [0m    User Password Handling[0m
     [32m  [32m✔[39m[0m[90m should handle error during password comparison[0m
     [32m  [32m✔[39m[0m[90m should handle password hashing error[0m
-    [32m  [32m✔[39m[0m[90m should reject password shorter than minimum length[0m[33m (55ms)[0m
+    [32m  [32m✔[39m[0m[90m should reject password shorter than minimum length[0m[33m (54ms)[0m
     [32m  [32m✔[39m[0m[90m should handle undefined password gracefully[0m
 [0m    Gravatar URL Generation[0m
     [32m  [32m✔[39m[0m[90m should generate default gravatar URL when email is missing[0m
-    [32m  [32m✔[39m[0m[90m Scenario 1: Gravatar generation when email is present - after save[0m[33m (55ms)[0m
-    [32m  [32m✔[39m[0m[90m Scenario 2: Gravatar update on email change[0m[33m (54ms)[0m
+    [32m  [32m✔[39m[0m[90m Scenario 1: Gravatar generation when email is present - after save[0m[33m (54ms)[0m
+    [32m  [32m✔[39m[0m[90m Scenario 2: Gravatar update on email change[0m[33m (55ms)[0m
     [32m  [32m✔[39m[0m[90m Scenario 3: noMultiPictureUpgrade behavior[0m
-    [32m  [32m✔[39m[0m[90m Scenario 4: Preserve non-gravatar pictureSource[0m[33m (53ms)[0m
+    [32m  [32m✔[39m[0m[90m Scenario 4: Preserve non-gravatar pictureSource[0m[33m (55ms)[0m
     [32m  [32m✔[39m[0m[90m Scenario 5: Preserve non-gravatar pictureSource - noMultiPictureUpgrade[0m
     [32m  [32m✔[39m[0m[90m Scenario 6: Legacy account upgrade path[0m
-    [32m  [32m✔[39m[0m[90m Scenario 7: Map persistence[0m[33m (54ms)[0m
-    [32m  [32m✔[39m[0m[90m Scenario 8: No duplicate gravatar entries[0m[33m (54ms)[0m
+    [32m  [32m✔[39m[0m[90m Scenario 7: Map persistence[0m[33m (55ms)[0m
+    [32m  [32m✔[39m[0m[90m Scenario 8: No duplicate gravatar entries[0m[33m (55ms)[0m
 [0m    Token Cleanup on Save[0m
-    [32m  [32m✔[39m[0m[90m should clear expired tokens before save[0m[33m (54ms)[0m
+    [32m  [32m✔[39m[0m[90m should clear expired tokens before save[0m[33m (55ms)[0m
 [0m    Two-Factor Authentication[0m
 [0m      Code Generation[0m
       [32m  [32m✔[39m[0m[90m should generate a 6-digit code[0m
@@ -176,25 +172,25 @@ Press CTRL-C to stop.
       [32m  [32m✔[39m[0m[90m should use timing-safe comparison for codes[0m
 [0m      2FA Methods Management[0m
       [32m  [32m✔[39m[0m[90m should initialize with empty twoFactorMethods array[0m[33m (53ms)[0m
-      [32m  [32m✔[39m[0m[90m should add email to twoFactorMethods[0m[33m (58ms)[0m
+      [32m  [32m✔[39m[0m[90m should add email to twoFactorMethods[0m[33m (57ms)[0m
       [32m  [32m✔[39m[0m[90m should add multiple 2FA methods[0m[33m (55ms)[0m
-      [32m  [32m✔[39m[0m[90m should remove individual 2FA method[0m[33m (56ms)[0m
-      [32m  [32m✔[39m[0m[90m should disable 2FA when all methods removed[0m[33m (55ms)[0m
-      [32m  [32m✔[39m[0m[90m should accept email as a valid method[0m[33m (53ms)[0m
-      [32m  [32m✔[39m[0m[90m should accept totp as a valid method[0m[33m (52ms)[0m
+      [32m  [32m✔[39m[0m[90m should remove individual 2FA method[0m[33m (57ms)[0m
+      [32m  [32m✔[39m[0m[90m should disable 2FA when all methods removed[0m[33m (56ms)[0m
+      [32m  [32m✔[39m[0m[90m should accept email as a valid method[0m[33m (54ms)[0m
+      [32m  [32m✔[39m[0m[90m should accept totp as a valid method[0m[33m (54ms)[0m
       [32m  [32m✔[39m[0m[90m should reject invalid 2FA method values[0m
 [0m      2FA Virtual Properties[0m
       [32m  [32m✔[39m[0m[90m should check if 2FA code is not expired[0m
 [0m      2FA Token Cleanup[0m
       [32m  [32m✔[39m[0m[90m should clear expired 2FA code on save[0m[33m (53ms)[0m
-      [32m  [32m✔[39m[0m[90m should not clear valid 2FA code on save[0m[33m (54ms)[0m
+      [32m  [32m✔[39m[0m[90m should not clear valid 2FA code on save[0m[33m (53ms)[0m
 [0m      clearTwoFactorCode[0m
       [32m  [32m✔[39m[0m[90m should clear all three 2FA code fields[0m
       [32m  [32m✔[39m[0m[90m should be safe to call when fields are already undefined[0m
       [32m  [32m✔[39m[0m[90m should not affect other user fields[0m
 [0m      Code consumption (single-use)[0m
       [32m  [32m✔[39m[0m[90m should not verify after clearTwoFactorCode is called[0m
-      [32m  [32m✔[39m[0m[90m should persist cleared state after save[0m[33m (58ms)[0m
+      [32m  [32m✔[39m[0m[90m should persist cleared state after save[0m[33m (56ms)[0m
 
 [0m  Morgan Configuration Tests[0m
 [0m    Status Coloring[0m

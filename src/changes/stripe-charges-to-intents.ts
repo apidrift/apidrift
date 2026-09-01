@@ -7,7 +7,26 @@ import type { Change, Codemod, Match } from '../types.js';
  *
  *   stripe.charges.create({ amount, currency, source })
  *      ->
- *   stripe.paymentIntents.create({ amount, currency, payment_method, confirm: true })
+ *   stripe.paymentIntents.create({
+ *     amount, currency, payment_method, confirm: true,
+ *     automatic_payment_methods: { enabled: true, allow_redirects: 'never' },
+ *   })
+ *
+ * Why `automatic_payment_methods: { enabled: true, allow_redirects: 'never' }`:
+ * the Stripe OpenAPI spec (stripe/openapi, spec3.json, API version
+ * 2026-08-26.dahlia) only marks `amount`/`currency` as `required` for
+ * `POST /v1/payment_intents` — it does not model that `return_url` is
+ * *conditionally* required when `confirm: true` resolves to a redirect-based
+ * payment method. Stripe's API reference for `automatic_payment_methods`
+ * (https://docs.stripe.com/api/payment_intents/create, fetched 2026-08-30)
+ * spells out the condition directly: with `allow_redirects: "always"`
+ * (the default once automatic payment methods are enabled) "`return_url` may
+ * be required to confirm this PaymentIntent"; with `allow_redirects: "never"`
+ * "this PaymentIntent will not accept redirect-based payment methods ...
+ * `return_url` will not be required to confirm this PaymentIntent". Setting
+ * `allow_redirects: 'never'` reproduces the old Charges API's semantics (a
+ * single non-redirect attempt) without requiring a `return_url` the old call
+ * never had a place for.
  *
  * In the MVP this Change is hardcoded. In production it would be emitted by the
  * upstream diff engine (oasdiff / SDK release / changelog) into this same shape.
@@ -21,9 +40,15 @@ const change: Change = {
   target: { type: 'symbol', symbol: 'stripe.charges.create' },
   migration: {
     op: 'replaced_by',
-    detail: 'stripe.paymentIntents.create; param `source` -> `payment_method`; add `confirm: true`',
+    detail:
+      'stripe.paymentIntents.create; param `source` -> `payment_method`; add `confirm: true` and ' +
+      "`automatic_payment_methods: { enabled: true, allow_redirects: 'never' }` (avoids the " +
+      'conditional `return_url` requirement for redirect-based payment methods)',
   },
-  references: ['https://docs.stripe.com/payments/payment-intents/migration'],
+  references: [
+    'https://docs.stripe.com/payments/payment-intents/migration',
+    'https://docs.stripe.com/api/payment_intents/create',
+  ],
   confidence: 'high',
 };
 
@@ -65,6 +90,10 @@ function find(project: Project): Match[] {
  *   1. charges          -> paymentIntents
  *   2. source: <x>      -> payment_method: <x>
  *   3. add confirm: true (if absent)
+ *   4. add automatic_payment_methods: { enabled: true, allow_redirects: 'never' }
+ *      (if absent) — see the comment on `change` above for why this is
+ *      required, not cosmetic: without it, `confirm: true` can conditionally
+ *      require a `return_url` the old Charges API call never had.
  */
 function apply(match: Match): void {
   const call = match.node;
@@ -76,7 +105,7 @@ function apply(match: Match): void {
   // 1. charges -> paymentIntents
   receiver.getNameNode().replaceWithText('paymentIntents');
 
-  // 2 + 3. adjust the argument object literal, if present.
+  // 2 + 3 + 4. adjust the argument object literal, if present.
   const [arg] = call.getArguments();
   if (arg && Node.isObjectLiteralExpression(arg)) {
     const sourceProp = arg.getProperty('source');
@@ -88,6 +117,13 @@ function apply(match: Match): void {
 
     if (!arg.getProperty('confirm')) {
       arg.addPropertyAssignment({ name: 'confirm', initializer: 'true' });
+    }
+
+    if (!arg.getProperty('automatic_payment_methods')) {
+      arg.addPropertyAssignment({
+        name: 'automatic_payment_methods',
+        initializer: "{ enabled: true, allow_redirects: 'never' }",
+      });
     }
   }
 }

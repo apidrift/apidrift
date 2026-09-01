@@ -1,5 +1,11 @@
 # US-1 proof: real OSS repo, not the fixture
 
+> **Updated by US-4** (schema-hardening + PR excerpt fix): the codemod output,
+> proof artifacts (`fix.patch`, `PR.md`, `baseline-test-output.txt`,
+> `post-fix-verify-output.txt`), and the note below about the misleading
+> verification excerpt have all been regenerated. See "US-4 update" at the
+> bottom of this file for what changed and why.
+
 ## Target repo
 - **URL:** https://github.com/sahat/hackathon-starter
 - **Branch:** `master`
@@ -98,9 +104,11 @@ glob) still matches exactly once, since that file only *defines* a
 npx tsx src/cli.ts run /tmp/us1-target/hackathon-starter --deterministic-only --out /tmp/us1-out
 ```
 - **Match:** `controllers/api.js:488` — `stripe.charges.create(`
-- **Patch:** `fix.patch` (this directory) — `controllers/api.js`, 3
+- **Patch:** `fix.patch` (this directory) — `controllers/api.js`, 4
   insertions / 2 deletions: `charges` → `paymentIntents`, `source` →
-  `payment_method`, `confirm: true` added.
+  `payment_method`, `confirm: true` added, and (as of US-4)
+  `automatic_payment_methods: { enabled: true, allow_redirects: 'never' }`
+  added — see "US-4 update" below for why.
 - **PR.md:** `PR.md` (this directory) — states "All checks passed", lists the
   changed file, embeds the diff.
 - **Tests after fix:** `npm test` in the workspace — **328 passing, 0 failing**,
@@ -110,35 +118,66 @@ npx tsx src/cli.ts run /tmp/us1-target/hackathon-starter --deterministic-only --
 - **draft:** `false` — a real (non-draft) PR body was produced, matching a
   passing suite.
 
-Note on `PR.md`'s "Verification" section: it shows the last 12 lines of
+~~Note on `PR.md`'s "Verification" section: it shows the last 12 lines of
 `stdout+stderr` (`src/pr.ts`), and on this repo that window lands on an
 *intentional* `console.error` from a passing WebAuthn error-path test
-(`test/webauthn.test.js:170`), not on the "328 passing" summary line. The
-status line above it ("All checks passed") is still correct — confirmed
-independently against the raw `verify.output` and the process exit code — but
-the excerpt itself is a legitimate pre-existing rough edge (unrelated to this
-US's two authorized changes) worth a follow-up: order stdout after stderr, or
-label the excerpt, so an unlucky trailing stderr line from a passing test
-never reads like a failure. Not fixed here since it wasn't in the authorized
-change list.
+(`test/webauthn.test.js:170`), not on the "328 passing" summary line.~~ —
+**Fixed by US-4** (`src/pr.ts`'s `summarizeVerification`): on a green suite the
+excerpt now shows the runner's own summary line(s) (mocha `328 passing (8s)`
+here — see the regenerated `PR.md`) instead of a raw stdout+stderr tail, so
+unrelated trailing noise from a passing test can no longer read like a
+failure. Covered by `tests/pr.test.ts`, including a case built from this
+repo's exact ANSI-colored `328 passing` output shape.
 
 ## DoD
 - `npx tsc --noEmit`: clean.
-- `npm test` (apidrift's own suite): 13/13 passing, including two new files —
-  `tests/matcher.test.ts` (glob widening non-regression) and
+- `npm test` (apidrift's own suite): 23/23 passing as of US-4 (was 13/13 at
+  US-1), including `tests/matcher.test.ts` (glob widening non-regression),
   `tests/node-modules-link.test.ts` (node_modules symlink, end-to-end through
-  `run()`).
+  `run()`), and, added by US-4, `tests/stripe-charges-to-intents.test.ts`
+  (request-body schema conformance, mocked HTTP) and `tests/pr.test.ts`
+  (`summarizeVerification` excerpt fidelity).
 
 ## What's still open / risks
 - The demonstrated proof does not validate `postStripe`'s *runtime* behavior
-  (no test covers it) — only that the migration doesn't regress the existing
-  suite. Flagged above; not something APIdrift can currently manufacture
-  without also writing new tests, which is out of scope (tests are read-only
-  to the fixer).
-- `PR.md`'s verification excerpt (last 12 lines of combined stdout+stderr) is
-  legitimately confusing on repos with trailing stderr noise from otherwise
-  passing tests; suggested as a small follow-up, not fixed in this US.
-- The widened default glob (B) is a global behavior change for every future
-  target repo, not just this one — by design, per the task's spec (no
-  per-repo config surface). Broader real-world validation across more repos
-  in `docs/backlog.md` would be good next-step evidence.
+  against a real Stripe account (no test in this repo covers it, and no
+  network/keys were used, per this US's constraints) — only that (a) the
+  migration doesn't regress the existing suite, and (b), as of US-4, that the
+  generated request body satisfies Stripe's own documented required/
+  conditional fields (`tests/stripe-charges-to-intents.test.ts`, mocked
+  HTTP). A live-account smoke test remains a human-gated next step.
+- The widened default glob (B, from US-1) is a global behavior change for
+  every future target repo, not just this one — by design, per the task's
+  spec (no per-repo config surface). Broader real-world validation across
+  more repos in `docs/backlog.md` would be good next-step evidence.
+
+## US-4 update — hardening the codemod against Stripe's real schema
+- **Question:** does `stripe.paymentIntents.create({ ..., confirm: true })`
+  (US-1's output, no `return_url`) actually work for every payment method, or
+  only appear to because no test exercises it?
+- **Answer, sourced:** the Stripe OpenAPI spec (`stripe/openapi`, `spec3.json`,
+  API version `2026-08-26.dahlia`, fetched 2026-08-30) only marks
+  `amount`/`currency` as `required` for `POST /v1/payment_intents` — it does
+  not model `return_url` as required. Stripe's own API reference
+  (https://docs.stripe.com/api/payment_intents/create, fetched 2026-08-30)
+  spells out the actual (conditional) rule under
+  `automatic_payment_methods.allow_redirects`: with the default `"always"`,
+  `return_url` "may be required to confirm this PaymentIntent"; with
+  `"never"`, "this PaymentIntent will not accept redirect-based payment
+  methods ... `return_url` will not be required to confirm". So the original
+  suspicion was directionally right but imprecise: the call isn't *always*
+  broken, it's conditionally broken depending on the resolved payment method.
+- **Fix:** the codemod now also adds
+  `automatic_payment_methods: { enabled: true, allow_redirects: 'never' }`,
+  which — per the documented rule above — removes the conditional
+  `return_url` requirement, matching the old Charges API's no-redirect
+  semantics. This repo's `fix.patch`/`PR.md` above reflect the new output.
+- **New test:** `tests/stripe-charges-to-intents.test.ts` runs the actual
+  codemod, extracts the generated call's argument object via the AST (no
+  `eval`), and validates it against a vendorized extract of the Stripe spec
+  (`fixtures/stripe-spec/payment_intents_create.extract.json`) plus a mocked
+  HTTP endpoint encoding the documented conditional rule — no network, no
+  Stripe key. Verified to fail when `confirm`, `payment_method`, or
+  `automatic_payment_methods` is stripped from the codemod's output (checked
+  by temporarily sabotaging `apply()`, confirming red, then reverting).
+- **`src/pr.ts` fix:** see the "Fixed by US-4" note above.

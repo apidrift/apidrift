@@ -1,17 +1,17 @@
-From 783d542df4244be5f342e1402449a3433f494721 Mon Sep 17 00:00:00 2001
+From 7c3018c7ed4b2e0a089b2bbd4a5150da1590174f Mon Sep 17 00:00:00 2001
 From: "apidrift[bot]" <bot@apidrift.dev>
-Date: Sun, 30 Aug 2026 22:00:38 +0200
+Date: Sun, 30 Aug 2026 23:36:03 +0200
 Subject: [PATCH] Migrate deprecated Charges.create to PaymentIntents.create
 
 ---
- controllers/api.js | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ controllers/api.js | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
 diff --git a/controllers/api.js b/controllers/api.js
-index 6a02a61..2698f50 100644
+index 6a02a61..9963cfa 100644
 --- a/controllers/api.js
 +++ b/controllers/api.js
-@@ -485,12 +485,13 @@ exports.getStripe = (req, res) => {
+@@ -485,12 +485,14 @@ exports.getStripe = (req, res) => {
   */
  exports.postStripe = (req, res) => {
    const { stripeToken, stripeEmail } = req.body;
@@ -23,7 +23,8 @@ index 6a02a61..2698f50 100644
 -      source: stripeToken,
 +      payment_method: stripeToken,
        description: stripeEmail,
-+      confirm: true
++      confirm: true,
++      automatic_payment_methods: { enabled: true, allow_redirects: 'never' }
      },
      (err) => {
        if (err && err.type === 'StripeCardError') {
