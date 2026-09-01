@@ -284,7 +284,7 @@
         "Aucune vraie PR/fork/push sur les repos upstream tiers -- preuve interne uniquement; question PR-upstream-vs-preuve-interne documentee (non tranchee) pour chaque repo.",
         "npx tsc --noEmit et npm test verts sur apidrift lui-meme."
       ],
-      "status": "in_progress",
+      "status": "review",
       "priority": 5,
       "component": "proof",
       "epic": "EPIC-mvp-proof",
