@@ -5,6 +5,10 @@ import { fileURLToPath } from 'node:url';
 import { run } from './pipeline.js';
 import { resolveLlm } from './fixer/providers.js';
 import { resolveInference, describePolicy, type CliFlags } from './config.js';
+import { codemods as defaultCodemods } from './changes/index.js';
+import { detectChanges, type Fetcher } from './detection/index.js';
+import { genericSymbolCodemod } from './matcher/symbol.js';
+import type { Change, Codemod } from './types.js';
 
 const c = {
   reset: '\x1b[0m', dim: '\x1b[2m', bold: '\x1b[1m',
@@ -29,6 +33,9 @@ OPTIONS
   --model <id>           Override the model (BYOT/managed).
   --out <dir>            Where to write the PR bodies and patches, one pair per
                          change (apidrift-<change-id>.md / .patch, default: ./apidrift-out).
+  --detect               Opt-in: poll the real Stripe changelog (network) in
+                         addition to the built-in codemod registry. Requires --release.
+  --release <id>         Changelog release to poll with --detect, e.g. 2026-08-26.preview.
   -h, --help             Show this help.
   -v, --version          Print version.
 
@@ -36,10 +43,22 @@ INFERENCE (Free tier)
   Default: BYOT if ANTHROPIC_API_KEY is set, otherwise deterministic-only.
   Your code never leaves your machine in either mode.
 
+DETECTION (opt-in, --detect)
+  Without --detect: only the hardcoded registry (src/changes) runs — no
+  network access, ever, unless you pass this flag. With --detect: the CLI also
+  fetches https://docs.stripe.com/changelog.md and the matching release's
+  detail pages, and folds in every auto-executable ("forme #1") change it
+  finds via a generic AST matcher. Non-auto-executable ("forme #2") changes
+  are reported but never fed into the pipeline — they need a hand-written
+  codemod. Detected changes have no deterministic fix, so they need --ai (or
+  ANTHROPIC_API_KEY) to actually produce one; without it they're matched and
+  then skipped by the pipeline (no LLM configured).
+
 EXAMPLES
   apidrift run .
   ANTHROPIC_API_KEY=sk-ant-... apidrift run . --ai
-  apidrift run ./service --deterministic-only`;
+  apidrift run ./service --deterministic-only
+  ANTHROPIC_API_KEY=sk-ant-... apidrift run . --ai --detect --release 2026-08-26.preview`;
 
 function parse(argv: string[]) {
   const args = argv.slice(2);
@@ -55,8 +74,22 @@ function parse(argv: string[]) {
     ai: args.includes('--ai'),
     model: getVal('--model'),
   };
-  return { cmd, target, out: getVal('--out'), flags } as const;
+  return {
+    cmd,
+    target,
+    out: getVal('--out'),
+    flags,
+    detect: args.includes('--detect'),
+    release: getVal('--release'),
+  } as const;
 }
+
+/** Real network fetch for --detect. Never called unless the user opts in. */
+const httpFetcher: Fetcher = async (url) => {
+  const res = await fetch(url, { headers: { 'Accept-Language': 'en-US' } });
+  if (!res.ok) throw new Error(`detection: GET ${url} -> HTTP ${res.status}`);
+  return res.text();
+};
 
 async function main() {
   const p = parse(process.argv);
@@ -88,7 +121,27 @@ async function main() {
   console.log(`\n${c.blue}${c.bold}apidrift${c.reset} ${c.dim}v${version()}${c.reset}  scanning ${c.bold}${targetDir}${c.reset}`);
   console.log(`${c.dim}inference: ${describePolicy(inference)}${c.reset}\n`);
 
-  const results = await run(targetDir, { outputDir, mode: 'workspace', llm });
+  // Detection is opt-in and additive: without --detect, `codemods` stays
+  // undefined and `run()` falls back to the hardcoded registry exactly as
+  // before US-2 (non-regression). Network is never touched unless --detect
+  // is passed explicitly.
+  let codemods: Codemod[] | undefined;
+  if (p.detect) {
+    if (!p.release) {
+      console.error(`${c.red}error:${c.reset} --detect requires --release <id>, e.g. --release 2026-08-26.preview`);
+      process.exit(1);
+    }
+    console.log(`${c.dim}detect: polling https://docs.stripe.com/changelog.md for release ${p.release}...${c.reset}`);
+    const detection = await detectChanges({ fetcher: httpFetcher, release: p.release });
+    for (const d of detection.all) {
+      const status = d.autoExecutable ? `${c.green}auto-executable${c.reset}` : `${c.amber}forme #2 — needs a hand-written codemod, not run${c.reset}`;
+      console.log(`  ${c.dim}[${d.classification}]${c.reset} ${d.change.target.symbol} — ${status}`);
+    }
+    console.log(`${c.dim}detect: ${detection.autoExecutable.length} auto-executable change(s) added to this run${c.reset}\n`);
+    codemods = [...defaultCodemods, ...detection.autoExecutable.map((change: Change) => genericSymbolCodemod(change))];
+  }
+
+  const results = await run(targetDir, { outputDir, mode: 'workspace', llm, codemods });
   let opened = 0, skipped = 0;
 
   for (const r of results) {
