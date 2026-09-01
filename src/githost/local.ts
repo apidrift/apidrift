@@ -54,10 +54,15 @@ export class LocalGitHost implements GitHost {
 
   async publish(input: ChangeRequestInput): Promise<ChangeRequestResult> {
     fs.mkdirSync(this.outputDir, { recursive: true });
+    // Both artifacts are named after the branch (i.e. after the change id).
+    // A fixed `PR.md` would be silently overwritten as soon as a second change
+    // matches in the same run, and every PipelineResult.prPath would point at
+    // the last one.
+    const slug = input.branch.replace(/\//g, '-');
     const patch = this.git(['format-patch', this.base, '--stdout']);
-    const patchPath = path.join(this.outputDir, `${input.branch.replace(/\//g, '-')}.patch`);
+    const patchPath = path.join(this.outputDir, `${slug}.patch`);
     fs.writeFileSync(patchPath, patch + '\n');
-    const prPath = path.join(this.outputDir, 'PR.md');
+    const prPath = path.join(this.outputDir, `${slug}.md`);
     fs.writeFileSync(prPath, input.body);
     return { url: prPath, draft: input.draft };
   }

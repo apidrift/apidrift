@@ -70,7 +70,8 @@ npm test              # proves the happy path AND the "moat" (draft on red)
 ```
 
 `npm run demo` prints a summary and writes a ready-to-review PR to
-`apidrift-out/PR.md` plus a `.patch` you can apply with `git am`.
+`apidrift-out/apidrift-<change-id>.md` plus a matching `.patch` you can apply
+with `git am` — one pair per change that matched.
 
 Run it against any repo:
 

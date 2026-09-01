@@ -27,7 +27,8 @@ OPTIONS
   --deterministic-only   Use only the codemod library. No model, no code sent anywhere.
   --ai                   Enable the AI fixer via your ANTHROPIC_API_KEY (BYOT).
   --model <id>           Override the model (BYOT/managed).
-  --out <dir>            Where to write PR.md and patches (default: ./apidrift-out).
+  --out <dir>            Where to write the PR bodies and patches, one pair per
+                         change (apidrift-<change-id>.md / .patch, default: ./apidrift-out).
   -h, --help             Show this help.
   -v, --version          Print version.
 

@@ -11,7 +11,8 @@ we operate on a temp copy and emit a branch + patch).
 
 ```bash
 npx @apidrift/cli run .            # or: npm run demo
-# -> apidrift-out/PR.md + a .patch you can `git am`
+# -> apidrift-out/apidrift-<change-id>.md + a matching .patch you can `git am`
+#    (one pair per change that matched)
 ```
 
 Zero trust barrier — this is the top of funnel.
