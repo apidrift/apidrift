@@ -229,6 +229,118 @@ test('documented limitation: destructuring is left to the tier-2 agent, not sile
   assert.strictEqual(codemod.find(project).length, 0, 'ObjectBindingPattern is out of scope by design');
 });
 
+// ── AC2: a reassigned binding stops tracking ────────────────────────────────
+
+test('AC2: a read after the binding is reassigned to a non-subscription source is not matched', () => {
+  // Before the fix, `binding.findReferencesAsNodes()` treated every reference
+  // to `sub` identically, including the one AFTER it stopped holding a
+  // Subscription — this read would have been (wrongly) rewritten to
+  // `sub.items.data[0].current_period_end`.
+  const { project } = projectFrom(`
+    async function f(stripe, a, b) {
+      let sub = await stripe.subscriptions.retrieve(a);
+      sub = await stripe.invoices.retrieve(b);
+      return sub.current_period_end;
+    }
+  `);
+
+  assert.strictEqual(
+    codemod.find(project).length,
+    0,
+    'a reassignment to a non-subscriptions call must cut tracking off for every read that follows it',
+  );
+
+  const migrated = migrate(`
+    async function f(stripe, a, b) {
+      let sub = await stripe.subscriptions.retrieve(a);
+      sub = await stripe.invoices.retrieve(b);
+      return sub.current_period_end;
+    }
+  `);
+  assert.match(migrated, /return sub\.current_period_end;/, 'the read after reassignment must be left untouched');
+});
+
+test('AC2: reads before the reassignment still match; only reads after it are cut off', () => {
+  const { project } = projectFrom(`
+    async function f(stripe, a, b) {
+      let sub = await stripe.subscriptions.retrieve(a);
+      const before = sub.current_period_end;
+      sub = await stripe.invoices.retrieve(b);
+      const after = sub.current_period_end;
+      return { before, after };
+    }
+  `);
+
+  assert.strictEqual(codemod.find(project).length, 1, 'only the read before reassignment is in scope');
+
+  const migrated = migrate(`
+    async function f(stripe, a, b) {
+      let sub = await stripe.subscriptions.retrieve(a);
+      const before = sub.current_period_end;
+      sub = await stripe.invoices.retrieve(b);
+      const after = sub.current_period_end;
+      return { before, after };
+    }
+  `);
+  assert.match(migrated, /const before = sub\.items\.data\[0\]\.current_period_end;/);
+  assert.match(migrated, /const after = sub\.current_period_end;/, 'the post-reassignment read stays untouched');
+});
+
+test('AC2 (bonus): a reassignment to ANOTHER subscriptions call keeps tracking going', () => {
+  const { project } = projectFrom(`
+    async function f(stripe, a, c) {
+      let sub = await stripe.subscriptions.retrieve(a);
+      sub = await stripe.subscriptions.retrieve(c);
+      return sub.current_period_end;
+    }
+  `);
+
+  assert.strictEqual(
+    codemod.find(project).length,
+    1,
+    'a reassignment to another subscriptions-returning call must not cut tracking off',
+  );
+});
+
+// ── AC3: the receiver's root must not be provably some other, concrete thing ──
+
+test('AC3 SAFETY: db.subscriptions.retrieve(id) does not match when `db` resolves to a different require', () => {
+  const { project } = projectFrom(`
+    const db = require('./db-client');
+    async function f(id) {
+      const subscription = await db.subscriptions.retrieve(id);
+      return subscription.current_period_end;
+    }
+  `);
+
+  assert.strictEqual(
+    codemod.find(project).length,
+    0,
+    'a root that resolves to a concrete, non-vendor require() must never match',
+  );
+});
+
+test('AC3: a plain parameter root (dependency injection, as used by fixtures/acme-payments) still matches', () => {
+  // The real-world/legacy shape: `stripe` is passed in, not required/imported
+  // in this file. AC3 must not regress this — only a root PROVABLY bound to
+  // something else is rejected, not merely an unresolvable one.
+  const { project } = projectFrom(LEGACY);
+  assert.strictEqual(codemod.find(project).length, 2, 'a plain parameter root is tolerated, not rejected');
+});
+
+test('AC3: matches through `const stripeClient = new Stripe(k)` (a resolvable, legitimate root)', () => {
+  const { project } = projectFrom(`
+    import Stripe from 'stripe';
+    const stripeClient = new Stripe('sk_test');
+    async function f(id) {
+      const subscription = await stripeClient.subscriptions.retrieve(id);
+      return subscription.current_period_end;
+    }
+  `);
+
+  assert.strictEqual(codemod.find(project).length, 1);
+});
+
 // ── Non-collision with codemod #1 ──────────────────────────────────────────
 
 test('the two codemods do not collide on the fixture', () => {

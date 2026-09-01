@@ -184,6 +184,58 @@ test('mock endpoint sanity check: confirm:true without return_url is rejected un
   );
 });
 
+// ── AC3: the receiver's root must not be provably some other, concrete thing ──
+
+test('AC3 SAFETY: db.charges.create(...) does not match when `db` resolves to a different require', () => {
+  // `allowJs` is required here: without it ts-morph's language service does
+  // not bind symbols in a plain `.js` file, and `db`'s declaration/initializer
+  // (needed to resolve the root) would be unavailable.
+  const project = new Project({ useInMemoryFileSystem: true, compilerOptions: { allowJs: true } });
+  project.createSourceFile(
+    'db.js',
+    `
+      const db = require('./db-client');
+      async function chargeCustomer(payload) {
+        return db.charges.create(payload);
+      }
+    `,
+  );
+
+  assert.strictEqual(
+    stripeChargesToIntents.find(project).length,
+    0,
+    'a root that resolves to a concrete, non-vendor require() must never match',
+  );
+});
+
+test('AC3: a plain parameter root (dependency injection, as used by fixtures/acme-payments) still matches', () => {
+  // The real-world/legacy shape used throughout this project's own fixtures:
+  // `stripe` is passed in, not required/imported in this file. AC3 must not
+  // regress this — only a root PROVABLY bound to something else is rejected.
+  const matches = (() => {
+    const project = new Project({ useInMemoryFileSystem: true });
+    project.createSourceFile('checkout.js', oldSource);
+    return stripeChargesToIntents.find(project);
+  })();
+  assert.strictEqual(matches.length, 1, 'a plain parameter root is tolerated, not rejected');
+});
+
+test('AC3: matches through `const stripeClient = new Stripe(k)` (a resolvable, legitimate root)', () => {
+  const project = new Project({ useInMemoryFileSystem: true });
+  project.createSourceFile(
+    'checkout.ts',
+    `
+      import Stripe from 'stripe';
+      const stripeClient = new Stripe('sk_test');
+      async function chargeCustomer(payload: Record<string, unknown>) {
+        return stripeClient.charges.create(payload);
+      }
+    `,
+  );
+
+  assert.strictEqual(stripeChargesToIntents.find(project).length, 1);
+});
+
 test('regression guard: a codemod output missing confirm, payment_method, or automatic_payment_methods fails validation', () => {
   const migrated = runCodemod(oldSource);
   const goodBody = extractCreateArgs(migrated);
