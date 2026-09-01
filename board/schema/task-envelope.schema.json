@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "task-envelope.schema.json",
+  "title": "Enveloppe de tâche (orchestrateur -> dev)",
+  "type": "object",
+  "required": ["us", "goal", "acceptance_criteria", "allowed_paths"],
+  "properties": {
+    "us": { "type": "string" },
+    "goal": { "type": "string" },
+    "acceptance_criteria": { "type": "array", "items": { "type": "string" } },
+    "constraints": { "type": "array", "items": { "type": "string" } },
+    "allowed_paths": { "type": "array", "items": { "type": "string" } },
+    "component": { "type": "string" }
+  }
+}

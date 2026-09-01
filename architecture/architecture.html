@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Architecture des composants</title>
+<style>
+  :root {
+    --ink: #1c1a17; --muted: #6b6760; --line: #e2ddd3; --paper: #faf8f3;
+    --card: #ffffff; --accent: #2f6f5e; --accent-soft: #e7f0ec;
+    --planned: #8a8378; --progress: #b8770f; --stable: #2f6f5e;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #ece8e0; --muted: #9c968b; --line: #35322c; --paper: #17150f;
+      --card: #201d17; --accent: #6fb7a1; --accent-soft: #1e2a26;
+      --planned: #9c968b; --progress: #d9a441; --stable: #6fb7a1;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font: 15px/1.6 "Iowan Old Style", Palatino, Georgia, serif;
+    padding: 2.2rem clamp(1rem, 5vw, 4rem);
+  }
+  header { border-bottom: 1px solid var(--line); padding-bottom: 1.2rem; margin-bottom: 1.6rem; }
+  .eyebrow {
+    font: 500 11px/1 ui-sans-serif, system-ui, sans-serif; letter-spacing: .18em;
+    text-transform: uppercase; color: var(--accent); margin: 0 0 .5rem;
+  }
+  h1 { font-size: clamp(1.7rem, 4vw, 2.4rem); margin: 0 0 .3rem; font-weight: 600; }
+  header p { color: var(--muted); margin: 0; max-width: 60ch; }
+  h2 {
+    font: 500 12px/1 ui-sans-serif, system-ui, sans-serif; letter-spacing: .16em;
+    text-transform: uppercase; color: var(--muted); margin: 2.2rem 0 1rem;
+  }
+  .tree { list-style: none; margin: 0; padding: 0; }
+  .tree ul { list-style: none; margin: .5rem 0 .5rem 1.25rem; padding-left: 1rem; border-left: 1px solid var(--line); }
+  .node {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: .85rem 1rem; margin: .5rem 0; display: grid; gap: .25rem;
+  }
+  .node-head { display: flex; align-items: baseline; gap: .6rem; flex-wrap: wrap; }
+  .node-name { font-weight: 600; font-size: 1.05rem; }
+  .node-id {
+    font: 500 11px ui-monospace, monospace; color: var(--accent);
+    background: var(--accent-soft); padding: .1rem .45rem; border-radius: 5px;
+  }
+  .badge {
+    font: 500 11px/1 ui-sans-serif, system-ui, sans-serif; letter-spacing: .05em;
+    text-transform: uppercase; padding: .18rem .5rem; border-radius: 999px;
+    border: 1px solid currentColor;
+  }
+  .b-planned { color: var(--planned); }
+  .b-in_progress { color: var(--progress); }
+  .b-stable { color: var(--stable); }
+  .resp { color: var(--muted); }
+  .meta { font: 400 12.5px ui-sans-serif, system-ui, sans-serif; color: var(--muted); }
+  .meta code { color: var(--ink); }
+  .mermaid { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 1rem; margin-top: .5rem; }
+  .empty { color: var(--muted); font-style: italic; }
+</style>
+</head>
+<body>
+<header>
+  <p class="eyebrow">Architecture vivante</p>
+  <h1 id="sys-name">Architecture des composants</h1>
+  <p id="sys-desc"></p>
+</header>
+
+<h2>Graphe des dépendances</h2>
+<pre class="mermaid" id="graph">graph TD</pre>
+
+<h2>Du système aux composants</h2>
+<ul class="tree" id="tree"><li class="empty">Chargement…</li></ul>
+
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+
+  const statusLabel = { planned: "prévu", in_progress: "en cours", stable: "stable" };
+
+  function nodeEl(c) {
+    const li = document.createElement("li");
+    const box = document.createElement("div");
+    box.className = "node";
+    const badge = c.status ? `<span class="badge b-${c.status}">${statusLabel[c.status] || c.status}</span>` : "";
+    const deps = (c.depends_on && c.depends_on.length)
+      ? `<div class="meta">dépend de : ${c.depends_on.map((d) => `<code>${d}</code>`).join(", ")}</div>` : "";
+    const ifs = (c.interfaces && c.interfaces.length)
+      ? `<div class="meta">interfaces : ${c.interfaces.map((d) => `<code>${d}</code>`).join(", ")}</div>` : "";
+    box.innerHTML =
+      `<div class="node-head"><span class="node-name">${c.name}</span>` +
+      `<span class="node-id">${c.id}</span>${badge}</div>` +
+      `<div class="resp">${c.responsibility || ""}</div>${deps}${ifs}`;
+    li.appendChild(box);
+    if (c.children && c.children.length) {
+      const ul = document.createElement("ul");
+      c.children.forEach((child) => ul.appendChild(nodeEl(child)));
+      li.appendChild(ul);
+    }
+    return li;
+  }
+
+  function walk(components, edges, nodes) {
+    for (const c of components) {
+      nodes.add(c.id);
+      (c.depends_on || []).forEach((d) => edges.push([c.id, d]));
+      if (c.children) walk(c.children, edges, nodes);
+    }
+  }
+
+  try {
+    const arch = await (await fetch("architecture.json")).json();
+    document.getElementById("sys-name").textContent = arch.system.name;
+    document.getElementById("sys-desc").textContent = arch.system.description || "";
+
+    const tree = document.getElementById("tree");
+    tree.innerHTML = "";
+    arch.components.forEach((c) => tree.appendChild(nodeEl(c)));
+
+    const edges = [], nodes = new Set();
+    walk(arch.components, edges, nodes);
+    const lines = ["graph TD"];
+    nodes.forEach((n) => lines.push(`  ${n}["${n}"]`));
+    edges.forEach(([a, b]) => lines.push(`  ${a} --> ${b}`));
+    document.getElementById("graph").textContent = lines.join("\n");
+
+    mermaid.initialize({ startOnLoad: false, theme: "neutral" });
+    await mermaid.run({ nodes: [document.getElementById("graph")] });
+  } catch (e) {
+    document.getElementById("tree").innerHTML =
+      `<li class="empty">Impossible de charger architecture.json — ouvre cette page via <code>lavish-axi architecture/architecture.html</code> ou un serveur statique (fetch local bloqué en file://).</li>`;
+  }
+</script>
+</body>
+</html>

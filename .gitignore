@@ -3,3 +3,8 @@ dist/
 apidrift-out/
 *.log
 .DS_Store
+
+# agile-agents-socle — worktrees des agents dev (isolation) + revues lavish
+.worktrees/
+worktrees/
+*.review.html

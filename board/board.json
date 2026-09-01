@@ -1,0 +1,1806 @@
+{
+  "wip_limit": 3,
+  "events": [
+    {
+      "ts": "2026-08-30T08:50:40.196Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-08-30T08:55:19.704Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-08-30T19:49:11.023Z",
+      "type": "move",
+      "actor": "architecte",
+      "us": "US-1",
+      "note": "ready"
+    },
+    {
+      "ts": "2026-08-30T19:50:24.245Z",
+      "type": "move",
+      "actor": "dev#1",
+      "us": "US-1",
+      "note": "ready>in_progress"
+    },
+    {
+      "ts": "2026-08-30T19:50:30.984Z",
+      "type": "delegate",
+      "actor": "orchestrateur",
+      "target": "dev#1",
+      "us": "US-1",
+      "payload": {
+        "goal": "Preuve de bout en bout sur un repo OSS reel",
+        "candidat_prioritaire": "sahat/hackathon-starter (35k stars, MIT, actif, stripe.charges.create dans controllers/api.js, npm test mocha+c8)",
+        "contraintes": [
+          "makeWorkspace exclut node_modules -> suite rouge pour la mauvaise raison, corriger par symlink",
+          "matcher glob src/** seulement -> elargir si repo cible hors src/, exclusions obligatoires",
+          "jamais de PR/push/fork upstream (gate humain)"
+        ],
+        "dod": "npx tsc --noEmit + npm test verts sur APIdrift"
+      }
+    },
+    {
+      "ts": "2026-08-30T20:10:28.301Z",
+      "type": "report",
+      "actor": "dev#1",
+      "us": "US-1",
+      "payload": {
+        "repo_cible": "sahat/hackathon-starter@73faf8c",
+        "baseline": "328 passing exit 0",
+        "apres_fix": "328 passing exit 0, draft false",
+        "match": "controllers/api.js:488",
+        "changements": [
+          "src/pipeline.ts linkNodeModules + fix filtre .git",
+          "src/matcher/index.ts glob elargi"
+        ],
+        "tests_ajoutes": [
+          "tests/node-modules-link.test.ts",
+          "tests/matcher.test.ts"
+        ],
+        "dod": "tsc clean, npm test 13/13",
+        "pr": "https://github.com/apidrift/apidrift/pull/4",
+        "branche": "feature/US-1-preuve-repo-reel"
+      }
+    },
+    {
+      "ts": "2026-08-30T20:10:55.083Z",
+      "type": "move",
+      "actor": "qa",
+      "us": "US-1",
+      "note": "in_progress>review"
+    },
+    {
+      "ts": "2026-08-30T20:15:34.840Z",
+      "type": "report",
+      "actor": "qa",
+      "us": "US-1",
+      "payload": {
+        "us": "US-1",
+        "agent": "qa",
+        "status": "needs_review",
+        "pr": "https://github.com/apidrift/apidrift/pull/4",
+        "tests": {
+          "passed": 13,
+          "failed": 0
+        },
+        "obstacle": "Non bloquant: PR.md tronque la verification a un extrait qui ressemble a une stack trace en echec (stderr dun test WebAuthn qui passe). Confirme independamment par re-execution QA: baseline et post-fix 328 passing / 0 failing, exit 0. Reste une regression UX a corriger, non bloquant. Criteres 1,2,3 PASS avec preuve independante. Critere 4 en attente de decision humaine."
+      }
+    },
+    {
+      "ts": "2026-08-30T20:22:39.119Z",
+      "type": "gate",
+      "actor": "orchestrateur",
+      "target": "humain",
+      "us": "US-1",
+      "note": "Criteres 1-3 PASS (verifies independamment par QA). Critere 4 en attente: PR upstream sahat/hackathon-starter vs preuve interne. US maintenue en review."
+    },
+    {
+      "ts": "2026-08-30T21:25:33.969Z",
+      "type": "move",
+      "actor": "orchestrateur",
+      "us": "US-4",
+      "note": "ready"
+    },
+    {
+      "ts": "2026-08-30T21:25:34.005Z",
+      "type": "move",
+      "actor": "dev#2",
+      "us": "US-4",
+      "note": "ready>in_progress"
+    },
+    {
+      "ts": "2026-08-30T21:25:39.584Z",
+      "type": "delegate",
+      "actor": "orchestrateur",
+      "target": "dev#2",
+      "us": "US-4",
+      "payload": {
+        "goal": "Durcir le codemod Stripe contre la spec OpenAPI officielle",
+        "points": [
+          "verifier confirm:true sans return_url",
+          "completer le codemod si invalide",
+          "test forme requete avec mock HTTP offline",
+          "corriger src/pr.ts extrait trompeur",
+          "regenerer docs/proof/US-1"
+        ],
+        "interdit": "aucune action reseau ecriture sur repo tiers"
+      }
+    },
+    {
+      "ts": "2026-08-30T21:45:49.342Z",
+      "type": "report",
+      "actor": "dev#2",
+      "us": "US-4",
+      "payload": {
+        "verdict_stripe": "spec OpenAPI ne modelise pas return_url comme requis; docs.stripe.com tranche via automatic_payment_methods.allow_redirects",
+        "codemod": "ajout automatic_payment_methods {enabled:true, allow_redirects:never}",
+        "tests": "23/23",
+        "nouveaux_tests": [
+          "tests/stripe-charges-to-intents.test.ts",
+          "tests/pr.test.ts"
+        ],
+        "pr": "https://github.com/apidrift/apidrift/pull/5",
+        "branche": "feature/US-4-codemod-schema-stripe"
+      }
+    },
+    {
+      "ts": "2026-08-30T21:45:51.276Z",
+      "type": "move",
+      "actor": "qa",
+      "us": "US-4",
+      "note": "in_progress>review"
+    },
+    {
+      "ts": "2026-08-30T21:51:04.904Z",
+      "type": "report",
+      "actor": "qa",
+      "us": "US-4",
+      "payload": {
+        "us": "US-4",
+        "agent": "qa",
+        "status": "done",
+        "pr": "https://github.com/apidrift/apidrift/pull/5",
+        "tests": {
+          "passed": 23,
+          "failed": 0
+        },
+        "obstacle": "AC1 PASS: spec3.json@976606f (API version 2026-08-26.dahlia) required=[amount,currency] verified live via raw.githubusercontent.com; docs.stripe.com allow_redirects always/never quotes verified byte-for-byte against live HTML, not paraphrased/fabricated. AC2 PASS: codemod adds automatic_payment_methods:{enabled:true,allow_redirects:never} idempotently next to confirm:true. AC3 PASS: tests/stripe-charges-to-intents.test.ts runs the real codemod + AST extraction (no eval) against vendorized spec extract + mock HTTP; QA independently broke apply() 3 ways (removed confirm, payment_method, automatic_payment_methods one at a time) and confirmed the suite goes red each time, then restored (md5 verified). No network, no Stripe key in tests. AC4 PASS: src/pr.ts summarizeVerification() replaces slice(-12); gh pr diff #5 confirms PR.md now shows 328 passing (8s) instead of raw mocha stack trace; red path still shows raw tail unconditionally (no false-positive risk since it never runs summary-line matching when verify.passed is false); 7 dedicated tests including ANSI-stripped and unknown-runner fallback. AC5 PASS: fix.patch/PR.md regenerated, patch touches only controllers/api.js, matches current codemod output exactly. AC6 PASS: npx tsc --noEmit clean, npm test 23/23, both reran independently in the dev worktree. Trade-off (allow_redirects:never filters 3DS/redirect payment methods) is explicitly documented in the codemod header comment, the apply() inline comment, docs/proof/US-1/README.md US-4 section, and PR.md/PR body migration-detail line -- defensible as the conservative choice since enabling redirects would require return_url handling the codemod cannot add. Confirmed via GitHub API: zero PRs/pushes to sahat/hackathon-starter from apidrift (only dependabot activity) -- no upstream write occurred. gh pr diff confirms blast radius is exactly the 10 expected files, no CI/secrets/lockfiles touched. Non-blocking note: scripts/dod.sh does not exist in the dev worktree (untracked meta-tooling, only present in /home/clemuscle/apidrift) so QA ran its two constituent commands (tsc --noEmit, npm test) directly instead -- same result. No blocking defects. Recommendation: accept US-4 as-is."
+      }
+    },
+    {
+      "ts": "2026-08-30T21:51:38.403Z",
+      "type": "gate",
+      "actor": "orchestrateur",
+      "target": "humain",
+      "us": "US-4",
+      "note": "QA accepte US-4 (6/6 criteres PASS, sources Stripe verifiees independamment). PR #5 en attente de merge humain. US maintenue en review jusqu au merge."
+    },
+    {
+      "ts": "2026-09-01T16:51:35.437Z",
+      "type": "gate",
+      "actor": "humain",
+      "us": "US-1",
+      "note": "Decision humaine: preuve interne uniquement (PR #4 mergee sur main), pas de PR upstream vers sahat/hackathon-starter."
+    },
+    {
+      "ts": "2026-09-01T16:51:35.493Z",
+      "type": "move",
+      "actor": "orchestrateur",
+      "us": "US-1",
+      "note": "review>done"
+    },
+    {
+      "ts": "2026-09-01T16:51:35.535Z",
+      "type": "gate",
+      "actor": "humain",
+      "us": "US-4",
+      "note": "PR #5 mergee sur main."
+    },
+    {
+      "ts": "2026-09-01T16:51:35.576Z",
+      "type": "move",
+      "actor": "orchestrateur",
+      "us": "US-4",
+      "note": "review>done"
+    },
+    {
+      "ts": "2026-09-01T17:04:31.722Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:04:50.267Z",
+      "type": "decision",
+      "actor": "orchestrateur",
+      "us": "US-3",
+      "note": "Priorisation: US-3 avant US-2 malgre priority 3 vs 2. Motif technique: Codemod.find() est requis (non optionnel) dans src/types.ts, donc AC3 de US-2 (declencher le pipeline sans modif manuelle du registre) est infaisable sans un matcher pilote par la donnee (change.target.symbol) au lieu de code ecrit a la main. Concevoir ce matcher generique avec N=1 change = surajustement garanti. US-3 fournit le 2e echantillon. US-2 reste priority 2 et sera reprise apres, mieux cadree."
+    },
+    {
+      "ts": "2026-09-01T17:05:08.694Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:05:45.351Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:05:56.287Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:06:32.560Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:07:09.805Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:07:34.319Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:07:46.495Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:07:50.966Z",
+      "type": "decision",
+      "actor": "orchestrateur",
+      "us": "US-3",
+      "note": "Etat verifie: US-3 backlog pur (aucun move/delegate; les 6 gates dod post-decision sont des hooks SubagentStop sans US). WIP 0/3. Demarrage du cycle po > architecte > dev > qa."
+    },
+    {
+      "ts": "2026-09-01T17:07:59.289Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:08:23.251Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:08:36.375Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:08:40.759Z"
+    },
+    {
+      "ts": "2026-09-01T17:09:00.722Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:09:00.818Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:09:24.665Z",
+      "type": "refinement",
+      "actor": "po",
+      "us": "US-3",
+      "note": "Valeur reformulee: US-3 ne vaut pas \"un 2e change\" mais \"un 2e echantillon INFORMATIF\" — assez different de charges->intents pour reveler ce qui est generalisable (donnee Change) vs ecrit a la main (find/apply). Cest linput factuel de US-2 (AC3 infaisable sans matcher pilote par change.target.symbol; concevoir ce matcher avec N=1 = surajustement). Un 2e change de type simple alias de methode NE remplit PAS lobjectif."
+    },
+    {
+      "ts": "2026-09-01T17:09:34.473Z",
+      "type": "refinement",
+      "actor": "po",
+      "us": "US-3",
+      "note": "Criteres raffines (a reporter dans backlog.json par lorchestrateur, 9 items): 1) choix du change source et justifie (>=1 URL Stripe dans change.references + date de consultation; rapport justifie pertinence et nature) 2) nature differente du 1er codemod: exige >=1 transformation AST hors du perimetre de charges->intents (renommer un segment de property-access + renommer/ajouter des cles du 1er argument objet), transformation couverte par un test dedie et SyntaxKind nommes dans le rapport 3) 4 pieces livrees (src/changes/ + registre index.ts + fixture avant/apres + tests/) 4) fixture: tests comportementaux verts avant ET apres, aucun fichier de test modifie par le fixer 5) find() AST-only: 0 match sur occurrence en commentaire, en chaine, et sur chaine de property-access differente 6) tier 1 deterministe: fix applique sans ANTHROPIC_API_KEY, method === deterministic 7) run sur un repo portant les deux patterns = 2 resultats independants, branche apidrift/<change.id> chacun, verify vert, PR non-draft 8) observation ecrite <=20 lignes: commun/derivable de Change vs ecrit a la main dans find()/apply(), conclusion explicite sur la faisabilite dun matcher generique pilote par change.target.symbol (input US-2) 9) npx tsc --noEmit + npm test verts."
+    },
+    {
+      "ts": "2026-09-01T17:09:38.129Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:09:38.511Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:09:38.676Z",
+      "type": "refinement",
+      "actor": "po",
+      "target": "architecte",
+      "us": "US-3",
+      "note": "Questions ouvertes laissees a larchitecte: (a) quel change Stripe concret (non prescrit par le PO) satisfaisant le critere 2; (b) fixture separee vs extension dacme-payments; (c) faut-il une 2e extract de spec vendorisee comme fixtures/stripe-spec pour ancrer la regle vendor."
+    },
+    {
+      "ts": "2026-09-01T17:10:14.716Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:10:27.210Z",
+      "type": "report",
+      "actor": "po",
+      "us": "US-3",
+      "payload": {
+        "refinement": "US-3",
+        "question_resolue": "quel 2e change Stripe",
+        "recommande": {
+          "change_id": "stripe-checkout-line-items-to-price-data",
+          "titre": "Checkout Session: line_items inline legacy -> price_data/product_data",
+          "symbole": "stripe.checkout.sessions.create",
+          "migration_op": "param_move",
+          "api_version": "2022-08-01",
+          "sdk": "stripe-node v10.0.0 (2022-08-02)",
+          "mapping": {
+            "amount": "price_data.unit_amount",
+            "currency": "price_data.currency",
+            "name": "price_data.product_data.name",
+            "description": "price_data.product_data.description",
+            "images": "price_data.product_data.images",
+            "quantity": "inchange",
+            "mode": "ajoute 'payment' si absent"
+          },
+          "pourquoi_ce_candidat": [
+            "op param_move != replaced_by du change #1: exerce une autre forme d'AST (array literal + creation d'objets imbriques)",
+            "chaine d'appel a 3 niveaux (checkout.sessions.create) vs 2 (charges.create)",
+            "mapping 1:1 documente, zero 'ca depend'",
+            "pattern tres repandu dans le vrai code JS pre-2020"
+          ],
+          "sources_verifiees": [
+            "https://docs.stripe.com/changelog/2022-08-01/replaces-line-item-create-checkout-session",
+            "https://docs.stripe.com/payments/checkout/migrating-prices",
+            "https://docs.stripe.com/api/checkout/sessions/create"
+          ]
+        },
+        "candidats_ecartes": [
+          {
+            "id": "invoices.retrieveUpcoming -> invoices.createPreview (basil 2025-03-31)",
+            "rang": 2,
+            "motif": "non deterministe: l'apercu multi-abonnements n'a pas d'equivalent, il faut passer subscription/subscription_details; op 'rename' trop mince"
+          },
+          {
+            "id": "paymentIntent.charges -> latest_charge",
+            "rang": 3,
+            "motif": "cote reponse, pas un CallExpression: imposerait d'elargir Match.node -> refonte matcher, hors scope"
+          }
+        ],
+        "acceptance_criteria_proposes": 12,
+        "hors_scope": [
+          "detection auto (Change reste hardcode)",
+          "multi-vendor / autre langage",
+          "UI",
+          "refonte matcher (ts-morph garde, Match.node reste CallExpression)",
+          "tier 2 AI (src/fixer/agent.ts intouche)",
+          "refacto de stripe-charges-to-intents.ts en helper partage",
+          "line_items construits dynamiquement (variable/.map()/spread) -> non matches, laisses au tier 2"
+        ],
+        "next": "architecte: decoupe technique puis ready"
+      }
+    },
+    {
+      "ts": "2026-09-01T17:10:40.552Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:10:44.869Z",
+      "type": "update",
+      "actor": "po",
+      "us": "US-3",
+      "payload": {
+        "fields": [
+          "why",
+          "epic",
+          "acceptance_criteria"
+        ],
+        "before": {
+          "why": "Un seul change (charges->intents) est supporte a ce jour. Valider que Change+Codemod / registre / fixture / test generalise a un deuxieme cas avant dinvestir dans la largeur.",
+          "acceptance_criteria": [
+            "Un deuxieme Change + Codemod dans src/changes/, distinct du premier",
+            "Enregistre dans src/changes/index.ts",
+            "Un cas avant/apres dans fixtures/ et un test dans tests/",
+            "npm test et npx tsc --noEmit restent verts"
+          ]
+        },
+        "after": {
+          "why": "Un seul change (charges->intents) est supporte a ce jour. La valeur nest pas dajouter un 2e change mais de produire un 2e echantillon INFORMATIF: assez different du premier pour reveler ce qui est generalisable (la donnee Change) et ce qui ne lest pas (le code find/apply). Cest linput factuel de US-2, dont lAC3 (declencher le pipeline sans modifier le registre) est infaisable tant que Codemod.find() est du code ecrit a la main; concevoir un matcher pilote par change.target.symbol avec N=1 echantillon serait du surajustement.",
+          "epic": "EPIC-mvp-proof",
+          "acceptance_criteria": [
+            "Le 2e change cible un pattern Stripe reel et source: change.references contient au moins une URL Stripe (docs.stripe.com ou stripe/openapi) avec sa date de consultation, et le rapport justifie le choix",
+            "Le 2e change est dune NATURE differente du premier: sa migration exige au moins une transformation AST hors du perimetre de charges->intents (qui se limite a renommer un segment de property-access et a renommer/ajouter des cles du premier argument objet). Cette transformation est couverte par un test dedie et les SyntaxKind concernes sont nommes dans le rapport",
+            "Les 4 pieces sont livrees ou rien: Change+Codemod dans src/changes/, entree ajoutee dans src/changes/index.ts, cas avant/apres dans fixtures/, test dans tests/",
+            "La fixture porte des tests comportementaux (ne nommant pas la methode Stripe migree) verts avant ET apres le fix, et aucun fichier de test nest modifie par le fixer",
+            "find() est AST-only (ts-morph): un test prouve 0 match sur la meme occurrence placee en commentaire, 0 match dans une chaine de caracteres, et 0 match sur une chaine de property-access differente",
+            "Fix deterministe tier 1: il sapplique sans ANTHROPIC_API_KEY (mode deterministic-only) et le PipelineResult expose method === deterministic",
+            "Un run sur un repo portant les deux patterns produit deux resultats independants, chacun sur sa branche apidrift/<change.id>, avec verification verte et PR non-draft",
+            "Une observation ecrite de 20 lignes max (rapport de PR ou commentaire de code) liste, pour les deux codemods, ce qui sest avere commun et derivable de la donnee Change (target.symbol, migration.op, ...) vs ce qui a du etre ecrit a la main dans find()/apply(), et conclut explicitement sur la faisabilite dun matcher generique pilote par change.target.symbol — input de US-2",
+            "npx tsc --noEmit et npm test restent verts"
+          ]
+        }
+      },
+      "note": "Criteres raffines par le po: 2e echantillon informatif (nature AST differente + observation commun/specifique = input US-2)"
+    },
+    {
+      "ts": "2026-09-01T17:10:46.116Z",
+      "type": "report",
+      "actor": "po",
+      "us": "US-3",
+      "payload": {
+        "refinement": "US-3",
+        "part": "acceptance_criteria (reecrits, a appliquer sur l'item par l'architecte au passage ready)",
+        "acceptance_criteria": [
+          "Le change retenu est nomme et unique: Checkout Session, champs inline legacy de line_items (name, description, images, amount, currency) remplaces par price_data / product_data (version d'API Stripe 2022-08-01). Symbole cible: stripe.checkout.sessions.create.",
+          "Le Change porte migration.op = 'param_move' (distinct du 'replaced_by' du change #1) et references[] contient au moins https://docs.stripe.com/changelog/2022-08-01/replaces-line-item-create-checkout-session et https://docs.stripe.com/payments/checkout/migrating-prices. Chaque regle de mapping encodee dans le codemod est justifiee en commentaire par une citation de ces pages (regle US-4: source lue, jamais paraphrasee de memoire).",
+          "Sur un line item portant au moins un champ legacy, la sortie du codemod est exactement: amount -> price_data.unit_amount, currency -> price_data.currency, name -> price_data.product_data.name, description -> price_data.product_data.description, images -> price_data.product_data.images; quantity reste au niveau du line item; aucun autre champ n'est deplace, renomme ni supprime.",
+          "Si l'objet passe a create n'a pas de propriete mode, le codemod ajoute mode: 'payment'. Si mode est deja present, sa valeur est inchangee.",
+          "Le matching est 100% AST (ts-morph): aucune regex ni test sur le texte source. Le matcher exige la chaine checkout.sessions.create: stripe.sessions.create(...) et db.sessions.create(...) ne matchent pas; une occurrence de 'line_items' en commentaire ou dans une chaine de caracteres ne matche pas.",
+          "Selectivite: un appel stripe.checkout.sessions.create dont les line_items utilisent deja price ou price_data n'est pas matche (find() renvoie 0).",
+          "Determinisme: si la valeur de line_items n'est pas un tableau litteral d'objets litteraux (variable, .map(), spread), find() ne matche pas; le cas est laisse au tier 2.",
+          "Idempotence: appliquer le codemod deux fois de suite sur la meme source produit exactement le meme texte qu'une seule application.",
+          "Non-collision dans les deux sens: stripeChargesToIntents.find() renvoie 0 match sur la nouvelle fixture, et le nouveau codemod renvoie 0 match sur fixtures/acme-payments; npm run demo sur acme-payments ne produit aucun patch pour le nouveau change.",
+          "Les 4 pieces de la convention sont livrees: Change+Codemod dans src/changes/, enregistre dans src/changes/index.ts, une fixture repo avant/apres dans fixtures/ (package.json avec script test, source utilisant le pattern legacy, mock SDK acceptant les deux formes, tests de comportement), et un test dans tests/.",
+          "Les tests de la fixture sont verts AVANT migration et restent verts APRES application du codemod; ils decrivent le comportement (montant total, devise, libelle produit, quantite), jamais la forme des parametres envoyes.",
+          "Bout en bout: run() sur la nouvelle fixture renvoie, pour l'id du nouveau change, applied=true, verify.passed=true, draft=false et un patch non vide.",
+          "npx tsc --noEmit et npm test sont verts (scripts/dod.sh)."
+        ]
+      }
+    },
+    {
+      "ts": "2026-09-01T17:10:51.255Z",
+      "type": "update",
+      "actor": "orchestrateur",
+      "us": "US-2",
+      "payload": {
+        "fields": [
+          "dependencies"
+        ],
+        "before": {
+          "dependencies": [
+            "US-1"
+          ]
+        },
+        "after": {
+          "dependencies": [
+            "US-1",
+            "US-3"
+          ]
+        }
+      },
+      "note": "Materialise la decision du 2026-09-01T17:04:50Z: US-2 depend de US-3 (2e echantillon requis pour un matcher pilote par la donnee)"
+    },
+    {
+      "ts": "2026-09-01T17:10:52.729Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:10:53.441Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:11:17.390Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:11:24.124Z",
+      "type": "report",
+      "actor": "po",
+      "us": "US-3",
+      "payload": {
+        "refinement": "US-3",
+        "part": "consolidation avec les AC deja presents sur l'item (evite 2 listes concurrentes)",
+        "instancie_les_AC_existants": {
+          "AC1_source": "references = changelog 2022-08-01 replaces-line-item-create-checkout-session + payments/checkout/migrating-prices + api/checkout/sessions/create, consultees le 2026-09-01",
+          "AC2_nature_differente": "SyntaxKind exerces et absents du change #1: ArrayLiteralExpression (iteration des line_items), creation d'ObjectLiteralExpression imbriques (price_data, price_data.product_data), deplacement de PropertyAssignment d'un objet vers un autre, et normalisation de ShorthandPropertyAssignment ({ name, amount } abrege) avant deplacement. Le change #1 ne fait que renommer un segment de PropertyAccessExpression et ajouter/renommer des cles a plat.",
+          "AC7_deux_patterns": "la fixture combinee doit contenir un stripe.charges.create ET un stripe.checkout.sessions.create legacy; chacun produit sa branche apidrift/<id>"
+        },
+        "AC_additionnels_specifiques_au_change": [
+          "mapping exact impose: amount->price_data.unit_amount, currency->price_data.currency, name->price_data.product_data.name, description->price_data.product_data.description, images->price_data.product_data.images, quantity inchange, aucun autre champ touche",
+          "mode: ajoute mode: 'payment' si absent, valeur inchangee si present",
+          "les cles abregees ({ name, amount, currency, quantity }) sont correctement developpees lors du deplacement",
+          "selectivite: un line item utilisant deja price ou price_data n'est pas matche (find() = 0)",
+          "determinisme: line_items non litteral (variable, .map(), spread) => find() = 0, laisse au tier 2",
+          "idempotence: 2 applications successives == 1 application, texte identique",
+          "non-collision: le nouveau codemod renvoie 0 match sur fixtures/acme-payments"
+        ],
+        "note_architecte": "tests/pipeline.test.ts selectionne deja par change.id (.find), l'ajout d'un 2e codemod au registre ne casse pas les tests existants"
+      }
+    },
+    {
+      "ts": "2026-09-01T17:11:30.958Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:11:32.010Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:12:00.396Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:12:07.461Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:12:37.035Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:13:14.378Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:13:50.916Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:14:27.754Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:15:03.699Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:15:40.289Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:16:17.720Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:16:42.311Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:16:47.203Z",
+      "type": "update",
+      "actor": "architecte",
+      "us": "US-3",
+      "payload": {
+        "fields": [
+          "component",
+          "dependencies",
+          "definition_of_ready"
+        ],
+        "before": {
+          "component": "changes"
+        },
+        "after": {
+          "component": "changes",
+          "dependencies": [
+            "US-4"
+          ],
+          "definition_of_ready": {
+            "cadre_par": "architecte",
+            "change_retenu": {
+              "id": "stripe-subscription-current-period-to-items",
+              "vendor": "stripe",
+              "source": "changelog",
+              "kind": "breaking",
+              "titre": "Subscription billing periods moved to subscription items (Basil 2025-03-31)",
+              "regle_vendor": "current_period_start et current_period_end sont SUPPRIMES de la ressource Subscription et AJOUTES sur SubscriptionItem. Migration: sub.current_period_end -> sub.items.data[0].current_period_end.",
+              "target": {
+                "type": "symbol",
+                "symbol": "stripe.subscriptions.retrieve",
+                "note": "symbol nomme l ANCRE (l appel qui produit la valeur), PAS le noeud reecrit. C est justement la limite a documenter pour US-2."
+              },
+              "migration": {
+                "op": "param_move",
+                "note": "aucune valeur de l enum migration.op ne decrit un deplacement de champ de REPONSE. param_move est le moins faux. NE PAS etendre l enum en US-3, consigner l ecart dans l observation AC8."
+              },
+              "confidence": "medium",
+              "confidence_motif": "items.data[0] est exact pour les abonnements mono-item (cas dominant). Un abonnement multi-items a desormais une periode PAR item: la transformation reste deterministe mais merite une revue humaine. Le corps de PR doit porter ce caveat.",
+              "references": [
+                "https://docs.stripe.com/changelog/basil/2025-03-31/deprecate-subscription-current-period-start-and-end.md (consulte le 2026-09-01) - Breaking, API version 2025-03-31.basil",
+                "https://docs.stripe.com/api/subscription_items/object?api-version=2025-03-31.basil#subscription_item_object-current_period_end (consulte le 2026-09-01)",
+                "https://github.com/stripe/stripe-node/releases/tag/v18.0.0 (SDK Node correspondant, cite par la page de changelog Stripe)"
+              ]
+            },
+            "pourquoi_ce_change": "Nature reellement differente du 1er codemod sur 3 axes: (1) le noeud cible n est PAS un CallExpression mais un PropertyAccessExpression sur le RESULTAT d un appel; (2) la reecriture ALLONGE la chaine d acces en y inserant un ElementAccessExpression (data[0]) au lieu de renommer un segment; (3) find() doit remonter un flux de donnees (appel -> binding -> references) au lieu de reconnaitre une forme locale. Candidats rejetes: tout alias de methode (meme forme que charges->intents), et le simple retrait de payment_method_types (dahlia 2026-08-26) qui reste de la chirurgie de cles sur l objet argument, donc non informatif.",
+            "fichiers_a_creer": [
+              "src/changes/stripe-subscription-period-to-items.ts",
+              "fixtures/acme-payments/src/billing.js",
+              "fixtures/acme-payments/test/billing.test.js",
+              "tests/stripe-subscription-period-to-items.test.ts"
+            ],
+            "fichiers_a_modifier": [
+              "src/types.ts - elargir Match.node de CallExpression a Node (import type Node de ts-morph). Un seul consommateur reel: apply() du codemod charges->intents, qui doit narrower avec Node.isCallExpression(match.node) en tete.",
+              "src/changes/index.ts - enregistrer le 2e codemod",
+              "src/githost/local.ts - publish() ecrit <outputDir>/PR.md, nom FIXE: le 2e resultat ecrase le 1er. Nommer par branche comme le patch (apidrift-<change.id>.md).",
+              "fixtures/acme-payments/lib/stripe-mock.js - ajouter subscriptions.retrieve",
+              "README.md, docs/USAGE.md, src/cli.ts (texte d aide) - les 3 mentions de apidrift-out/PR.md si le nom change"
+            ],
+            "fichiers_interdits": [
+              "docs/proof/US-1/** - artefacts de preuve geles, ne pas regenerer",
+              "tests/** du repo cible et fixtures/acme-payments/test/checkout.test.js - lecture seule pour le fixer",
+              "package-lock.json, .github/**, tout secret"
+            ],
+            "design_find": "AST-only ts-morph, aucune regex, aucun besoin du type-checker ni de node_modules. 1) forEachDescendant -> Node.isCallExpression; callee PropertyAccessExpression de nom retrieve|create|update dont le receiver est un PropertyAccessExpression de nom subscriptions. 2) remonter au binding: getParentIfKind(AwaitExpression) sinon l appel lui-meme, puis getParentIfKind(VariableDeclaration), puis getNameNode() qui doit etre un Identifier. 3) nameNode.findReferencesAsNodes(). 4) garder les refs dont le parent est un PropertyAccessExpression, dont getExpression() === la ref (la ref est le receveur, pas le nom), et dont getName() est current_period_start ou current_period_end. 5) Match.node = ce PropertyAccessExpression. Repli autorise si findReferencesAsNodes se revele instable: recherche d Identifier de meme getSymbol() dans la portee englobante - toujours AST, jamais regex.",
+            "design_apply": "Sur le PropertyAccessExpression matche pa: r = pa.getExpression(); r.replaceWithText(r.getText() + '.items.data[0]'). Donne sub.items.data[0].current_period_end. Garde obligatoire en tete de apply(): if (match.node.wasForgotten()) return; - applyFix() boucle sur les matches et mute en sequence, deux matches dans le meme fichier peuvent s invalider (cas jamais rencontre avec le 1er codemod qui n avait qu un match).",
+            "syntaxkind_attendus": {
+              "matche_et_reecrit": "SyntaxKind.PropertyAccessExpression (et NON CallExpression - c est la difference structurelle avec le 1er codemod)",
+              "produit": "SyntaxKind.ElementAccessExpression (data[0]) + 2 PropertyAccessExpression supplementaires dans la chaine",
+              "traverses_pour_l_ancrage": "CallExpression, AwaitExpression, VariableDeclaration, Identifier",
+              "non_gere_et_documente": "SyntaxKind.ObjectBindingPattern (const { current_period_end } = sub) - hors scope, a documenter en commentaire et a couvrir par un test de non-match"
+            },
+            "fixture": "EXTENSION de fixtures/acme-payments, pas de nouvelle fixture: l AC7 exige UN repo portant les DEUX patterns, et npm run demo pointe deja dessus. Nouveau src/billing.js utilisant stripe.subscriptions.retrieve puis lisant current_period_start ET current_period_end (2 matches dans un meme fichier, pour exercer la boucle de mutation). lib/stripe-mock.js doit exposer subscriptions.retrieve renvoyant un objet portant A LA FOIS current_period_end au niveau subscription ET items.data[0].current_period_end avec la MEME valeur, sinon le test comportemental ne peut pas etre vert avant ET apres (AC4). test/billing.test.js assert sur la valeur de periode retournee, sans jamais nommer current_period_end ni subscriptions.",
+            "spec_vendorisee": "NON. US-4 avait vendorise un extrait de spec parce que la question portait sur la VALIDITE d un corps de requete, ce que le schema tranche. Ici la regle est un champ de REPONSE SUPPRIME: prouver une absence dans un schema est plus faible et plus bruyant que la page de changelog Stripe, qui enonce la suppression et la date explicitement. Les URLs dans change.references suffisent. Vendoriser un 2e extrait est HORS SCOPE.",
+            "pipeline": "AUCUNE modification necessaire. Verifie dans src/pipeline.ts: run() boucle for (const c of list) sur tout le registre, runCodemod() appelle makeWorkspace(targetDir) donc chaque change part d une copie NEUVE du repo d origine, la branche est apidrift/${change.id} et le patch est nomme par branche. Les resultats sont bien independants. SEULE correction requise pour l AC7: le PR.md a nom fixe de LocalGitHost (voir fichiers_a_modifier).",
+            "tests_attendus": [
+              "AC5 non-match: meme occurrence en commentaire -> 0 match; dans une chaine de caracteres -> 0 match; chaine de property-access differente (ex. invoice.current_period_end sans ancrage subscriptions) -> 0 match; destructuring -> 0 match (limite documentee)",
+              "AC2 transformation: 2 matches dans un meme fichier tous deux reecrits correctement",
+              "AC6 deterministe: run sans ANTHROPIC_API_KEY, PipelineResult.method === deterministic",
+              "AC7 double: run sur fixtures/acme-payments -> 2 resultats, branches apidrift/<id> distinctes, 2 fichiers de PR distincts, verify.passed true et draft false pour les deux",
+              "Non-regression: tests/pipeline.test.ts utilise deja results.find(...) et resiste a un 2e codemod; tests/ai-fixer.test.ts utilise results[0] mais passe codemods: [...] en override, donc non impacte. A reverifier apres coup."
+            ],
+            "hors_scope_explicite": [
+              "Toute detection automatique / poll / oasdiff - c est US-2",
+              "Refonte du modele Change (target, migration.op) - consigner l ecart, ne pas le corriger avec N=2",
+              "Matcher generique pilote par change.target.symbol - c est le LIVRABLE D ANALYSE de l AC8, pas une implementation en US-3",
+              "Tout 3e change, tout autre vendor, tout autre langage",
+              "Le fixer IA (tier 2) n est pas concerne: ce codemod est tier 1 deterministe",
+              "Ouverture d une PR reelle sur un repo tiers"
+            ],
+            "risques": [
+              "findReferencesAsNodes() passe par le language service: verifier tot qu il resout bien un const local sans node_modules dans la fixture. Repli AST prevu (voir design_find).",
+              "Elargir Match.node a Node fait perdre le typage fort au 1er codemod: le narrowing Node.isCallExpression en tete de son apply() est OBLIGATOIRE, pas cosmetique.",
+              "Renommer PR.md touche README.md, docs/USAGE.md et l aide du CLI: garder ces 3 mentions coherentes sinon la doc ment."
+            ]
+          }
+        }
+      }
+    },
+    {
+      "ts": "2026-09-01T17:16:54.210Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:16:58.768Z",
+      "type": "move",
+      "actor": "architecte",
+      "us": "US-3",
+      "note": "ready"
+    },
+    {
+      "ts": "2026-09-01T17:16:58.814Z",
+      "type": "refinement",
+      "actor": "architecte",
+      "us": "US-3",
+      "note": "Cadrage US-3. Change retenu: stripe-subscription-current-period-to-items (Basil 2025-03-31, breaking, source docs.stripe.com verifiee en live le 2026-09-01): current_period_start/end supprimes de Subscription, deplaces sur SubscriptionItem. Nature differente sur 3 axes: noeud cible PropertyAccessExpression sur le RESULTAT (pas CallExpression), reecriture qui INSERE un ElementAccessExpression (items.data[0]) au lieu de renommer un segment, find() par flux de donnees (appel->binding->findReferencesAsNodes) au lieu de forme locale. Q2 fixture: EXTENSION de acme-payments (AC7 exige un repo aux 2 patterns, demo pointe dessus). Q3 spec vendorisee: NON (champ de reponse SUPPRIME, le changelog est une meilleure source qu une absence dans un schema). Q4 pipeline: aucune modif, run() boucle deja avec un workspace neuf et une branche par change - MAIS defaut trouve: LocalGitHost.publish ecrit PR.md a nom FIXE, le 2e resultat ecrase le 1er, correction bornee requise pour l AC7. 2 limites du modele consignees pour US-2 (input AC8): Match.node type CallExpression exclut les changes sur le resultat (elargi a Node en US-3, 1 seul consommateur), et target.symbol/migration.op ne savent pas decrire un deplacement de champ de reponse (enums NON etendus, N=2 insuffisant). architecture.json maj: contrainte matcher src/** etait PERIMEE (US-1 a elargi le glob a tout l arbre)."
+    },
+    {
+      "ts": "2026-09-01T17:17:19.779Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:17:31.212Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:17:32.286Z",
+      "type": "update",
+      "actor": "orchestrateur",
+      "us": "US-3",
+      "payload": {
+        "fields": [
+          "title",
+          "why",
+          "acceptance_criteria"
+        ],
+        "before": {
+          "title": "Deuxieme change Stripe supporte (valider le pattern 4 pieces)",
+          "why": "Un seul change (charges->intents) est supporte a ce jour. La valeur nest pas dajouter un 2e change mais de produire un 2e echantillon INFORMATIF: assez different du premier pour reveler ce qui est generalisable (la donnee Change) et ce qui ne lest pas (le code find/apply). Cest linput factuel de US-2, dont lAC3 (declencher le pipeline sans modifier le registre) est infaisable tant que Codemod.find() est du code ecrit a la main; concevoir un matcher pilote par change.target.symbol avec N=1 echantillon serait du surajustement.",
+          "acceptance_criteria": [
+            "Le 2e change cible un pattern Stripe reel et source: change.references contient au moins une URL Stripe (docs.stripe.com ou stripe/openapi) avec sa date de consultation, et le rapport justifie le choix",
+            "Le 2e change est dune NATURE differente du premier: sa migration exige au moins une transformation AST hors du perimetre de charges->intents (qui se limite a renommer un segment de property-access et a renommer/ajouter des cles du premier argument objet). Cette transformation est couverte par un test dedie et les SyntaxKind concernes sont nommes dans le rapport",
+            "Les 4 pieces sont livrees ou rien: Change+Codemod dans src/changes/, entree ajoutee dans src/changes/index.ts, cas avant/apres dans fixtures/, test dans tests/",
+            "La fixture porte des tests comportementaux (ne nommant pas la methode Stripe migree) verts avant ET apres le fix, et aucun fichier de test nest modifie par le fixer",
+            "find() est AST-only (ts-morph): un test prouve 0 match sur la meme occurrence placee en commentaire, 0 match dans une chaine de caracteres, et 0 match sur une chaine de property-access differente",
+            "Fix deterministe tier 1: il sapplique sans ANTHROPIC_API_KEY (mode deterministic-only) et le PipelineResult expose method === deterministic",
+            "Un run sur un repo portant les deux patterns produit deux resultats independants, chacun sur sa branche apidrift/<change.id>, avec verification verte et PR non-draft",
+            "Une observation ecrite de 20 lignes max (rapport de PR ou commentaire de code) liste, pour les deux codemods, ce qui sest avere commun et derivable de la donnee Change (target.symbol, migration.op, ...) vs ce qui a du etre ecrit a la main dans find()/apply(), et conclut explicitement sur la faisabilite dun matcher generique pilote par change.target.symbol — input de US-2",
+            "npx tsc --noEmit et npm test restent verts"
+          ]
+        },
+        "after": {
+          "title": "Deuxieme change Stripe supporte: Checkout line_items legacy -> price_data (valider le pattern 4 pieces)",
+          "why": "Un seul change (charges->intents) est supporte a ce jour. US-3 ne vaut pas 'un 2e change' mais 'un 2e echantillon INFORMATIF': assez different de charges->intents pour reveler ce qui est generalisable (donnee Change) vs ecrit a la main (find/apply). C'est l'input factuel de US-2, dont l'AC3 est infaisable sans un matcher pilote par change.target.symbol, qu'on ne peut pas concevoir avec N=1 sans surajuster.",
+          "acceptance_criteria": [
+            "Change retenu, nomme et unique: Checkout Session, champs inline legacy de line_items (name, description, images, amount, currency) remplaces par price_data / product_data (version d'API Stripe 2022-08-01). Symbole cible: stripe.checkout.sessions.create.",
+            "Le Change porte migration.op = 'param_move' (distinct du 'replaced_by' du change #1). change.references[] contient au moins https://docs.stripe.com/changelog/2022-08-01/replaces-line-item-create-checkout-session et https://docs.stripe.com/payments/checkout/migrating-prices, avec date de consultation. Chaque regle de mapping encodee dans le codemod est justifiee en commentaire par une citation de ces pages (regle US-4: source lue, jamais paraphrasee de memoire).",
+            "Nature differente du change #1 prouvee: la migration exige au moins une transformation AST hors du perimetre de charges->intents (qui se limite a renommer un segment de property-access et a renommer/ajouter des cles du premier argument objet) - ici traversee d'ArrayLiteralExpression, creation d'ObjectLiteralExpression imbriques, deplacement de PropertyAssignment entre objets, normalisation de ShorthandPropertyAssignment. Chaque transformation est couverte par un test dedie et les SyntaxKind concernes sont nommes dans le rapport dev.",
+            "Sur un line item portant au moins un champ legacy, la sortie du codemod est exactement: amount -> price_data.unit_amount, currency -> price_data.currency, name -> price_data.product_data.name, description -> price_data.product_data.description, images -> price_data.product_data.images; quantity reste au niveau du line item; aucun autre champ n'est deplace, renomme ni supprime.",
+            "Si l'objet passe a create n'a pas de propriete mode, le codemod ajoute mode: 'payment'. Si mode est deja present, sa valeur est inchangee. Garde-fou: si l'appel porte subscription_data, il n'est pas matche du tout (le mapping one-time ne s'y applique pas).",
+            "Matching 100% AST (ts-morph), aucune regex ni test sur le texte source. Le matcher exige la chaine checkout.sessions.create: un test prouve 0 match pour stripe.sessions.create(...), 0 match pour db.sessions.create(...), 0 match sur la meme occurrence placee en commentaire et 0 match dans une chaine de caracteres.",
+            "Selectivite: un appel stripe.checkout.sessions.create dont les line_items utilisent deja price ou price_data n'est pas matche (find() renvoie 0).",
+            "Determinisme: si la valeur de line_items n'est pas un tableau litteral d'objets litteraux (variable, .map(), spread), find() ne matche pas; le cas est laisse au tier 2.",
+            "Les cles abregees ({ name, amount, currency, quantity }) sont correctement developpees lors du deplacement.",
+            "Idempotence: appliquer le codemod deux fois de suite sur la meme source produit exactement le meme texte qu'une seule application.",
+            "Non-collision dans les deux sens: stripeChargesToIntents.find() renvoie 0 match sur la nouvelle fixture, et le nouveau codemod renvoie 0 match sur fixtures/acme-payments; npm run demo sur acme-payments ne produit aucun patch pour le nouveau change.",
+            "Les 4 pieces de la convention sont livrees ou rien: Change+Codemod dans src/changes/, enregistre dans src/changes/index.ts, une fixture repo avant/apres dans fixtures/ (package.json avec script test, source utilisant le pattern legacy, mock SDK acceptant les deux formes, tests de comportement), et un test dans tests/.",
+            "Les tests de la fixture sont comportementaux (montant total, devise, libelle produit, quantite - ils ne nomment pas la methode Stripe migree), verts AVANT migration et toujours verts APRES application du codemod. Aucun fichier de test n'est modifie par le fixer.",
+            "Tier 1 deterministe: le fix s'applique sans ANTHROPIC_API_KEY (mode deterministic-only) et le PipelineResult expose method === 'deterministic'.",
+            "Bout en bout: run() sur la nouvelle fixture renvoie, pour l'id du nouveau change, applied=true, verify.passed=true, draft=false et un patch non vide. Un run sur un repo portant les DEUX patterns produit 2 resultats independants, chacun sur sa branche apidrift/<change.id>, verification verte et PR non-draft.",
+            "Observation ecrite (20 lignes max, dans le rapport dev et en commentaire de code): pour les deux codemods, ce qui s'est avere commun et derivable de la donnee Change (target.symbol, migration.op, ...) vs ce qui a du etre ecrit a la main dans find()/apply(), avec conclusion explicite sur la faisabilite d'un matcher generique pilote par change.target.symbol. Input de US-2. Aucune abstraction/refacto n'est codee dans cette US.",
+            "npx tsc --noEmit et npm test verts (scripts/dod.sh)."
+          ]
+        }
+      },
+      "note": "Consolidation: criteres process (po) instancies sur le change concret recommande. Ajout orchestrateur: garde-fou subscription_data."
+    },
+    {
+      "ts": "2026-09-01T17:17:57.031Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:18:07.937Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:18:33.830Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:18:36.623Z",
+      "type": "move",
+      "actor": "dev#3",
+      "us": "US-3",
+      "note": "ready>in_progress"
+    },
+    {
+      "ts": "2026-09-01T17:18:36.664Z",
+      "type": "delegate",
+      "actor": "orchestrateur",
+      "target": "dev#3",
+      "us": "US-3",
+      "payload": {
+        "goal": "2e change Stripe supporte (4 pieces) = 2e echantillon informatif pour US-2",
+        "change": "stripe-subscription-current-period-to-items (Basil 2025-03-31, Breaking): sub.current_period_end -> sub.items.data[0].current_period_end",
+        "nature_differente": [
+          "noeud cible = PropertyAccessExpression sur le RESULTAT dun appel, pas un CallExpression",
+          "la reecriture ALLONGE la chaine en inserant un ElementAccessExpression data[0]",
+          "find() doit suivre un flux de donnees appel>binding>references, pas une forme locale"
+        ],
+        "fixture": "extension de fixtures/acme-payments (src/billing.js + test/billing.test.js + subscriptions.retrieve dans lib/stripe-mock.js); le mock expose la MEME valeur aux deux emplacements sinon AC4 impossible",
+        "correctif_borne": "src/githost/local.ts:60 prPath en dur PR.md ecrase le 2e resultat -> nommer par branche (AC7 infaisable sinon)",
+        "type_a_elargir": "Match.node CallExpression -> Node dans src/types.ts; 1 seul consommateur (apply() de charges->intents L99) qui DOIT narrower via Node.isCallExpression",
+        "interdits": [
+          "regex (AST ts-morph only)",
+          "modifier des fichiers de test depuis le fixer",
+          "etendre lenum migration.op (utiliser param_move)",
+          "vendoriser une spec (tranche non)",
+          "toucher docs/proof/** (artefacts geles)",
+          "PR/push upstream sur un repo tiers",
+          "detection auto / multi-vendor / multi-langage / UI"
+        ],
+        "livrable_cle_AC8": "observation ecrite 20 lignes max: commun/derivable de la donnee Change vs ecrit a la main dans find()/apply(), conclusion sur la faisabilite dun matcher pilote par change.target.symbol",
+        "dod": "npx tsc --noEmit + npm test verts"
+      }
+    },
+    {
+      "ts": "2026-09-01T17:18:39.610Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:18:52.269Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:19:16.409Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:19:29.396Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:19:53.832Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:20:30.664Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:21:07.372Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:21:44.049Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:22:21.639Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:22:59.382Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:24:13.093Z",
+      "type": "update",
+      "actor": "architecte",
+      "us": "US-3",
+      "payload": {
+        "fields": [
+          "definition_of_ready"
+        ],
+        "before": {
+          "definition_of_ready": {
+            "cadre_par": "architecte",
+            "change_retenu": {
+              "id": "stripe-subscription-current-period-to-items",
+              "vendor": "stripe",
+              "source": "changelog",
+              "kind": "breaking",
+              "titre": "Subscription billing periods moved to subscription items (Basil 2025-03-31)",
+              "regle_vendor": "current_period_start et current_period_end sont SUPPRIMES de la ressource Subscription et AJOUTES sur SubscriptionItem. Migration: sub.current_period_end -> sub.items.data[0].current_period_end.",
+              "target": {
+                "type": "symbol",
+                "symbol": "stripe.subscriptions.retrieve",
+                "note": "symbol nomme l ANCRE (l appel qui produit la valeur), PAS le noeud reecrit. C est justement la limite a documenter pour US-2."
+              },
+              "migration": {
+                "op": "param_move",
+                "note": "aucune valeur de l enum migration.op ne decrit un deplacement de champ de REPONSE. param_move est le moins faux. NE PAS etendre l enum en US-3, consigner l ecart dans l observation AC8."
+              },
+              "confidence": "medium",
+              "confidence_motif": "items.data[0] est exact pour les abonnements mono-item (cas dominant). Un abonnement multi-items a desormais une periode PAR item: la transformation reste deterministe mais merite une revue humaine. Le corps de PR doit porter ce caveat.",
+              "references": [
+                "https://docs.stripe.com/changelog/basil/2025-03-31/deprecate-subscription-current-period-start-and-end.md (consulte le 2026-09-01) - Breaking, API version 2025-03-31.basil",
+                "https://docs.stripe.com/api/subscription_items/object?api-version=2025-03-31.basil#subscription_item_object-current_period_end (consulte le 2026-09-01)",
+                "https://github.com/stripe/stripe-node/releases/tag/v18.0.0 (SDK Node correspondant, cite par la page de changelog Stripe)"
+              ]
+            },
+            "pourquoi_ce_change": "Nature reellement differente du 1er codemod sur 3 axes: (1) le noeud cible n est PAS un CallExpression mais un PropertyAccessExpression sur le RESULTAT d un appel; (2) la reecriture ALLONGE la chaine d acces en y inserant un ElementAccessExpression (data[0]) au lieu de renommer un segment; (3) find() doit remonter un flux de donnees (appel -> binding -> references) au lieu de reconnaitre une forme locale. Candidats rejetes: tout alias de methode (meme forme que charges->intents), et le simple retrait de payment_method_types (dahlia 2026-08-26) qui reste de la chirurgie de cles sur l objet argument, donc non informatif.",
+            "fichiers_a_creer": [
+              "src/changes/stripe-subscription-period-to-items.ts",
+              "fixtures/acme-payments/src/billing.js",
+              "fixtures/acme-payments/test/billing.test.js",
+              "tests/stripe-subscription-period-to-items.test.ts"
+            ],
+            "fichiers_a_modifier": [
+              "src/types.ts - elargir Match.node de CallExpression a Node (import type Node de ts-morph). Un seul consommateur reel: apply() du codemod charges->intents, qui doit narrower avec Node.isCallExpression(match.node) en tete.",
+              "src/changes/index.ts - enregistrer le 2e codemod",
+              "src/githost/local.ts - publish() ecrit <outputDir>/PR.md, nom FIXE: le 2e resultat ecrase le 1er. Nommer par branche comme le patch (apidrift-<change.id>.md).",
+              "fixtures/acme-payments/lib/stripe-mock.js - ajouter subscriptions.retrieve",
+              "README.md, docs/USAGE.md, src/cli.ts (texte d aide) - les 3 mentions de apidrift-out/PR.md si le nom change"
+            ],
+            "fichiers_interdits": [
+              "docs/proof/US-1/** - artefacts de preuve geles, ne pas regenerer",
+              "tests/** du repo cible et fixtures/acme-payments/test/checkout.test.js - lecture seule pour le fixer",
+              "package-lock.json, .github/**, tout secret"
+            ],
+            "design_find": "AST-only ts-morph, aucune regex, aucun besoin du type-checker ni de node_modules. 1) forEachDescendant -> Node.isCallExpression; callee PropertyAccessExpression de nom retrieve|create|update dont le receiver est un PropertyAccessExpression de nom subscriptions. 2) remonter au binding: getParentIfKind(AwaitExpression) sinon l appel lui-meme, puis getParentIfKind(VariableDeclaration), puis getNameNode() qui doit etre un Identifier. 3) nameNode.findReferencesAsNodes(). 4) garder les refs dont le parent est un PropertyAccessExpression, dont getExpression() === la ref (la ref est le receveur, pas le nom), et dont getName() est current_period_start ou current_period_end. 5) Match.node = ce PropertyAccessExpression. Repli autorise si findReferencesAsNodes se revele instable: recherche d Identifier de meme getSymbol() dans la portee englobante - toujours AST, jamais regex.",
+            "design_apply": "Sur le PropertyAccessExpression matche pa: r = pa.getExpression(); r.replaceWithText(r.getText() + '.items.data[0]'). Donne sub.items.data[0].current_period_end. Garde obligatoire en tete de apply(): if (match.node.wasForgotten()) return; - applyFix() boucle sur les matches et mute en sequence, deux matches dans le meme fichier peuvent s invalider (cas jamais rencontre avec le 1er codemod qui n avait qu un match).",
+            "syntaxkind_attendus": {
+              "matche_et_reecrit": "SyntaxKind.PropertyAccessExpression (et NON CallExpression - c est la difference structurelle avec le 1er codemod)",
+              "produit": "SyntaxKind.ElementAccessExpression (data[0]) + 2 PropertyAccessExpression supplementaires dans la chaine",
+              "traverses_pour_l_ancrage": "CallExpression, AwaitExpression, VariableDeclaration, Identifier",
+              "non_gere_et_documente": "SyntaxKind.ObjectBindingPattern (const { current_period_end } = sub) - hors scope, a documenter en commentaire et a couvrir par un test de non-match"
+            },
+            "fixture": "EXTENSION de fixtures/acme-payments, pas de nouvelle fixture: l AC7 exige UN repo portant les DEUX patterns, et npm run demo pointe deja dessus. Nouveau src/billing.js utilisant stripe.subscriptions.retrieve puis lisant current_period_start ET current_period_end (2 matches dans un meme fichier, pour exercer la boucle de mutation). lib/stripe-mock.js doit exposer subscriptions.retrieve renvoyant un objet portant A LA FOIS current_period_end au niveau subscription ET items.data[0].current_period_end avec la MEME valeur, sinon le test comportemental ne peut pas etre vert avant ET apres (AC4). test/billing.test.js assert sur la valeur de periode retournee, sans jamais nommer current_period_end ni subscriptions.",
+            "spec_vendorisee": "NON. US-4 avait vendorise un extrait de spec parce que la question portait sur la VALIDITE d un corps de requete, ce que le schema tranche. Ici la regle est un champ de REPONSE SUPPRIME: prouver une absence dans un schema est plus faible et plus bruyant que la page de changelog Stripe, qui enonce la suppression et la date explicitement. Les URLs dans change.references suffisent. Vendoriser un 2e extrait est HORS SCOPE.",
+            "pipeline": "AUCUNE modification necessaire. Verifie dans src/pipeline.ts: run() boucle for (const c of list) sur tout le registre, runCodemod() appelle makeWorkspace(targetDir) donc chaque change part d une copie NEUVE du repo d origine, la branche est apidrift/${change.id} et le patch est nomme par branche. Les resultats sont bien independants. SEULE correction requise pour l AC7: le PR.md a nom fixe de LocalGitHost (voir fichiers_a_modifier).",
+            "tests_attendus": [
+              "AC5 non-match: meme occurrence en commentaire -> 0 match; dans une chaine de caracteres -> 0 match; chaine de property-access differente (ex. invoice.current_period_end sans ancrage subscriptions) -> 0 match; destructuring -> 0 match (limite documentee)",
+              "AC2 transformation: 2 matches dans un meme fichier tous deux reecrits correctement",
+              "AC6 deterministe: run sans ANTHROPIC_API_KEY, PipelineResult.method === deterministic",
+              "AC7 double: run sur fixtures/acme-payments -> 2 resultats, branches apidrift/<id> distinctes, 2 fichiers de PR distincts, verify.passed true et draft false pour les deux",
+              "Non-regression: tests/pipeline.test.ts utilise deja results.find(...) et resiste a un 2e codemod; tests/ai-fixer.test.ts utilise results[0] mais passe codemods: [...] en override, donc non impacte. A reverifier apres coup."
+            ],
+            "hors_scope_explicite": [
+              "Toute detection automatique / poll / oasdiff - c est US-2",
+              "Refonte du modele Change (target, migration.op) - consigner l ecart, ne pas le corriger avec N=2",
+              "Matcher generique pilote par change.target.symbol - c est le LIVRABLE D ANALYSE de l AC8, pas une implementation en US-3",
+              "Tout 3e change, tout autre vendor, tout autre langage",
+              "Le fixer IA (tier 2) n est pas concerne: ce codemod est tier 1 deterministe",
+              "Ouverture d une PR reelle sur un repo tiers"
+            ],
+            "risques": [
+              "findReferencesAsNodes() passe par le language service: verifier tot qu il resout bien un const local sans node_modules dans la fixture. Repli AST prevu (voir design_find).",
+              "Elargir Match.node a Node fait perdre le typage fort au 1er codemod: le narrowing Node.isCallExpression en tete de son apply() est OBLIGATOIRE, pas cosmetique.",
+              "Renommer PR.md touche README.md, docs/USAGE.md et l aide du CLI: garder ces 3 mentions coherentes sinon la doc ment."
+            ]
+          }
+        },
+        "after": {
+          "definition_of_ready": {
+            "cadre_par": "architecte",
+            "verdict": "READY - faisabilite validee par prototype ts-morph 24.0.0 execute au cadrage (tous les AC de matching/transformation/idempotence verifies empiriquement)",
+            "change_retenu": {
+              "id": "stripe-checkout-line-items-to-price-data",
+              "vendor": "stripe",
+              "source": "changelog",
+              "kind": "breaking",
+              "titre": "Checkout Session: inline line_items fields replaced by price_data / product_data (API 2022-08-01)",
+              "target": {
+                "type": "symbol",
+                "symbol": "stripe.checkout.sessions.create"
+              },
+              "migration": {
+                "op": "param_move"
+              },
+              "confidence": "high",
+              "references": [
+                "https://docs.stripe.com/changelog/2022-08-01/replaces-line-item-create-checkout-session (consulte 2026-09-01, HTTP 200 via variante .md) - enumere les 5 parametres SUPPRIMES: line_items[amount], [currency], [name], [description], [images]; 'Use the price and price_data parameters instead'",
+                "https://docs.stripe.com/payments/checkout/migrating-prices (consulte 2026-09-01, HTTP 200 via variante .md) - section 'One-time payments': table de mapping + exemple curl + 'mode is now required'"
+              ]
+            },
+            "citations_verifiees_pour_les_commentaires_du_codemod": {
+              "mapping_table": "migrating-prices.md, section 'Mapping table': line_items.name -> product.name | line_items.description -> product.description | line_items.amount -> price.unit_amount / price_data.unit_amount (if defined when the Checkout Session is created) | line_items.currency -> price.currency / price_data.currency | line_items.images -> product.images (displays the first image supplied)",
+              "forme_cible_exacte": "migrating-prices.md, 'Server-side code for inline items', exemple curl: line_items[0][quantity], line_items[0][price_data][unit_amount], line_items[0][price_data][product_data][name], [description], [images][], line_items[0][price_data][currency], mode=payment",
+              "mode_requis": "migrating-prices.md, 'One-time payments': 'mode is now required.'",
+              "suppression": "changelog 2022-08-01: 'Removes the following parameters from the Create Checkout Session endpoint: line_items[amount], line_items[currency], line_items[name], line_items[description], line_items[images]'",
+              "regle": "US-4: citer la source lue, jamais paraphraser de memoire. Les .md ci-dessus sont la source; le HTML docs.stripe.com est un shell JS vide."
+            },
+            "reponse_a": "types.ts et matcher/ NON MODIFIES. Le noeud matche EST le CallExpression stripe.checkout.sessions.create(...), donc Match.node: CallExpression suffit tel quel. matcher/index.ts inchange: loadProject() scanne deja tout l arbre du repo et findMatches() delegue integralement a codemod.find(). Aucune modification de src/types.ts n est necessaire ni autorisee dans cette US.",
+            "reponse_b": "NOUVELLE fixture dediee fixtures/shopfront-checkout (mono-pattern), PAS d extension de acme-payments. Resolution de la contradiction apparente AC11/AC15: AC11 exige que stripeChargesToIntents.find() rende 0 match sur la nouvelle fixture ET que npm run demo (=acme-payments) n emette aucun patch pour le nouveau change -> les 2 patterns ne peuvent pas cohabiter dans une fixture commitee. AC15 exige un repo portant LES DEUX patterns -> ce repo est construit a la volee dans un tmpdir par le test e2e en copiant les fichiers des deux fixtures, exactement la technique deja utilisee par le test 'moat' de tests/pipeline.test.ts. Aucun repo multi-pattern n est commite dans fixtures/.",
+            "reponse_c": "NON, pas de spec vendorisee. US-4 avait vendorise un extrait d OpenAPI parce que la question portait sur la VALIDITE d un corps de requete, ce que seul le schema tranche. Ici les deux pages exigees par l AC2 enoncent litteralement (i) les 5 parametres supprimes, (ii) la table de mapping champ par champ, (iii) la forme cible imbriquee complete dans un exemple curl, (iv) le caractere requis de mode. C est plus fort et plus citable que le schema, qui ne decrit que la forme ACTUELLE et ne peut pas montrer ce qui a ete retire. Les URLs dans change.references + citations en commentaire suffisent. Vendoriser un 2e extrait est HORS SCOPE.",
+            "reponse_d": "Le pipeline gere deja N codemods proprement: run() boucle sur tout le registre, runCodemod() refait un makeWorkspace(targetDir) NEUF par change (les resultats ne se cumulent pas), branche = apidrift/${change.id}, patch nomme par branche. UN SEUL point de rupture: LocalGitHost.publish() (src/githost/local.ts:60) ecrit le corps de PR dans <outputDir>/PR.md, nom FIXE, alors que le .patch est nomme par branche. Des que 2 codemods matchent, le 2e ecrase le PR.md du 1er et les deux PipelineResult.prPath pointent le meme fichier -> AC15 ('2 resultats independants') n est pas honnetement satisfiable. Correctif borne obligatoire: nommer par branche, comme le patch.",
+            "decoupe_ordonnee": [
+              "1. src/changes/stripe-checkout-line-items-to-price-data.ts (CREER) - Change record + find() + apply(), commentaires citant les 2 pages Stripe",
+              "2. src/changes/index.ts (MODIFIER) - enregistrer le 2e codemod dans le tableau codemods",
+              "3. fixtures/shopfront-checkout/package.json (CREER) - type commonjs, scripts.test = 'node --test'",
+              "4. fixtures/shopfront-checkout/lib/stripe-mock.js (CREER) - faux SDK checkout.sessions.create acceptant LES DEUX formes (inline legacy et price_data/product_data) et renvoyant les memes totaux normalises",
+              "5. fixtures/shopfront-checkout/src/checkout.js (CREER) - appel legacy; hors test/**, sinon invisible pour le matcher",
+              "6. fixtures/shopfront-checkout/test/checkout.test.js (CREER) - asserts comportementaux (total, devise, libelle produit, quantite), sans nommer la methode Stripe",
+              "7. src/githost/local.ts (MODIFIER) - prPath nomme par branche au lieu de PR.md fixe (correctif borne, cf reponse_d)",
+              "8. README.md ligne ~73, docs/USAGE.md ligne ~14, src/cli.ts ligne ~30 (MODIFIER) - les 3 mentions de apidrift-out/PR.md, sinon la doc ment",
+              "9. tests/stripe-checkout-line-items-to-price-data.test.ts (CREER) - unitaires find()/apply()",
+              "10. tests/pipeline.test.ts (MODIFIER) - ajouter le e2e 2 patterns (repo tmpdir) + ajuster le message d assert 'PR.md should exist'"
+            ],
+            "design_find": "AST-only ts-morph, aucune regex, aucun type-checker, aucun node_modules requis. forEachDescendant -> Node.isCallExpression; callee PropertyAccessExpression name 'create'; receveur PropertyAccessExpression name 'sessions'; son receveur PropertyAccessExpression name 'checkout' (la chaine checkout.sessions.create est ce qui exclut stripe.sessions.create et db.sessions.create). Puis 1er argument ObjectLiteralExpression; REJET si getProperty('subscription_data') (garde-fou AC5); propriete line_items en PropertyAssignment dont l initializer est un ArrayLiteralExpression NON VIDE dont TOUS les elements sont ObjectLiteralExpression (rejette variable, .map(), spread - un SpreadElement n est pas un ObjectLiteralExpression, AC8); enfin au moins un item 'legacy'. Item legacy = n a ni price ni price_data ET porte au moins une des 5 cles legacy en PropertyAssignment ou ShorthandPropertyAssignment. Match.node = le CallExpression.",
+            "design_apply": "Pour chaque item legacy de l array: 1) LIRE d abord les 5 valeurs en TEXTE (PropertyAssignment -> getInitializerOrThrow().getText(); ShorthandPropertyAssignment -> getName()), 2) puis remove() les 5 proprietes, 3) puis item.insertPropertyAssignment(0, { name: 'price_data', initializer: '{ currency, unit_amount, product_data: { name, description, images } }' }) en n emettant que les cles effectivement presentes. quantity et toute autre cle (tax_rates...) restent intactes. Enfin, si l objet argument n a pas de propriete 'mode', insertPropertyAssignment(0, mode: 'payment'); si mode existe, ne pas y toucher. Ordre LIRE->SUPPRIMER->INSERER obligatoire: lire apres remove() = noeud forgotten.",
+            "regle_tranchee_item_mixte": "AC7 lu au niveau ITEM, pas au niveau appel: si TOUS les line_items portent deja price/price_data -> find() rend 0 match. Si un tableau melange un item legacy et un item deja migre -> l appel matche et SEULS les items legacy sont reecrits, l item deja migre est laisse tel quel. C est la seule lecture coherente avec l idempotence.",
+            "idempotence": "Elle est portee par find(), pas par apply(): apres la 1re passe chaque item porte price_data, donc isLegacyItem est faux et find() rend 0 match. Verifie au prototype: 2e passe = 0 match, texte strictement identique.",
+            "syntaxkind_a_nommer_dans_le_rapport_dev": {
+              "matche": "CallExpression, PropertyAccessExpression (x3: create/sessions/checkout)",
+              "traverses": "ObjectLiteralExpression (argument), PropertyAssignment (line_items), ArrayLiteralExpression (AC3 - hors perimetre du codemod #1), ObjectLiteralExpression (chaque line item)",
+              "lus": "PropertyAssignment et ShorthandPropertyAssignment (normalisation AC9)",
+              "produits": "ObjectLiteralExpression imbriques (price_data, price_data.product_data) - creation, la ou le codemod #1 se contentait de renommer",
+              "rejetes_explicitement": "SpreadElement / SpreadAssignment, Identifier et CallExpression comme initializer de line_items (AC8)"
+            },
+            "pieges": [
+              "ShorthandPropertyAssignment n a PAS de getInitializer(): lire la valeur avec getName(). Ne pas caster en PropertyAssignment.",
+              "Ne pas resoudre la valeur d un shorthand: re-emettre l identifiant tel quel ({ name } -> product_data: { name: name }). La portee est preservee, le nouvel objet reste dans le meme scope. Un test doit couvrir une variable locale homonyme (const name = ...) pour prouver qu on ne la resout pas.",
+              "Ne PAS reutiliser l astuce du codemod #1 (sourceProp.getFirstChild().replaceWithText()): elle renomme une cle sur place, elle ne sait pas deplacer une propriete dans un objet imbrique.",
+              "Ordre des operations: capturer les 5 valeurs texte AVANT tout remove(). Lire apres suppression -> wasForgotten().",
+              "Le garde-fou subscription_data doit vivre dans find(), pas dans apply(): sinon le pipeline cree une branche pour un diff vide.",
+              "line_items: [] (tableau vide) -> 0 match.",
+              "formatText() (applyFix) reformate les line items sur plusieurs lignes: asserter sur l AST re-parse ou sur du texte normalise, jamais sur des espaces exacts.",
+              "Ajouter un wasForgotten() en tete de apply(): applyFix boucle sur les matches et mute en sequence. Assurance bon marche, meme si le cas ne se presente pas ici (les appels matches sont des freres).",
+              "La fixture doit vivre hors de test/** et ne pas etre nommee *.test.js / *.spec.js: le matcher exclut ces chemins, la source ne serait jamais vue.",
+              "Le mock SDK doit accepter LES DEUX formes et produire le meme total, sinon AC13 (vert AVANT et APRES) est impossible.",
+              "Le repo '2 patterns' se construit dans un tmpdir au sein du test; le commiter dans fixtures/ rendrait AC11 inverifiable.",
+              "Renommer PR.md: 3 mentions a synchroniser (README.md, docs/USAGE.md, src/cli.ts --out). tests/pipeline.test.ts:22 n utilise que r.prPath, seul le message d assert est a rafraichir."
+            ],
+            "note_ac3_deplacement": "AC3 parle de 'deplacement de PropertyAssignment entre objets'. ts-morph n a pas d API de deplacement de noeud: le deplacement est SEMANTIQUE (la propriete quitte le line item et reapparait dans l objet imbrique), implemente par lecture du texte de l initializer + remove() + insert. C est l idiome ts-morph, ce n est pas un contournement. A ne pas rejeter en QA.",
+            "fichiers_interdits": [
+              "src/fixer/agent.ts - hors sujet, ce codemod est tier 1",
+              "src/types.ts et src/matcher/** - aucune modification necessaire (cf reponse_a)",
+              "docs/proof/** - artefacts de preuve US-1 geles",
+              "fixtures/*/test/** et tests/** vus depuis le fixer - lecture seule (la moat)",
+              "package-lock.json, .github/**, tout secret"
+            ],
+            "tests_attendus": [
+              "AC6 non-match: occurrence en commentaire -> 0; dans une chaine de caracteres -> 0; stripe.sessions.create -> 0; db.sessions.create -> 0",
+              "AC7 selectivite: line_items deja en price -> 0 match; deja en price_data -> 0 match",
+              "AC8 determinisme: line_items: items (variable) -> 0; line_items: cart.map(...) -> 0; tableau avec spread -> 0",
+              "AC5 garde-fou: appel avec subscription_data -> 0 match; mode deja present -> valeur inchangee; mode absent -> mode: 'payment' ajoute",
+              "AC4 mapping exact: amount->price_data.unit_amount, currency->price_data.currency, name/description/images->price_data.product_data.*, quantity conserve au niveau item, aucun autre champ touche",
+              "AC9 shorthand: { name, amount, currency, quantity } correctement developpe",
+              "AC10 idempotence: 2 applications successives == 1 application, texte identique",
+              "AC11 non-collision bidirectionnelle: stripeChargesToIntents.find() -> 0 sur shopfront-checkout; nouveau find() -> 0 sur acme-payments",
+              "AC14 tier 1: run sans ANTHROPIC_API_KEY, method === 'deterministic'",
+              "AC15 e2e: run sur shopfront-checkout -> applied true, verify.passed true, draft false, patch non vide; puis repo tmpdir aux 2 patterns -> 2 resultats, 2 branches apidrift/<id> distinctes, 2 fichiers de PR DISTINCTS, verify verte et draft false pour les deux",
+              "Non-regression verifiee au cadrage: tests/pipeline.test.ts selectionne par change.id (.find), tests/ai-fixer.test.ts passe codemods:[...] en override -> l ajout d un 2e codemod au registre ne casse ni l un ni l autre"
+            ],
+            "hors_scope_explicite": [
+              "Detection auto / poll / oasdiff - c est US-2",
+              "Refonte du modele Change (types.ts, enums target/migration.op) - consigner l ecart dans architecture.json, ne pas corriger avec N=2",
+              "Matcher generique pilote par change.target.symbol - c est le LIVRABLE D ANALYSE de l AC16, pas une implementation",
+              "Tout 3e change, tout autre vendor, tout autre langage, toute UI",
+              "Ouverture d une PR reelle sur un repo tiers"
+            ],
+            "input_us2_deja_consigne": "architecture.json / composant changes: seul target.symbol (point d ancrage de l appel) s est avere derivable de la donnee; la descente dans l argument, la forme attendue de line_items, l exclusion des items deja migres et le garde-fou subscription_data sont du code manuel sans contrepartie dans le modele. migration.op='param_move' ne dit ni quelles cles bougent ni vers quelle imbrication."
+          }
+        }
+      },
+      "note": "Cadrage US-3 sur le change tranche par le PO (checkout line_items -> price_data). Remplace la DoR perimee (change subscription abandonne)."
+    },
+    {
+      "ts": "2026-09-01T17:24:15.695Z",
+      "type": "move",
+      "actor": "architecte",
+      "us": "US-3",
+      "note": "ready"
+    },
+    {
+      "ts": "2026-09-01T17:24:38.601Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:24:49.047Z",
+      "type": "report",
+      "actor": "architecte",
+      "us": "US-3",
+      "payload": {
+        "verdict": "READY",
+        "change": "stripe-checkout-line-items-to-price-data (Stripe 2022-08-01, breaking) - sources .md verifiees en live 2026-09-01, HTTP 200 sur les 2 URLs exigees par l AC2",
+        "faisabilite": "prototype ts-morph 24.0.0 execute au cadrage: 1 seul match attendu, 0 sur commentaire/chaine/stripe.sessions.create/db.sessions.create/deja-migre/line_items dynamique/subscription_data; shorthand developpe; mapping AC4 exact; 2e passe = 0 match et texte identique (idempotence)",
+        "a": "src/types.ts et src/matcher/ NON MODIFIES. Le noeud matche est le CallExpression, donc Match.node: CallExpression suffit. Zero modification de type.",
+        "b": "NOUVELLE fixture mono-pattern fixtures/shopfront-checkout. AC11 interdit la cohabitation des 2 patterns dans une fixture commitee; AC15 est satisfait par un repo 2-patterns construit en tmpdir dans le test e2e (technique deja utilisee par le test moat). Pas d extension de acme-payments.",
+        "c": "PAS de spec vendorisee. Les 2 pages docs enoncent litteralement les 5 params supprimes, la table de mapping, la forme cible imbriquee (exemple curl) et 'mode is now required'. Plus fort que le schema, qui ne montre que la forme actuelle. Citations en commentaire, URLs dans references.",
+        "d": "Pipeline OK pour N codemods (workspace neuf par change, branche apidrift/<id>, patch nomme par branche). 1 point de rupture: LocalGitHost.publish() src/githost/local.ts:60 ecrit PR.md a nom FIXE -> le 2e resultat ecrase le 1er, AC15 non honnetement satisfiable. Correctif borne obligatoire: nommer par branche (+3 mentions de doc a synchroniser).",
+        "decoupe": [
+          "1 src/changes/stripe-checkout-line-items-to-price-data.ts CREER",
+          "2 src/changes/index.ts MODIFIER (registre)",
+          "3-6 fixtures/shopfront-checkout/{package.json,lib/stripe-mock.js,src/checkout.js,test/checkout.test.js} CREER",
+          "7 src/githost/local.ts MODIFIER (prPath par branche)",
+          "8 README.md + docs/USAGE.md + src/cli.ts MODIFIER (3 mentions PR.md)",
+          "9 tests/stripe-checkout-line-items-to-price-data.test.ts CREER",
+          "10 tests/pipeline.test.ts MODIFIER (e2e 2 patterns)"
+        ],
+        "pieges_majeurs": [
+          "ShorthandPropertyAssignment n a pas getInitializer(): lire via getName(), ne pas resoudre la variable",
+          "Ordre LIRE(texte) -> remove() -> insert; lire apres remove = noeud forgotten",
+          "Garde-fou subscription_data dans find(), pas apply(), sinon branche a diff vide",
+          "Idempotence portee par find() (exclut price/price_data), pas par apply()",
+          "Fixture hors test/** et non *.test.js, sinon invisible du matcher",
+          "Mock SDK acceptant les 2 formes avec meme total, sinon AC13 impossible",
+          "formatText reformate: asserter sur AST re-parse, pas sur des espaces"
+        ],
+        "ambiguites_tranchees": [
+          "AC7 lu au niveau ITEM: tous items deja migres -> 0 match; tableau mixte -> match, seuls les items legacy reecrits (seule lecture coherente avec l idempotence)",
+          "AC3 'deplacement de PropertyAssignment': ts-morph n a pas d API de move; deplacement SEMANTIQUE via lecture du texte + remove + insert. Idiome, pas contournement - ne pas rejeter en QA",
+          "AC11 vs AC15 (contradiction apparente): resolue par fixture dediee + repo 2-patterns en tmpdir"
+        ],
+        "architecture_json": "composant changes maj: 2 contraintes perimees (redigees pour le change subscription abandonne) corrigees - Match.node reste CallExpression, aucun elargissement en US-3. Ajout: limite du modele constatee sur l echantillon 2 (seul target.symbol derivable, tout le reste manuel; migration.op ne dit ni quelles cles ni quelle imbrication), regle d idempotence portee par find(), regle une fixture = un pattern.",
+        "non_regression_verifiee": "tests/pipeline.test.ts selectionne par change.id (.find); tests/ai-fixer.test.ts passe codemods:[...] en override -> ajout d un 2e codemod au registre sans casse",
+        "aucune_modification_src": "revue en lecture seule; le seul code ecrit est un prototype jetable hors du repo (/tmp)"
+      }
+    },
+    {
+      "ts": "2026-09-01T17:25:10.500Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:25:15.472Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:25:47.096Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:25:52.025Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:26:24.639Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:27:32.175Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:28:09.111Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:28:46.181Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:29:04.697Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:29:41.498Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:30:18.150Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:30:26.756Z",
+      "type": "decision",
+      "actor": "orchestrateur",
+      "us": "US-3",
+      "note": "DIVERGENCE TRACEE. Larchitecte a produit deux cadrages contradictoires: (1) 17:16:47 DoR + 17:16:58 refinement = stripe-subscription-current-period-to-items, et cest ce cadrage que son rapport final ma transmis et sur lequel jai bati lenveloppe dev a 17:18:36; (2) 17:17:32 reecriture title/why/acceptance_criteria vers Checkout line_items -> price_data (17 AC) puis 17:24:13 remplacement de la DoR avec la mention change subscription abandonne, soit APRES ma delegation. Le dev a donc livre le change subscription (PR #6) pendant que le board decrivait le change Checkout. Levent 17:17:32 est attribue a orchestrateur a tort: ma commande update laissait --actor optionnel avec defaut orchestrateur; corrige, --actor est desormais obligatoire. Aucune des deux ACs nest auto-attribuee: la QA jugera PR #6 contre les 9 criteres PROCESS du po (agnostiques du change choisi), le choix du change concret restant une decision darchitecture a porter en porte humaine."
+    },
+    {
+      "ts": "2026-09-01T17:30:55.256Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:31:11.807Z",
+      "type": "move",
+      "actor": "qa",
+      "us": "US-3",
+      "note": "ready>review"
+    },
+    {
+      "ts": "2026-09-01T17:31:47.606Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:32:24.485Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:33:01.543Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:33:38.432Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:34:15.817Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:34:52.976Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:35:29.636Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:36:08.607Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:36:45.259Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:37:22.467Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:37:59.149Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:38:35.828Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:38:53.510Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:38:59.637Z",
+      "type": "report",
+      "actor": "qa",
+      "us": "US-3",
+      "payload": {
+        "us": "US-3",
+        "agent": "qa",
+        "status": "needs_review",
+        "pr": "#6",
+        "tests": {
+          "passed": 35,
+          "failed": 0
+        },
+        "obstacle": "Les 9 criteres PROCESS du PO sont PASS (re-executes: tsc 0, npm test 35/35, dod.sh exit 0, demo = 2 PR non-draft independantes, 7 mutants dont 6 tues). Aucun defaut bloquant. Porte humaine requise sur 2 points, pas sur la qualite du code: (1) divergence referentiel - le board decrit le change Checkout (17 AC + DoR), le dev a livre le change Subscription conforme au cadrage de 17:16; le backlog decrit donc du code jamais ecrit. (2) 3 defauts non bloquants: apply() deplace le guard ?. sur optional chaining (sub?.x -> sub.items.data[0]?.x, change le comportement si sub est null); binding reassigne a une autre ressource reecrit a tort; find() matche tout receveur nomme subscriptions (db.subscriptions) - le segment stripe. de target.symbol est ignore par les DEUX find(), fait pertinent pour US-2 et absent de l observation AC8. Recommandation: accepter avec reserves."
+      }
+    },
+    {
+      "ts": "2026-09-01T17:39:12.436Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:39:30.089Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:39:54.511Z",
+      "type": "gate",
+      "actor": "orchestrateur#2",
+      "target": "humain",
+      "us": "US-3",
+      "note": "SESSIONS CONCURRENTES: deux orchestrateurs ont pilote US-3 en parallele sur le meme board (le mien: po>architecte; l autre: dev#3>qa). Cause racine du referentiel divergent, a corriger avant le prochain cycle (un seul orchestrateur par US). Sur le fond, DEUX options coherentes, decision humaine requise. Option A: accepter le change Subscription livre en PR #6 et REALIGNER board (title/17 AC/DoR) sur lui. L objection archi 'elargir Match.node = refonte speculative sans consommateur' TOMBE sous cette option, puisque le codemod subscription EST le consommateur. Reserve: items.data[0] est un choix, pas une deduction, sur un abonnement multi-items -> confidence medium + caveat obligatoire dans le corps de PR. Option B: garder le board (Checkout line_items -> price_data, 100% deterministe, aucun changement de type), parquer la branche subscription pour une US ulterieure, refaire le dev. Mon avis: Option A, car US-3 vaut par son pouvoir informatif pour US-2 et le change subscription exerce un noeud (PropertyAccessExpression sur resultat) et un find() par flux de donnees que Checkout n exerce pas. CONDITION DE MERGE quelle que soit l option: le defaut QA 1 n est PAS cosmetique - apply() deplace le guard d optional chaining (sub?.x devient sub.items.data[0]?.x), ce qui change la semantique de nullite; a corriger avant merge, pas apres. Defaut QA 3 (les DEUX find() ignorent le segment 'stripe.' de target.symbol, donc db.subscriptions matche) est un input direct pour US-2 et un correctif a prevoir sur le codemod #1."
+    },
+    {
+      "ts": "2026-09-01T17:40:08.630Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:40:45.788Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:40:46.888Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:41:22.759Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:41:31.601Z",
+      "type": "gate",
+      "actor": "orchestrateur",
+      "target": "humain",
+      "us": "US-3",
+      "note": "QA: accepter avec reserves. 9/9 criteres PROCESS du po PASS, re-executes avec mutation testing (6 mutants, la suite passe au rouge sur chacun sauf 1 documente). DoD verte (tsc exit 0, 35/35, dod.sh exit 0). Blast radius propre, aucune ecriture reseau vers un repo tiers. Elargissement Match.node justifie (prouve par TS2339 en retirant le narrowing), zero regression sur le change #1 (patch identique au byte pres). 3 defauts de soundness non bloquants capitalises en US-5. Porte humaine ouverte sur la DIVERGENCE DE REFERENTIEL (subscription livre vs Checkout inscrit au board), pas sur la qualite du code. lavish-axi absent de lenvironnement: porte presentee en conversation."
+    },
+    {
+      "ts": "2026-09-01T17:46:09.150Z",
+      "type": "report"
+    },
+    {
+      "ts": "2026-09-01T17:46:10.306Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:46:32.845Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:47:08.753Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:47:45.186Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:48:21.808Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:48:56.457Z",
+      "type": "update",
+      "actor": "orchestrateur",
+      "us": "US-3",
+      "payload": {
+        "fields": [
+          "title",
+          "why",
+          "acceptance_criteria",
+          "definition_of_ready"
+        ],
+        "before": {
+          "title": "Deuxieme change Stripe supporte: Checkout line_items legacy -> price_data (valider le pattern 4 pieces)",
+          "why": "Un seul change (charges->intents) est supporte a ce jour. US-3 ne vaut pas 'un 2e change' mais 'un 2e echantillon INFORMATIF': assez different de charges->intents pour reveler ce qui est generalisable (donnee Change) vs ecrit a la main (find/apply). C'est l'input factuel de US-2, dont l'AC3 est infaisable sans un matcher pilote par change.target.symbol, qu'on ne peut pas concevoir avec N=1 sans surajuster.",
+          "acceptance_criteria": [
+            "Change retenu, nomme et unique: Checkout Session, champs inline legacy de line_items (name, description, images, amount, currency) remplaces par price_data / product_data (version d'API Stripe 2022-08-01). Symbole cible: stripe.checkout.sessions.create.",
+            "Le Change porte migration.op = 'param_move' (distinct du 'replaced_by' du change #1). change.references[] contient au moins https://docs.stripe.com/changelog/2022-08-01/replaces-line-item-create-checkout-session et https://docs.stripe.com/payments/checkout/migrating-prices, avec date de consultation. Chaque regle de mapping encodee dans le codemod est justifiee en commentaire par une citation de ces pages (regle US-4: source lue, jamais paraphrasee de memoire).",
+            "Nature differente du change #1 prouvee: la migration exige au moins une transformation AST hors du perimetre de charges->intents (qui se limite a renommer un segment de property-access et a renommer/ajouter des cles du premier argument objet) - ici traversee d'ArrayLiteralExpression, creation d'ObjectLiteralExpression imbriques, deplacement de PropertyAssignment entre objets, normalisation de ShorthandPropertyAssignment. Chaque transformation est couverte par un test dedie et les SyntaxKind concernes sont nommes dans le rapport dev.",
+            "Sur un line item portant au moins un champ legacy, la sortie du codemod est exactement: amount -> price_data.unit_amount, currency -> price_data.currency, name -> price_data.product_data.name, description -> price_data.product_data.description, images -> price_data.product_data.images; quantity reste au niveau du line item; aucun autre champ n'est deplace, renomme ni supprime.",
+            "Si l'objet passe a create n'a pas de propriete mode, le codemod ajoute mode: 'payment'. Si mode est deja present, sa valeur est inchangee. Garde-fou: si l'appel porte subscription_data, il n'est pas matche du tout (le mapping one-time ne s'y applique pas).",
+            "Matching 100% AST (ts-morph), aucune regex ni test sur le texte source. Le matcher exige la chaine checkout.sessions.create: un test prouve 0 match pour stripe.sessions.create(...), 0 match pour db.sessions.create(...), 0 match sur la meme occurrence placee en commentaire et 0 match dans une chaine de caracteres.",
+            "Selectivite: un appel stripe.checkout.sessions.create dont les line_items utilisent deja price ou price_data n'est pas matche (find() renvoie 0).",
+            "Determinisme: si la valeur de line_items n'est pas un tableau litteral d'objets litteraux (variable, .map(), spread), find() ne matche pas; le cas est laisse au tier 2.",
+            "Les cles abregees ({ name, amount, currency, quantity }) sont correctement developpees lors du deplacement.",
+            "Idempotence: appliquer le codemod deux fois de suite sur la meme source produit exactement le meme texte qu'une seule application.",
+            "Non-collision dans les deux sens: stripeChargesToIntents.find() renvoie 0 match sur la nouvelle fixture, et le nouveau codemod renvoie 0 match sur fixtures/acme-payments; npm run demo sur acme-payments ne produit aucun patch pour le nouveau change.",
+            "Les 4 pieces de la convention sont livrees ou rien: Change+Codemod dans src/changes/, enregistre dans src/changes/index.ts, une fixture repo avant/apres dans fixtures/ (package.json avec script test, source utilisant le pattern legacy, mock SDK acceptant les deux formes, tests de comportement), et un test dans tests/.",
+            "Les tests de la fixture sont comportementaux (montant total, devise, libelle produit, quantite - ils ne nomment pas la methode Stripe migree), verts AVANT migration et toujours verts APRES application du codemod. Aucun fichier de test n'est modifie par le fixer.",
+            "Tier 1 deterministe: le fix s'applique sans ANTHROPIC_API_KEY (mode deterministic-only) et le PipelineResult expose method === 'deterministic'.",
+            "Bout en bout: run() sur la nouvelle fixture renvoie, pour l'id du nouveau change, applied=true, verify.passed=true, draft=false et un patch non vide. Un run sur un repo portant les DEUX patterns produit 2 resultats independants, chacun sur sa branche apidrift/<change.id>, verification verte et PR non-draft.",
+            "Observation ecrite (20 lignes max, dans le rapport dev et en commentaire de code): pour les deux codemods, ce qui s'est avere commun et derivable de la donnee Change (target.symbol, migration.op, ...) vs ce qui a du etre ecrit a la main dans find()/apply(), avec conclusion explicite sur la faisabilite d'un matcher generique pilote par change.target.symbol. Input de US-2. Aucune abstraction/refacto n'est codee dans cette US.",
+            "npx tsc --noEmit et npm test verts (scripts/dod.sh)."
+          ],
+          "definition_of_ready": {
+            "cadre_par": "architecte",
+            "verdict": "READY - faisabilite validee par prototype ts-morph 24.0.0 execute au cadrage (tous les AC de matching/transformation/idempotence verifies empiriquement)",
+            "change_retenu": {
+              "id": "stripe-checkout-line-items-to-price-data",
+              "vendor": "stripe",
+              "source": "changelog",
+              "kind": "breaking",
+              "titre": "Checkout Session: inline line_items fields replaced by price_data / product_data (API 2022-08-01)",
+              "target": {
+                "type": "symbol",
+                "symbol": "stripe.checkout.sessions.create"
+              },
+              "migration": {
+                "op": "param_move"
+              },
+              "confidence": "high",
+              "references": [
+                "https://docs.stripe.com/changelog/2022-08-01/replaces-line-item-create-checkout-session (consulte 2026-09-01, HTTP 200 via variante .md) - enumere les 5 parametres SUPPRIMES: line_items[amount], [currency], [name], [description], [images]; 'Use the price and price_data parameters instead'",
+                "https://docs.stripe.com/payments/checkout/migrating-prices (consulte 2026-09-01, HTTP 200 via variante .md) - section 'One-time payments': table de mapping + exemple curl + 'mode is now required'"
+              ]
+            },
+            "citations_verifiees_pour_les_commentaires_du_codemod": {
+              "mapping_table": "migrating-prices.md, section 'Mapping table': line_items.name -> product.name | line_items.description -> product.description | line_items.amount -> price.unit_amount / price_data.unit_amount (if defined when the Checkout Session is created) | line_items.currency -> price.currency / price_data.currency | line_items.images -> product.images (displays the first image supplied)",
+              "forme_cible_exacte": "migrating-prices.md, 'Server-side code for inline items', exemple curl: line_items[0][quantity], line_items[0][price_data][unit_amount], line_items[0][price_data][product_data][name], [description], [images][], line_items[0][price_data][currency], mode=payment",
+              "mode_requis": "migrating-prices.md, 'One-time payments': 'mode is now required.'",
+              "suppression": "changelog 2022-08-01: 'Removes the following parameters from the Create Checkout Session endpoint: line_items[amount], line_items[currency], line_items[name], line_items[description], line_items[images]'",
+              "regle": "US-4: citer la source lue, jamais paraphraser de memoire. Les .md ci-dessus sont la source; le HTML docs.stripe.com est un shell JS vide."
+            },
+            "reponse_a": "types.ts et matcher/ NON MODIFIES. Le noeud matche EST le CallExpression stripe.checkout.sessions.create(...), donc Match.node: CallExpression suffit tel quel. matcher/index.ts inchange: loadProject() scanne deja tout l arbre du repo et findMatches() delegue integralement a codemod.find(). Aucune modification de src/types.ts n est necessaire ni autorisee dans cette US.",
+            "reponse_b": "NOUVELLE fixture dediee fixtures/shopfront-checkout (mono-pattern), PAS d extension de acme-payments. Resolution de la contradiction apparente AC11/AC15: AC11 exige que stripeChargesToIntents.find() rende 0 match sur la nouvelle fixture ET que npm run demo (=acme-payments) n emette aucun patch pour le nouveau change -> les 2 patterns ne peuvent pas cohabiter dans une fixture commitee. AC15 exige un repo portant LES DEUX patterns -> ce repo est construit a la volee dans un tmpdir par le test e2e en copiant les fichiers des deux fixtures, exactement la technique deja utilisee par le test 'moat' de tests/pipeline.test.ts. Aucun repo multi-pattern n est commite dans fixtures/.",
+            "reponse_c": "NON, pas de spec vendorisee. US-4 avait vendorise un extrait d OpenAPI parce que la question portait sur la VALIDITE d un corps de requete, ce que seul le schema tranche. Ici les deux pages exigees par l AC2 enoncent litteralement (i) les 5 parametres supprimes, (ii) la table de mapping champ par champ, (iii) la forme cible imbriquee complete dans un exemple curl, (iv) le caractere requis de mode. C est plus fort et plus citable que le schema, qui ne decrit que la forme ACTUELLE et ne peut pas montrer ce qui a ete retire. Les URLs dans change.references + citations en commentaire suffisent. Vendoriser un 2e extrait est HORS SCOPE.",
+            "reponse_d": "Le pipeline gere deja N codemods proprement: run() boucle sur tout le registre, runCodemod() refait un makeWorkspace(targetDir) NEUF par change (les resultats ne se cumulent pas), branche = apidrift/${change.id}, patch nomme par branche. UN SEUL point de rupture: LocalGitHost.publish() (src/githost/local.ts:60) ecrit le corps de PR dans <outputDir>/PR.md, nom FIXE, alors que le .patch est nomme par branche. Des que 2 codemods matchent, le 2e ecrase le PR.md du 1er et les deux PipelineResult.prPath pointent le meme fichier -> AC15 ('2 resultats independants') n est pas honnetement satisfiable. Correctif borne obligatoire: nommer par branche, comme le patch.",
+            "decoupe_ordonnee": [
+              "1. src/changes/stripe-checkout-line-items-to-price-data.ts (CREER) - Change record + find() + apply(), commentaires citant les 2 pages Stripe",
+              "2. src/changes/index.ts (MODIFIER) - enregistrer le 2e codemod dans le tableau codemods",
+              "3. fixtures/shopfront-checkout/package.json (CREER) - type commonjs, scripts.test = 'node --test'",
+              "4. fixtures/shopfront-checkout/lib/stripe-mock.js (CREER) - faux SDK checkout.sessions.create acceptant LES DEUX formes (inline legacy et price_data/product_data) et renvoyant les memes totaux normalises",
+              "5. fixtures/shopfront-checkout/src/checkout.js (CREER) - appel legacy; hors test/**, sinon invisible pour le matcher",
+              "6. fixtures/shopfront-checkout/test/checkout.test.js (CREER) - asserts comportementaux (total, devise, libelle produit, quantite), sans nommer la methode Stripe",
+              "7. src/githost/local.ts (MODIFIER) - prPath nomme par branche au lieu de PR.md fixe (correctif borne, cf reponse_d)",
+              "8. README.md ligne ~73, docs/USAGE.md ligne ~14, src/cli.ts ligne ~30 (MODIFIER) - les 3 mentions de apidrift-out/PR.md, sinon la doc ment",
+              "9. tests/stripe-checkout-line-items-to-price-data.test.ts (CREER) - unitaires find()/apply()",
+              "10. tests/pipeline.test.ts (MODIFIER) - ajouter le e2e 2 patterns (repo tmpdir) + ajuster le message d assert 'PR.md should exist'"
+            ],
+            "design_find": "AST-only ts-morph, aucune regex, aucun type-checker, aucun node_modules requis. forEachDescendant -> Node.isCallExpression; callee PropertyAccessExpression name 'create'; receveur PropertyAccessExpression name 'sessions'; son receveur PropertyAccessExpression name 'checkout' (la chaine checkout.sessions.create est ce qui exclut stripe.sessions.create et db.sessions.create). Puis 1er argument ObjectLiteralExpression; REJET si getProperty('subscription_data') (garde-fou AC5); propriete line_items en PropertyAssignment dont l initializer est un ArrayLiteralExpression NON VIDE dont TOUS les elements sont ObjectLiteralExpression (rejette variable, .map(), spread - un SpreadElement n est pas un ObjectLiteralExpression, AC8); enfin au moins un item 'legacy'. Item legacy = n a ni price ni price_data ET porte au moins une des 5 cles legacy en PropertyAssignment ou ShorthandPropertyAssignment. Match.node = le CallExpression.",
+            "design_apply": "Pour chaque item legacy de l array: 1) LIRE d abord les 5 valeurs en TEXTE (PropertyAssignment -> getInitializerOrThrow().getText(); ShorthandPropertyAssignment -> getName()), 2) puis remove() les 5 proprietes, 3) puis item.insertPropertyAssignment(0, { name: 'price_data', initializer: '{ currency, unit_amount, product_data: { name, description, images } }' }) en n emettant que les cles effectivement presentes. quantity et toute autre cle (tax_rates...) restent intactes. Enfin, si l objet argument n a pas de propriete 'mode', insertPropertyAssignment(0, mode: 'payment'); si mode existe, ne pas y toucher. Ordre LIRE->SUPPRIMER->INSERER obligatoire: lire apres remove() = noeud forgotten.",
+            "regle_tranchee_item_mixte": "AC7 lu au niveau ITEM, pas au niveau appel: si TOUS les line_items portent deja price/price_data -> find() rend 0 match. Si un tableau melange un item legacy et un item deja migre -> l appel matche et SEULS les items legacy sont reecrits, l item deja migre est laisse tel quel. C est la seule lecture coherente avec l idempotence.",
+            "idempotence": "Elle est portee par find(), pas par apply(): apres la 1re passe chaque item porte price_data, donc isLegacyItem est faux et find() rend 0 match. Verifie au prototype: 2e passe = 0 match, texte strictement identique.",
+            "syntaxkind_a_nommer_dans_le_rapport_dev": {
+              "matche": "CallExpression, PropertyAccessExpression (x3: create/sessions/checkout)",
+              "traverses": "ObjectLiteralExpression (argument), PropertyAssignment (line_items), ArrayLiteralExpression (AC3 - hors perimetre du codemod #1), ObjectLiteralExpression (chaque line item)",
+              "lus": "PropertyAssignment et ShorthandPropertyAssignment (normalisation AC9)",
+              "produits": "ObjectLiteralExpression imbriques (price_data, price_data.product_data) - creation, la ou le codemod #1 se contentait de renommer",
+              "rejetes_explicitement": "SpreadElement / SpreadAssignment, Identifier et CallExpression comme initializer de line_items (AC8)"
+            },
+            "pieges": [
+              "ShorthandPropertyAssignment n a PAS de getInitializer(): lire la valeur avec getName(). Ne pas caster en PropertyAssignment.",
+              "Ne pas resoudre la valeur d un shorthand: re-emettre l identifiant tel quel ({ name } -> product_data: { name: name }). La portee est preservee, le nouvel objet reste dans le meme scope. Un test doit couvrir une variable locale homonyme (const name = ...) pour prouver qu on ne la resout pas.",
+              "Ne PAS reutiliser l astuce du codemod #1 (sourceProp.getFirstChild().replaceWithText()): elle renomme une cle sur place, elle ne sait pas deplacer une propriete dans un objet imbrique.",
+              "Ordre des operations: capturer les 5 valeurs texte AVANT tout remove(). Lire apres suppression -> wasForgotten().",
+              "Le garde-fou subscription_data doit vivre dans find(), pas dans apply(): sinon le pipeline cree une branche pour un diff vide.",
+              "line_items: [] (tableau vide) -> 0 match.",
+              "formatText() (applyFix) reformate les line items sur plusieurs lignes: asserter sur l AST re-parse ou sur du texte normalise, jamais sur des espaces exacts.",
+              "Ajouter un wasForgotten() en tete de apply(): applyFix boucle sur les matches et mute en sequence. Assurance bon marche, meme si le cas ne se presente pas ici (les appels matches sont des freres).",
+              "La fixture doit vivre hors de test/** et ne pas etre nommee *.test.js / *.spec.js: le matcher exclut ces chemins, la source ne serait jamais vue.",
+              "Le mock SDK doit accepter LES DEUX formes et produire le meme total, sinon AC13 (vert AVANT et APRES) est impossible.",
+              "Le repo '2 patterns' se construit dans un tmpdir au sein du test; le commiter dans fixtures/ rendrait AC11 inverifiable.",
+              "Renommer PR.md: 3 mentions a synchroniser (README.md, docs/USAGE.md, src/cli.ts --out). tests/pipeline.test.ts:22 n utilise que r.prPath, seul le message d assert est a rafraichir."
+            ],
+            "note_ac3_deplacement": "AC3 parle de 'deplacement de PropertyAssignment entre objets'. ts-morph n a pas d API de deplacement de noeud: le deplacement est SEMANTIQUE (la propriete quitte le line item et reapparait dans l objet imbrique), implemente par lecture du texte de l initializer + remove() + insert. C est l idiome ts-morph, ce n est pas un contournement. A ne pas rejeter en QA.",
+            "fichiers_interdits": [
+              "src/fixer/agent.ts - hors sujet, ce codemod est tier 1",
+              "src/types.ts et src/matcher/** - aucune modification necessaire (cf reponse_a)",
+              "docs/proof/** - artefacts de preuve US-1 geles",
+              "fixtures/*/test/** et tests/** vus depuis le fixer - lecture seule (la moat)",
+              "package-lock.json, .github/**, tout secret"
+            ],
+            "tests_attendus": [
+              "AC6 non-match: occurrence en commentaire -> 0; dans une chaine de caracteres -> 0; stripe.sessions.create -> 0; db.sessions.create -> 0",
+              "AC7 selectivite: line_items deja en price -> 0 match; deja en price_data -> 0 match",
+              "AC8 determinisme: line_items: items (variable) -> 0; line_items: cart.map(...) -> 0; tableau avec spread -> 0",
+              "AC5 garde-fou: appel avec subscription_data -> 0 match; mode deja present -> valeur inchangee; mode absent -> mode: 'payment' ajoute",
+              "AC4 mapping exact: amount->price_data.unit_amount, currency->price_data.currency, name/description/images->price_data.product_data.*, quantity conserve au niveau item, aucun autre champ touche",
+              "AC9 shorthand: { name, amount, currency, quantity } correctement developpe",
+              "AC10 idempotence: 2 applications successives == 1 application, texte identique",
+              "AC11 non-collision bidirectionnelle: stripeChargesToIntents.find() -> 0 sur shopfront-checkout; nouveau find() -> 0 sur acme-payments",
+              "AC14 tier 1: run sans ANTHROPIC_API_KEY, method === 'deterministic'",
+              "AC15 e2e: run sur shopfront-checkout -> applied true, verify.passed true, draft false, patch non vide; puis repo tmpdir aux 2 patterns -> 2 resultats, 2 branches apidrift/<id> distinctes, 2 fichiers de PR DISTINCTS, verify verte et draft false pour les deux",
+              "Non-regression verifiee au cadrage: tests/pipeline.test.ts selectionne par change.id (.find), tests/ai-fixer.test.ts passe codemods:[...] en override -> l ajout d un 2e codemod au registre ne casse ni l un ni l autre"
+            ],
+            "hors_scope_explicite": [
+              "Detection auto / poll / oasdiff - c est US-2",
+              "Refonte du modele Change (types.ts, enums target/migration.op) - consigner l ecart dans architecture.json, ne pas corriger avec N=2",
+              "Matcher generique pilote par change.target.symbol - c est le LIVRABLE D ANALYSE de l AC16, pas une implementation",
+              "Tout 3e change, tout autre vendor, tout autre langage, toute UI",
+              "Ouverture d une PR reelle sur un repo tiers"
+            ],
+            "input_us2_deja_consigne": "architecture.json / composant changes: seul target.symbol (point d ancrage de l appel) s est avere derivable de la donnee; la descente dans l argument, la forme attendue de line_items, l exclusion des items deja migres et le garde-fou subscription_data sont du code manuel sans contrepartie dans le modele. migration.op='param_move' ne dit ni quelles cles bougent ni vers quelle imbrication."
+          }
+        },
+        "after": {
+          "title": "Deuxieme change Stripe supporte: Subscription current_period_* -> items.data[0] (valider le pattern 4 pieces)",
+          "why": "Un seul change (charges->intents) etait supporte. US-3 ne vaut pas 'un 2e change' mais 'un 2e echantillon INFORMATIF': assez different de charges->intents pour reveler ce qui est generalisable (donnee Change) vs ecrit a la main (find/apply). C'est l'input factuel de US-2, dont l'AC3 est infaisable sans un matcher pilote par change.target.symbol, qu'on ne peut pas concevoir avec N=1 sans surajuster. REALIGNEMENT 2026-09-01: le cadrage initial visait Checkout line_items -> price_data; deux sessions ont tourne en parallele et l'implementation reellement livree (PR #6) porte Subscription current_period_* -> items.data[0]. Decision humaine: on garde le Subscription et on realigne le board dessus. Le Subscription sert MIEUX l'objectif d'echantillonnage: le noeud reecrit n'est pas le CallExpression cible mais une lecture de propriete sur son RESULTAT, ce qui met a nu la limite du modele Change (target.symbol nomme un ancrage, pas le noeud edite).",
+          "acceptance_criteria": [
+            "Change retenu, nomme et unique: id stripe-subscription-current-period-to-items. Stripe a SUPPRIME current_period_start / current_period_end de la ressource Subscription et les a AJOUTES sur SubscriptionItem (API 2025-03-31.basil). Reecriture: sub.current_period_end -> sub.items.data[0].current_period_end.",
+            "Le Change porte target.symbol = 'stripe.subscriptions.retrieve' (ANCRAGE: la call qui produit la valeur, PAS le noeud reecrit - la limite est documentee en commentaire), migration.op = 'param_move' (choix par defaut assume: aucune valeur de l'enum ne decrit le deplacement d'un champ de REPONSE; l'enum n'est PAS etendu sur un echantillon de deux), confidence = 'medium'. change.references[] contient le changelog Basil 2025-03-31, l'objet SubscriptionItem de l'API reference et la release stripe-node v18.0.0, avec date de consultation. Chaque regle encodee est justifiee en commentaire par une CITATION litterale de ces pages (regle US-4: source lue, jamais paraphrasee de memoire).",
+            "Convention items.data[0] explicitement assumee, pas deduite: Stripe ecrit le chemin de remplacement SANS index (items.data.current_period_end), le champ etant par item. data[0] est exact pour un abonnement mono-item (cas dominant, et le seul ou le champ supprime au niveau Subscription avait un sens non ambigu). Sur un abonnement multi-items chaque item porte sa propre periode: [0] est deterministe mais arbitraire et demande une confirmation humaine. Cette reserve est portee par migration.detail (donc rendue dans le corps de PR genere) et couverte par un test qui verifie sa presence.",
+            "Nature differente du change #1 prouvee sur trois axes, chacun couvert par un test et les SyntaxKind nommes dans le rapport dev: (1) le noeud reecrit est une PropertyAccessExpression sur le RESULTAT d'un appel, pas le CallExpression lui-meme; (2) la reecriture ALLONGE la chaine d'acces en inserant une ElementAccessExpression (data[0]) au lieu de renommer un segment; (3) find() suit un flux de donnees (call -> binding -> references) au lieu de reconnaitre une forme locale.",
+            "find() 100% AST (ts-morph), aucune regex, aucun test sur le texte source, aucun node_modules requis: ancrage sur <x>.subscriptions.<retrieve|create|update>(...), remontee AwaitExpression -> VariableDeclaration -> findReferencesAsNodes(), on ne garde que les references utilisees comme RECEVEUR d'un acces current_period_* (pas comme nom de propriete d'autrui), avec deduplication quand deux appels d'ancrage atteignent la meme lecture. Le binding non-await (const sub = stripe.subscriptions.retrieve(id)) matche aussi.",
+            "Non-matchs prouves par test: les memes caracteres dans un commentaire ou une chaine de caracteres, une autre chaine d'acces (invoice.current_period_end), une lecture non ancree sur un appel subscriptions.*, et le destructuring (ObjectBindingPattern) - explicitement hors perimetre, laisse au tier 2 plutot que mal reecrit, avec un test qui l'atteste.",
+            "Optional chaining - semantique de nullite preservee: sur sub?.current_period_end, la sortie doit toujours court-circuiter sur un receveur nul, soit sub?.items.data[0].current_period_end. Il est INTERDIT de produire sub.items.data[0]?.current_period_end, qui deplace le garde de sub vers data[0] et fait lever une exception la ou le code d'origine renvoyait undefined. Traitement AST (question dot token du noeud matche), jamais textuel, et un test de non-regression qui echoue sans le correctif.",
+            "Idempotence: appliquer le codemod deux fois de suite sur la meme source produit exactement le meme texte qu'une seule application.",
+            "Plusieurs matchs dans un meme fichier (les deux champs lus cote a cote) sont tous reecrits: la boucle de mutation est couverte par un test et apply() garde un wasForgotten() explicite plutot que de dependre du re-binding ts-morph.",
+            "Non-collision dans les deux sens: stripeChargesToIntents.find() ne matche aucune des nouvelles lectures et le nouveau codemod ne matche aucun appel charges->intents; un test le prouve sur la fixture.",
+            "Les 4 pieces de la convention sont livrees ou rien: Change+Codemod dans src/changes/stripe-subscription-current-period-to-items.ts, enregistre dans src/changes/index.ts, un cas avant/apres dans fixtures/acme-payments (src/billing.js portant le pattern legacy, mock SDK acceptant les deux formes, tests de comportement) et un test dans tests/stripe-subscription-current-period-to-items.test.ts.",
+            "Les tests de la fixture sont comportementaux (fenetre de facturation, duree - ils ne nomment ni le champ Stripe migre ni la methode), verts AVANT migration et toujours verts APRES application du codemod. Aucun fichier de test n'apparait dans le patch genere.",
+            "Tier 1 deterministe: le fix s'applique sans ANTHROPIC_API_KEY et le PipelineResult expose method === 'deterministic'.",
+            "Bout en bout: un run sur fixtures/acme-payments (qui porte desormais LES DEUX patterns) renvoie 2 resultats independants, chacun sur sa branche apidrift/<change.id>, avec applied=true, verify.passed=true, draft=false, un patch non vide et des artefacts distincts.",
+            "Deux correctifs bornes exiges par ce 2e change, et rien de plus: (a) src/githost/local.ts ecrivait un <outputDir>/PR.md a nom FIXE alors que le patch etait deja nomme par branche - des 2 changes le second ecrasait le premier; les deux artefacts sont desormais apidrift-<change-id>.{md,patch} et les 3 mentions du nom (README, docs/USAGE.md, aide --out du CLI) suivent. (b) Match.node etait type CallExpression, trop etroit pour un codemod qui reecrit une lecture de propriete: elargi a Node, avec un narrowing Node.isCallExpression() explicite chez l'unique consommateur (charges->intents), sans cast.",
+            "Observation ecrite (20 lignes max, dans le rapport dev ET en commentaire en bas du codemod): pour les deux codemods, ce qui s'est avere commun et derivable de la donnee Change (target.symbol, migration.op, reporting) vs ce qui a du etre ecrit a la main dans find()/apply(), avec conclusion explicite sur la faisabilite d'un matcher generique pilote par change.target.symbol. Input de US-2. Aucune abstraction/refacto n'est codee dans cette US.",
+            "npx tsc --noEmit et npm test verts (scripts/dod.sh)."
+          ],
+          "definition_of_ready": {
+            "cadre_par": "architecte (cadrage initial) puis orchestrateur (realignement post-livraison, 2026-09-01)",
+            "verdict": "READY - livre. Cette entree a ete REECRITE APRES coup pour decrire le change reellement implemente (PR #6). Elle n'est pas un cadrage previsionnel.",
+            "realignement": {
+              "motif": "Deux sessions orchestrateur ont tourne en parallele sur US-3: l'une a cadre un change Checkout line_items -> price_data, l'autre a fait developper et qualifier Subscription current_period_* -> items.data[0]. Le board decrivait le Checkout, le code livrait le Subscription.",
+              "decision_humaine": "Garder l'implementation Subscription (PR #6) et realigner le board dessus. Le cadrage Checkout est abandonne, PAS reporte: il n'existe aucune US ouverte pour lui. Le rouvrir demanderait une nouvelle US, priorisee par le PO.",
+              "divergence_residuelle": "aucune apres cette mise a jour - board == PR #6"
+            },
+            "change_retenu": {
+              "id": "stripe-subscription-current-period-to-items",
+              "vendor": "stripe",
+              "source": "changelog",
+              "kind": "breaking",
+              "titre": "Read subscription billing periods off subscription items (Basil 2025-03-31)",
+              "target": {
+                "type": "symbol",
+                "symbol": "stripe.subscriptions.retrieve"
+              },
+              "migration": {
+                "op": "param_move"
+              },
+              "confidence": "medium",
+              "references": [
+                "https://docs.stripe.com/changelog/basil/2025-03-31/deprecate-subscription-current-period-start-and-end.md (consulte 2026-09-01) - 'current_period_start and current_period_end fields are no longer available on the subscription resource'; 'Instead, access the subscription item's billing periods directly using items.data.current_period_end and items.data.current_period_start fields'",
+                "https://docs.stripe.com/api/subscription_items/object?api-version=2025-03-31.basil#subscription_item_object-current_period_end (consulte 2026-09-01) - 'current_period_end (timestamp) - The end time of this subscription item's current billing period'",
+                "https://github.com/stripe/stripe-node/releases/tag/v18.0.0 (release SDK Node correspondante, citee par le changelog)"
+              ]
+            },
+            "reserve_assumee": "items.data[0] est une CONVENTION pour le cas mono-item, pas une deduction: la source ne donne aucun index. Portee dans migration.detail donc visible dans chaque corps de PR genere, et signalee par confidence: 'medium'. Un abonnement multi-items demande une confirmation humaine sur l'item vise.",
+            "perimetre_hors_scope": "Destructuring (const { current_period_end } = sub) laisse au tier 2. Aucune abstraction/refacto de matcher. Aucune extension de l'enum migration.op sur un echantillon de deux.",
+            "dette_traitee_avant_merge": "Bug d'optional chaining dans apply(): le rewrite du seul receveur deplacait le garde ?. de sub vers data[0] (sub?.current_period_end -> sub.items.data[0]?.current_period_end), transformant un undefined en exception sur un sub nul. Aucun test ne couvrait le cas. QA l'avait classe non bloquant; decision humaine: corriger AVANT merge. Cf. AC 'Optional chaining'."
+          }
+        }
+      },
+      "note": "realignement du board sur le change reellement livre (PR #6): Subscription current_period_* -> items.data[0], + AC optional chaining ajoute avant merge (decision humaine)"
+    },
+    {
+      "ts": "2026-09-01T17:49:28.115Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:49:32.644Z",
+      "type": "delegate",
+      "actor": "orchestrateur",
+      "target": "dev#2",
+      "us": "US-3",
+      "payload": {
+        "scope": "correctif borne avant merge, pas une reimplementation",
+        "bug": "apply() reecrit le seul receveur: sur sub?.current_period_end le garde ?. migre de sub vers data[0] -> exception au lieu de undefined sur sub nul",
+        "attendu": "sub?.items.data[0].current_period_end; AST only (question dot token), pas de manipulation textuelle",
+        "allowed_paths": [
+          "src/changes/stripe-subscription-current-period-to-items.ts",
+          "tests/stripe-subscription-current-period-to-items.test.ts"
+        ],
+        "test": "non-regression obligatoire, echec pre-fix prouve par stash",
+        "git": "detached sur origin/feature/US-3-second-change-stripe, push HEAD:feature/US-3-second-change-stripe, pas de nouvelle PR, pas de merge",
+        "dod": "npx tsc --noEmit + npm test"
+      }
+    },
+    {
+      "ts": "2026-09-01T17:49:32.693Z",
+      "type": "human_feedback",
+      "actor": "orchestrateur",
+      "us": "US-3",
+      "note": "Decision humaine: garder l implementation Subscription (PR #6) et abandonner le cadrage Checkout (pas de report, pas de nouvelle US ouverte). Bug optional chaining confirme independamment: a corriger AVANT merge, contrairement au classement QA non bloquant. Le merge final reste la decision de l humain: la PR reste en review."
+    },
+    {
+      "ts": "2026-09-01T17:50:04.643Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:50:40.959Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:50:59.627Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:51:36.617Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:52:12.927Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:52:48.942Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:52:50.401Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:53:26.190Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:53:57.090Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:54:02.926Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:54:33.806Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:55:10.453Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:55:46.834Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:56:23.752Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:57:00.429Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T17:57:36.761Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T18:03:39.761Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T18:03:45.722Z",
+      "type": "report",
+      "actor": "qa",
+      "us": "US-3",
+      "payload": {
+        "verdict": "accepte",
+        "dod": {
+          "tsc": "ok (exit 0)",
+          "npm_test": "38/38 pass, 0 fail, exit 0",
+          "fixture_pre_migration": "5/5 pass"
+        },
+        "fix_verifie": "apply() lit le garde via hasQuestionDotToken() (AST), sortie sub?.items.data[0].current_period_end, jamais data[0]?. sur 12 sondes",
+        "rouge_pre_fix": "prouve independamment par restauration du blob ca74074: 15 tests, 13 pass, 2 fail",
+        "ac": "17/17 tenus (1 reserve cosmetique: observation AC16 a 21 lignes au lieu de 20)",
+        "non_bloquant": "receveur parenthese (sub)?.current_period_end -> 0 match: faux negatif conservateur, meme categorie que le destructuring, laisse au tier 2",
+        "divergence_board_code": "aucune sur le fond; CLAUDE.md (non commite, hors branche) dit encore un seul change -> a rafraichir apres merge",
+        "etat": "PR #6 laissee en review, merge = decision humaine"
+      }
+    },
+    {
+      "ts": "2026-09-01T18:04:16.085Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T18:18:06.528Z",
+      "type": "gate",
+      "actor": "humain",
+      "us": "US-3",
+      "note": "PR #6 mergee sur main."
+    },
+    {
+      "ts": "2026-09-01T18:18:06.574Z",
+      "type": "move",
+      "actor": "orchestrateur",
+      "us": "US-3",
+      "note": "review>done"
+    },
+    {
+      "ts": "2026-09-01T18:18:22.970Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-01T18:21:23.776Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    }
+  ]
+}

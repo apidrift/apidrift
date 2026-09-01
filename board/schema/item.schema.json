@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "item.schema.json",
+  "title": "US (user story)",
+  "type": "object",
+  "required": ["id", "title", "why", "acceptance_criteria", "status", "priority"],
+  "properties": {
+    "id": { "type": "string", "pattern": "^US-[0-9]+$" },
+    "title": { "type": "string" },
+    "why": { "type": "string" },
+    "acceptance_criteria": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "status": { "type": "string", "enum": ["backlog", "ready", "in_progress", "review", "done", "blocked"] },
+    "priority": { "type": "integer", "minimum": 1 },
+    "component": { "type": "string" },
+    "epic": { "type": "string", "description": "regroupement optionnel, ex. EPIC-1" },
+    "dependencies": { "type": "array", "items": { "type": "string" } },
+    "assignee": { "type": "string" }
+  }
+}

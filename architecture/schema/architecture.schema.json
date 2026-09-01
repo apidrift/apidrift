@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "architecture.schema.json",
+  "title": "Architecture (système -> composants)",
+  "type": "object",
+  "required": ["system", "components"],
+  "properties": {
+    "system": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" }
+      }
+    },
+    "components": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/component" }
+    }
+  },
+  "definitions": {
+    "component": {
+      "type": "object",
+      "required": ["id", "name", "responsibility"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "responsibility": { "type": "string" },
+        "type": { "type": "string", "enum": ["ui", "service", "data", "external", "lib"] },
+        "status": { "type": "string", "enum": ["planned", "in_progress", "stable"] },
+        "depends_on": { "type": "array", "items": { "type": "string" } },
+        "interfaces": { "type": "array", "items": { "type": "string" } },
+        "children": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/component" },
+          "description": "Sous-composants — permet de descendre du global vers le détail"
+        }
+      }
+    }
+  }
+}

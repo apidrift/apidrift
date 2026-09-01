@@ -1,0 +1,126 @@
+{
+  "system": {
+    "name": "APIdrift",
+    "description": "Watches a third-party API a team depends on and, when the vendor changes it, opens a verified pull request that fixes the team's code. Trois points d'entrée (Free CLI, Enterprise CI runner, Pro service), un seul moteur (pipeline)."
+  },
+  "components": [
+    {
+      "id": "cli",
+      "name": "Free CLI",
+      "responsibility": "src/cli.ts — point d'entrée local. resolveInference/resolveLlm choisissent déterministe-only vs BYOT depuis flags/env/apidrift.json.",
+      "type": "ui",
+      "status": "stable",
+      "depends_on": ["pipeline"],
+      "interfaces": ["apidrift run <repo> [--ai] [--deterministic-only] [--model] [--out]"]
+    },
+    {
+      "id": "runner",
+      "name": "Enterprise CI runner",
+      "responsibility": "src/runner.ts — tourne dans la CI du client (action.yml, examples/enterprise-workflow.yml). Utilise GitHubHost : seul l'appel pulls.create sort du runner.",
+      "type": "service",
+      "status": "stable",
+      "depends_on": ["pipeline", "githost"],
+      "interfaces": ["GitHub Action"]
+    },
+    {
+      "id": "service",
+      "name": "Pro service",
+      "responsibility": "src/service/ — job.ts (job par repo, implémenté). poller.ts : squelette non implémenté pour le poll+diff+fan-out amont.",
+      "type": "service",
+      "status": "planned",
+      "depends_on": ["pipeline"],
+      "interfaces": []
+    },
+    {
+      "id": "pipeline",
+      "name": "Pipeline",
+      "responsibility": "src/pipeline.ts — orchestre changes → matcher → fixer → verifier → githost sur une copie jetable du workspace (ou in-place). Partagé par les trois entrées.",
+      "type": "service",
+      "status": "stable",
+      "depends_on": ["changes", "matcher", "fixer", "verifier", "githost"],
+      "interfaces": ["runPipeline()"]
+    },
+    {
+      "id": "changes",
+      "name": "Change feed",
+      "responsibility": "src/changes/ — Change records normalisés + Codemods (Change = donnée, find()/apply() = code). Hardcodé dans src/changes/index.ts (pas de détection auto — scope guard).",
+      "type": "data",
+      "status": "stable",
+      "depends_on": [],
+      "interfaces": [],
+      "constraints": [
+        "Règle des 4 pièces (CLAUDE.md) : Change+Codemod dans src/changes/, entrée dans src/changes/index.ts, cas avant/après dans fixtures/, test dans tests/. Tout ou rien.",
+        "LIMITE LEVÉE en US-3 (PR #6) : Match.node est désormais typé Node dans src/types.ts, plus CallExpression. La limite consignée au cadrage est exercée par le change livré — stripe-subscription-current-period-to-items réécrit une PropertyAccessExpression lue sur le RÉSULTAT d'un appel, pas le CallExpression lui-même. Contrepartie obligatoire : chaque codemod narrowe explicitement avant d'éditer, jamais de cast ni d'assertion de type — stripe-charges-to-intents ouvre son apply() par `if (!Node.isCallExpression(match.node)) return;`, le codemod subscription par `wasForgotten()` puis `Node.isPropertyAccessExpression(match.node)`.",
+        "LIMITE DU MODÈLE (constatée sur l'échantillon n°2 réellement livré en US-3/PR #6 = subscription current_period_* → items.data[0] ; observation « AC8 » en bas de src/changes/stripe-subscription-current-period-to-items.ts) : Change.target.symbol (« stripe.subscriptions.retrieve ») ne désigne que le POINT D'ANCRAGE — l'appel qui produit la valeur — et PAS le nœud réécrit ; le modèle Change n'a aucun moyen d'exprimer « propriété P de l'objet retourné par l'appel S ». Est dérivable de la donnée : les deux derniers segments de target.symbol, qui ouvrent les deux find() sur le même walk de 6 lignes, et tout le reporting. N'est PAS dérivable : où atterrit l'édition — ici ~25 lignes écrites à la main (call → AwaitExpression → VariableDeclaration → findReferencesAsNodes, plus receiver-vs-name, dédup et garde wasForgotten). Change.migration.op est request-shaped : aucune valeur de l'enum ne décrit le déplacement d'un champ de RÉPONSE, 'param_move' est une étiquette et non une instruction ; migration.detail est du texte libre non exécutable. Ne PAS étendre ces enums avec N=2 échantillons : c'est l'input factuel de US-2 (AC3). Conséquence pour US-2 : un find() générique piloté par target.symbol n'est faisable que là où le symbole EST le nœud édité (change n°1) ; le n°2 exigerait d'abord deux champs Change nouveaux (séparation ancrage/cible, et un op côté réponse), et apply() reste écrit à la main.",
+        "Un codemod doit rendre find() auto-suffisant pour l'idempotence : le prédicat de find() exclut la forme DÉJÀ migrée, si bien qu'une 2e passe ne matche plus rien. Ne pas reporter cette garde dans apply().",
+        "UNE fixture MULTI-patterns (constaté en US-3/PR #6) : fixtures/acme-payments porte les deux changes — src/checkout.js (charges→intents) et src/billing.js (subscription current_period_*) — avec un lib/stripe-mock.js qui expose les deux APIs et des tests qui figent le COMPORTEMENT et non la forme de l'appel. La règle « une fixture mono-pattern par change » n'est PAS celle qui est appliquée. La non-collision est donc garantie par assertions, pas par isolation des fixtures : tests/stripe-subscription-current-period-to-items.test.ts vérifie sur cette fixture unique que chaque find() ne matche que son propre fichier (2 matches dans src/billing.js, 1 dans src/checkout.js, 0 dans lib/stripe-mock.js qui définit subscriptions.retrieve sans l'appeler), puis qu'un run e2e produit deux résultats indépendants — branches, prPath et patchPath distincts, et le patch de l'un ne contient pas les modifications de l'autre. Conséquence : `npm run demo` émet désormais DEUX paires .md/.patch, une par change."
+      ]
+    },
+    {
+      "id": "matcher",
+      "name": "Matcher",
+      "responsibility": "src/matcher/ — matching AST via ts-morph. AST, jamais regex. loadProject() scanne tout l'arbre du repo (<repo>/**/*.{js,ts,jsx,tsx}) depuis US-1, avec une liste d'exclusions fixe. findMatches() délègue entièrement à codemod.find().",
+      "type": "service",
+      "status": "stable",
+      "depends_on": [],
+      "interfaces": [],
+      "constraints": [
+        "RÉSOLU en US-1 : le périmètre de scan n'est plus src/** mais tout l'arbre du repo. Un seul glob par défaut, pas de flag CLI ni de config par repo — la portée du matcher reste inconfigurable, c'est du contrôle de blast radius.",
+        "Exclusions obligatoires (dans le code) : node_modules, dist, build, out, coverage, .next, vendor, examples, *.d.ts, *.test.*, *.spec.*, test/**, tests/**, __tests__/**. Conséquence : un fichier de fixture doit vivre hors de test/** pour être vu, et les tests du repo cible sont structurellement hors de portée du fixer.",
+        "Le matcher n'a aucune logique de matching propre : toute la sélection vit dans codemod.find(), du code écrit à la main. C'est le verrou que US-2 (AC3) doit lever et que US-3 instrumente avec un 2e échantillon."
+      ]
+    },
+    {
+      "id": "fixer",
+      "name": "Fixer",
+      "responsibility": "src/fixer/ — tier 1 déterministe (codemod.apply, chemin rapide) ou tier 2 IA (agent.ts, gardé derrière le verifier, ne touche jamais aux tests). providers.ts résout le client LLM, llm.ts est l'interface injectable.",
+      "type": "service",
+      "status": "stable",
+      "depends_on": ["matcher"],
+      "interfaces": ["codemod.apply()", "agent.ts (tier 2, ANTHROPIC_API_KEY)"]
+    },
+    {
+      "id": "verifier",
+      "name": "Verifier",
+      "responsibility": "src/verifier/ — lance les tests non modifiés du repo cible (`npm test --silent`, cwd = workspace). La moat : jamais de PR non-draft sur une suite rouge. CONTRAINTE CONNUE : le pipeline copie le workspace SANS node_modules, donc sur un vrai repo la suite est rouge par absence de dépendances tant qu'elles ne sont pas rendues disponibles dans le workspace.",
+      "type": "service",
+      "status": "stable",
+      "depends_on": [],
+      "interfaces": [],
+      "constraints": [
+        "Gestionnaire de paquets codé en dur : npm. Pas de monorepo ni de pnpm/yarn workspaces.",
+        "Refuse de vérifier si package.json n'a pas de scripts.test (passed:false, PR draft).",
+        "Les dépendances du repo cible doivent être présentes dans le workspace au moment du verify : lien symbolique vers le node_modules déjà installé du clone (option retenue, hors réseau). Pas de npm install implicite déclenché par le pipeline.",
+        "Les tests du repo cible restent non modifiés — c'est la moat, aucun assouplissement."
+      ]
+    },
+    {
+      "id": "githost",
+      "name": "GitHost",
+      "responsibility": "src/githost/ — interface GitHost ; local.ts (Free, patch file, pas de réseau) et github.ts (Octokit, Enterprise/Pro) l'implémentent.",
+      "type": "service",
+      "status": "stable",
+      "depends_on": [],
+      "interfaces": ["GitHost"],
+      "constraints": [
+        "DÉFAUT CORRIGÉ en US-3 (PR #6) : LocalGitHost.publish() nomme désormais les DEUX artefacts d'après la branche (les '/' de `input.branch` remplacés par '-'), soit <outputDir>/apidrift-<change-id>.md et <outputDir>/apidrift-<change-id>.patch. Plus de PR.md à nom fixe : un run qui matche plusieurs codemods n'écrase plus le corps de PR du précédent et chaque PipelineResult.prPath pointe son propre fichier.",
+        "LocalGitHost.diff() exclut package-lock.json — garde-fou blast radius, ne pas assouplir."
+      ]
+    },
+    {
+      "id": "proof",
+      "name": "Proof (validation sur repo réel)",
+      "responsibility": "Composant non-code : la preuve de bout en bout du MVP sur un vrai repo OSS (clone hors du repo APIdrift, artefacts patch + PR.md + provenance archivés dans docs/proof/). Ne crée aucun module ; consomme le CLI Free en mode workspace + LocalGitHost.",
+      "type": "process",
+      "status": "planned",
+      "depends_on": ["cli", "matcher", "verifier", "githost"],
+      "interfaces": ["apidrift run <clone> --deterministic-only --out <dir>"],
+      "constraints": [
+        "Le clone du repo cible vit HORS de l'arborescence APIdrift (jamais commité).",
+        "Repo cible : JS/TS, package unique à la racine, scripts.test réel, suite verte hors réseau et sans secret, node_modules gitignoré et installé avant le run.",
+        "Le fix rend `source` -> `payment_method` + `confirm: true` : si les tests du repo figent la forme de l'appel déprécié, la suite passe rouge et le résultat correct est une PR draft (la moat fonctionne) — changer de repo cible, pas de tests.",
+        "Ouverture d'une PR upstream réelle = décision humaine, hors périmètre agent."
+      ]
+    }
+  ]
+}

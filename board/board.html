@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Board</title>
+<style>
+  :root {
+    --ink:#1c1a17; --muted:#6b6760; --line:#e2ddd3; --paper:#faf8f3; --card:#fff;
+    --backlog:#8a8378; --ready:#2f6f5e; --progress:#b8770f; --review:#5b6cb8; --done:#2f8f4e; --blocked:#c0473c;
+  }
+  @media (prefers-color-scheme:dark){:root{--ink:#ece8e0;--muted:#9c968b;--line:#35322c;--paper:#17150f;--card:#201d17;}}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font:14px/1.5 ui-sans-serif,system-ui,sans-serif;padding:1.5rem clamp(1rem,4vw,3rem)}
+  h1{font-size:1.4rem;margin:0 0 .2rem;font-weight:650}
+  .sub{color:var(--muted);margin:0 0 1.4rem;font-size:.85rem}
+  .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.9rem}
+  .col{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:.7rem;min-height:80px}
+  .col h2{font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;margin:.1rem 0 .7rem;display:flex;justify-content:space-between}
+  .count{color:var(--muted);font-weight:500}
+  .card{border:1px solid var(--line);border-left:3px solid var(--c);border-radius:8px;padding:.5rem .6rem;margin-bottom:.5rem;background:var(--paper)}
+  .id{font:600 11px ui-monospace,monospace;color:var(--c)}
+  .title{font-weight:550;margin:.15rem 0}
+  .why{color:var(--muted);font-size:.8rem}
+  .tag{display:inline-block;font-size:.7rem;color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:0 .35rem;margin-top:.35rem}
+  .wip{font-size:.8rem;color:var(--muted);margin-bottom:1rem}
+  .over{color:var(--blocked);font-weight:600}
+  .empty{color:var(--muted);font-style:italic}
+</style>
+</head>
+<body>
+<h1 id="sys">Board</h1>
+<p class="sub" id="wip"></p>
+<div class="cols" id="cols"><span class="empty">Chargement…</span></div>
+
+<script type="module">
+  const COLS = [
+    ["backlog","Backlog","--backlog"],["ready","Ready","--ready"],
+    ["in_progress","In progress","--progress"],["review","Review","--review"],
+    ["done","Done","--done"],["blocked","Blocked","--blocked"]
+  ];
+  try {
+    const [bl, bd] = await Promise.all([
+      fetch("backlog.json").then(r=>r.json()),
+      fetch("board.json").then(r=>r.json())
+    ]);
+    const inProg = bl.items.filter(i=>i.status==="in_progress").length;
+    const over = inProg > bd.wip_limit;
+    document.getElementById("wip").innerHTML =
+      `WIP : <span class="${over?'over':''}">${inProg}/${bd.wip_limit}</span> · ${bl.items.length} US`;
+    const root = document.getElementById("cols"); root.innerHTML = "";
+    for (const [key,label,cssvar] of COLS){
+      const items = bl.items.filter(i=>i.status===key);
+      const col = document.createElement("div"); col.className="col";
+      col.innerHTML = `<h2>${label}<span class="count">${items.length}</span></h2>` +
+        (items.length ? items.map(i=>{
+          const tag = i.component ? `<span class="tag">${i.component}</span>`:"";
+          const ep = i.epic ? `<span class="tag">${i.epic}</span>`:"";
+          return `<div class="card" style="--c:var(${cssvar})">`+
+            `<span class="id">${i.id}</span>`+
+            `<div class="title">${i.title}</div>`+
+            `<div class="why">${i.why||""}</div>${tag}${ep}</div>`;
+        }).join("") : `<span class="empty">—</span>`);
+      root.appendChild(col);
+    }
+  } catch(e){
+    document.getElementById("cols").innerHTML =
+      `<span class="empty">Ouvre via <code>lavish-axi board/board.html</code> ou un serveur statique (fetch bloqué en file://).</span>`;
+  }
+</script>
+</body>
+</html>

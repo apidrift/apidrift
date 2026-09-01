@@ -1,0 +1,142 @@
+{
+  "items": [
+    {
+      "id": "US-1",
+      "title": "Valider le fix Stripe sur un vrai repo public (pas la fixture)",
+      "why": "La Definition of Done du MVP (CLAUDE.md) exige une PR reelle sur un vrai repo ; seule la fixture synthetique acme-payments a ete prouvee jusqu ici. Cest la brique manquante du north star YC.",
+      "acceptance_criteria": [
+        "Un repo OSS reel identifie, encore sur stripe.charges.create (ou pattern equivalent) en JS/TS",
+        "apidrift run <repo> en mode workspace (LocalGitHost) produit un patch + PR.md valides sur ce repo",
+        "La suite de tests DU REPO CIBLE (pas la fixture) passe apres le fix",
+        "Decision explicite avec lhumain sur la suite : ouverture dune vraie PR upstream ou preuve interne seulement"
+      ],
+      "status": "done",
+      "priority": 1,
+      "component": "proof",
+      "epic": "EPIC-mvp-proof",
+      "assignee": "orchestrateur"
+    },
+    {
+      "id": "US-2",
+      "title": "Detection automatisee MVP (poll oasdiff sur un changelog Stripe reel)",
+      "why": "Le registre de changes est hardcode (src/changes/index.ts). Le push model (docs/YC.md) depend dune vraie source de detection, meme minimale (un seul vendor).",
+      "acceptance_criteria": [
+        "Un job/poller recupere un diff de spec ou changelog Stripe reel",
+        "Le diff est normalise en Change record compatible avec src/changes",
+        "Au moins un changement detecte automatiquement declenche le pipeline existant sans modification manuelle du registre"
+      ],
+      "status": "backlog",
+      "priority": 2,
+      "component": "detection",
+      "epic": "EPIC-mvp-proof",
+      "dependencies": [
+        "US-1",
+        "US-3"
+      ]
+    },
+    {
+      "id": "US-3",
+      "title": "Deuxieme change Stripe supporte: Subscription current_period_* -> items.data[0] (valider le pattern 4 pieces)",
+      "why": "Un seul change (charges->intents) etait supporte. US-3 ne vaut pas 'un 2e change' mais 'un 2e echantillon INFORMATIF': assez different de charges->intents pour reveler ce qui est generalisable (donnee Change) vs ecrit a la main (find/apply). C'est l'input factuel de US-2, dont l'AC3 est infaisable sans un matcher pilote par change.target.symbol, qu'on ne peut pas concevoir avec N=1 sans surajuster. REALIGNEMENT 2026-09-01: le cadrage initial visait Checkout line_items -> price_data; deux sessions ont tourne en parallele et l'implementation reellement livree (PR #6) porte Subscription current_period_* -> items.data[0]. Decision humaine: on garde le Subscription et on realigne le board dessus. Le Subscription sert MIEUX l'objectif d'echantillonnage: le noeud reecrit n'est pas le CallExpression cible mais une lecture de propriete sur son RESULTAT, ce qui met a nu la limite du modele Change (target.symbol nomme un ancrage, pas le noeud edite).",
+      "acceptance_criteria": [
+        "Change retenu, nomme et unique: id stripe-subscription-current-period-to-items. Stripe a SUPPRIME current_period_start / current_period_end de la ressource Subscription et les a AJOUTES sur SubscriptionItem (API 2025-03-31.basil). Reecriture: sub.current_period_end -> sub.items.data[0].current_period_end.",
+        "Le Change porte target.symbol = 'stripe.subscriptions.retrieve' (ANCRAGE: la call qui produit la valeur, PAS le noeud reecrit - la limite est documentee en commentaire), migration.op = 'param_move' (choix par defaut assume: aucune valeur de l'enum ne decrit le deplacement d'un champ de REPONSE; l'enum n'est PAS etendu sur un echantillon de deux), confidence = 'medium'. change.references[] contient le changelog Basil 2025-03-31, l'objet SubscriptionItem de l'API reference et la release stripe-node v18.0.0, avec date de consultation. Chaque regle encodee est justifiee en commentaire par une CITATION litterale de ces pages (regle US-4: source lue, jamais paraphrasee de memoire).",
+        "Convention items.data[0] explicitement assumee, pas deduite: Stripe ecrit le chemin de remplacement SANS index (items.data.current_period_end), le champ etant par item. data[0] est exact pour un abonnement mono-item (cas dominant, et le seul ou le champ supprime au niveau Subscription avait un sens non ambigu). Sur un abonnement multi-items chaque item porte sa propre periode: [0] est deterministe mais arbitraire et demande une confirmation humaine. Cette reserve est portee par migration.detail (donc rendue dans le corps de PR genere) et couverte par un test qui verifie sa presence.",
+        "Nature differente du change #1 prouvee sur trois axes, chacun couvert par un test et les SyntaxKind nommes dans le rapport dev: (1) le noeud reecrit est une PropertyAccessExpression sur le RESULTAT d'un appel, pas le CallExpression lui-meme; (2) la reecriture ALLONGE la chaine d'acces en inserant une ElementAccessExpression (data[0]) au lieu de renommer un segment; (3) find() suit un flux de donnees (call -> binding -> references) au lieu de reconnaitre une forme locale.",
+        "find() 100% AST (ts-morph), aucune regex, aucun test sur le texte source, aucun node_modules requis: ancrage sur <x>.subscriptions.<retrieve|create|update>(...), remontee AwaitExpression -> VariableDeclaration -> findReferencesAsNodes(), on ne garde que les references utilisees comme RECEVEUR d'un acces current_period_* (pas comme nom de propriete d'autrui), avec deduplication quand deux appels d'ancrage atteignent la meme lecture. Le binding non-await (const sub = stripe.subscriptions.retrieve(id)) matche aussi.",
+        "Non-matchs prouves par test: les memes caracteres dans un commentaire ou une chaine de caracteres, une autre chaine d'acces (invoice.current_period_end), une lecture non ancree sur un appel subscriptions.*, et le destructuring (ObjectBindingPattern) - explicitement hors perimetre, laisse au tier 2 plutot que mal reecrit, avec un test qui l'atteste.",
+        "Optional chaining - semantique de nullite preservee: sur sub?.current_period_end, la sortie doit toujours court-circuiter sur un receveur nul, soit sub?.items.data[0].current_period_end. Il est INTERDIT de produire sub.items.data[0]?.current_period_end, qui deplace le garde de sub vers data[0] et fait lever une exception la ou le code d'origine renvoyait undefined. Traitement AST (question dot token du noeud matche), jamais textuel, et un test de non-regression qui echoue sans le correctif.",
+        "Idempotence: appliquer le codemod deux fois de suite sur la meme source produit exactement le meme texte qu'une seule application.",
+        "Plusieurs matchs dans un meme fichier (les deux champs lus cote a cote) sont tous reecrits: la boucle de mutation est couverte par un test et apply() garde un wasForgotten() explicite plutot que de dependre du re-binding ts-morph.",
+        "Non-collision dans les deux sens: stripeChargesToIntents.find() ne matche aucune des nouvelles lectures et le nouveau codemod ne matche aucun appel charges->intents; un test le prouve sur la fixture.",
+        "Les 4 pieces de la convention sont livrees ou rien: Change+Codemod dans src/changes/stripe-subscription-current-period-to-items.ts, enregistre dans src/changes/index.ts, un cas avant/apres dans fixtures/acme-payments (src/billing.js portant le pattern legacy, mock SDK acceptant les deux formes, tests de comportement) et un test dans tests/stripe-subscription-current-period-to-items.test.ts.",
+        "Les tests de la fixture sont comportementaux (fenetre de facturation, duree - ils ne nomment ni le champ Stripe migre ni la methode), verts AVANT migration et toujours verts APRES application du codemod. Aucun fichier de test n'apparait dans le patch genere.",
+        "Tier 1 deterministe: le fix s'applique sans ANTHROPIC_API_KEY et le PipelineResult expose method === 'deterministic'.",
+        "Bout en bout: un run sur fixtures/acme-payments (qui porte desormais LES DEUX patterns) renvoie 2 resultats independants, chacun sur sa branche apidrift/<change.id>, avec applied=true, verify.passed=true, draft=false, un patch non vide et des artefacts distincts.",
+        "Deux correctifs bornes exiges par ce 2e change, et rien de plus: (a) src/githost/local.ts ecrivait un <outputDir>/PR.md a nom FIXE alors que le patch etait deja nomme par branche - des 2 changes le second ecrasait le premier; les deux artefacts sont desormais apidrift-<change-id>.{md,patch} et les 3 mentions du nom (README, docs/USAGE.md, aide --out du CLI) suivent. (b) Match.node etait type CallExpression, trop etroit pour un codemod qui reecrit une lecture de propriete: elargi a Node, avec un narrowing Node.isCallExpression() explicite chez l'unique consommateur (charges->intents), sans cast.",
+        "Observation ecrite (20 lignes max, dans le rapport dev ET en commentaire en bas du codemod): pour les deux codemods, ce qui s'est avere commun et derivable de la donnee Change (target.symbol, migration.op, reporting) vs ce qui a du etre ecrit a la main dans find()/apply(), avec conclusion explicite sur la faisabilite d'un matcher generique pilote par change.target.symbol. Input de US-2. Aucune abstraction/refacto n'est codee dans cette US.",
+        "npx tsc --noEmit et npm test verts (scripts/dod.sh)."
+      ],
+      "status": "done",
+      "priority": 3,
+      "component": "changes",
+      "epic": "EPIC-mvp-proof",
+      "dependencies": [
+        "US-4"
+      ],
+      "definition_of_ready": {
+        "cadre_par": "architecte (cadrage initial) puis orchestrateur (realignement post-livraison, 2026-09-01)",
+        "verdict": "READY - livre. Cette entree a ete REECRITE APRES coup pour decrire le change reellement implemente (PR #6). Elle n'est pas un cadrage previsionnel.",
+        "realignement": {
+          "motif": "Deux sessions orchestrateur ont tourne en parallele sur US-3: l'une a cadre un change Checkout line_items -> price_data, l'autre a fait developper et qualifier Subscription current_period_* -> items.data[0]. Le board decrivait le Checkout, le code livrait le Subscription.",
+          "decision_humaine": "Garder l'implementation Subscription (PR #6) et realigner le board dessus. Le cadrage Checkout est abandonne, PAS reporte: il n'existe aucune US ouverte pour lui. Le rouvrir demanderait une nouvelle US, priorisee par le PO.",
+          "divergence_residuelle": "aucune apres cette mise a jour - board == PR #6"
+        },
+        "change_retenu": {
+          "id": "stripe-subscription-current-period-to-items",
+          "vendor": "stripe",
+          "source": "changelog",
+          "kind": "breaking",
+          "titre": "Read subscription billing periods off subscription items (Basil 2025-03-31)",
+          "target": {
+            "type": "symbol",
+            "symbol": "stripe.subscriptions.retrieve"
+          },
+          "migration": {
+            "op": "param_move"
+          },
+          "confidence": "medium",
+          "references": [
+            "https://docs.stripe.com/changelog/basil/2025-03-31/deprecate-subscription-current-period-start-and-end.md (consulte 2026-09-01) - 'current_period_start and current_period_end fields are no longer available on the subscription resource'; 'Instead, access the subscription item's billing periods directly using items.data.current_period_end and items.data.current_period_start fields'",
+            "https://docs.stripe.com/api/subscription_items/object?api-version=2025-03-31.basil#subscription_item_object-current_period_end (consulte 2026-09-01) - 'current_period_end (timestamp) - The end time of this subscription item's current billing period'",
+            "https://github.com/stripe/stripe-node/releases/tag/v18.0.0 (release SDK Node correspondante, citee par le changelog)"
+          ]
+        },
+        "reserve_assumee": "items.data[0] est une CONVENTION pour le cas mono-item, pas une deduction: la source ne donne aucun index. Portee dans migration.detail donc visible dans chaque corps de PR genere, et signalee par confidence: 'medium'. Un abonnement multi-items demande une confirmation humaine sur l'item vise.",
+        "perimetre_hors_scope": "Destructuring (const { current_period_end } = sub) laisse au tier 2. Aucune abstraction/refacto de matcher. Aucune extension de l'enum migration.op sur un echantillon de deux.",
+        "dette_traitee_avant_merge": "Bug d'optional chaining dans apply(): le rewrite du seul receveur deplacait le garde ?. de sub vers data[0] (sub?.current_period_end -> sub.items.data[0]?.current_period_end), transformant un undefined en exception sur un sub nul. Aucun test ne couvrait le cas. QA l'avait classe non bloquant; decision humaine: corriger AVANT merge. Cf. AC 'Optional chaining'."
+      },
+      "assignee": "orchestrateur"
+    },
+    {
+      "id": "US-4",
+      "title": "Durcir le codemod Stripe contre le schema reel de lAPI (Path A)",
+      "why": "La preuve US-1 demontre la non-regression, pas la justesse runtime : le fichier modifie est a 14% de couverture. Valider la forme de lappel genere contre la spec OpenAPI officielle Stripe avant de trancher sur une PR upstream.",
+      "acceptance_criteria": [
+        "La validite de paymentIntents.create avec confirm:true sans return_url ni automatic_payment_methods est tranchee contre la spec OpenAPI officielle Stripe (source citee, pas une supposition)",
+        "Si lappel genere est incomplet/invalide, le codemod src/changes/stripe-charges-to-intents.ts est complete",
+        "Un test dans APIdrift valide la FORME du corps de requete generee contre les champs requis par Stripe, avec mock HTTP (aucun appel reseau reel, aucune cle Stripe)",
+        "Le defaut cosmetique de src/pr.ts (extrait de verification tronque et visuellement trompeur) est corrige",
+        "docs/proof/US-1/fix.patch et PR.md regeneres si la sortie du codemod change",
+        "npx tsc --noEmit et npm test verts"
+      ],
+      "status": "done",
+      "priority": 1,
+      "component": "changes",
+      "epic": "EPIC-mvp-proof",
+      "dependencies": [
+        "US-1"
+      ],
+      "assignee": "orchestrateur"
+    },
+    {
+      "id": "US-5",
+      "title": "Soundness du codemod subscription: optional chaining, binding reassigne, receveur laxiste",
+      "why": "La QA de US-3 a identifie 3 defauts de soundness non bloquants (hors perimetre des criteres US-3) sur le codemod stripe-subscription-current-period-to-items. Le verifieur les couvre (le moat tient) mais ils produisent un fix silencieusement incorrect dans des cas rares.",
+      "acceptance_criteria": [
+        "Optional chaining: sub?.current_period_end ne doit pas devenir sub.items.data[0]?.current_period_end (si sub est null loriginal renvoie undefined, le reecrit leve). Soit find() ne matche pas quand hasQuestionDotToken(), soit apply() reecrit laccess entier en preservant la semantique. Test dedie.",
+        "Binding reassigne: let sub = await stripe.subscriptions.retrieve(a); sub = await stripe.invoices.retrieve(b); sub.current_period_end ne doit plus etre reecrit. Test dedie.",
+        "Le segment stripe. de target.symbol est ignore par les DEUX find() (db.subscriptions.retrieve(id) matche). Trancher: soit le documenter comme choix assume, soit le durcir. La decision est consignee car elle conditionne US-2 (le symbole nest exploite qua 2 segments sur 3).",
+        "Le message dassertion tests/pipeline.test.ts:22 PR.md should exist est obsolete depuis le nommage par branche: corriger le message.",
+        "npx tsc --noEmit et npm test verts"
+      ],
+      "status": "backlog",
+      "priority": 4,
+      "component": "changes",
+      "epic": "EPIC-mvp-proof",
+      "dependencies": [
+        "US-3"
+      ]
+    }
+  ]
+}

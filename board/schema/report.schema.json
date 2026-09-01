@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "report.schema.json",
+  "title": "Rapport (agent -> orchestrateur)",
+  "type": "object",
+  "required": ["us", "agent", "status"],
+  "properties": {
+    "us": { "type": "string" },
+    "agent": { "type": "string" },
+    "status": { "type": "string", "enum": ["done", "needs_review", "blocked"] },
+    "pr": { "type": "string", "description": "url ou numéro de PR" },
+    "tests": {
+      "type": "object",
+      "properties": {
+        "passed": { "type": "integer" },
+        "failed": { "type": "integer" }
+      }
+    },
+    "obstacle": { "type": "string", "description": "si blocked/needs_review, terse" }
+  }
+}
