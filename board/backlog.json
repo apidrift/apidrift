@@ -576,6 +576,29 @@
         ]
       },
       "assignee": "qa"
+    },
+    {
+      "id": "US-9",
+      "title": "Détecter le pin implicite stripe-node (fichier API_VERSION du paquet)",
+      "why": "Depuis stripe-node v12 (2023-04-06), sans option apiVersion dans le code, le SDK épingle implicitement la version d'API courante au moment de sa release (encodée dans node_modules/stripe/API_VERSION). US-7 traite le pin explicite seulement. Ce trou résiduel signifie un code sans apiVersion nest pas \"dernière version\" mais \"la version de la release installée\", un fail-safe critique: un repo avec stripe v20+ mais sans apiVersion peut recevoir un fix basé sur un changelog plus récent, silencieusement faux à runtime. Fait vérifié 2026-09-03 sur https://docs.stripe.com/sdks/set-version.md et https://docs.stripe.com/api/versioning.md.",
+      "acceptance_criteria": [
+        "Extension de src/changes/api-version.ts: apiVersionDate() et isPinnedBefore() restent inchanges, aucun impact sur US-7.",
+        "Extension de src/matcher/api-version.ts: PinnedApiVersion.source accepte node-modules-stripe-api-version en plus de ast-client-option. Type: { status: pinned; source: node-modules-stripe-api-version; version: string; filePath: string }.",
+        "Nouveau sous-module src/matcher/api-version/implicit.ts: resolveImplicitStripePinnedVersion(projectPath: string) lit node_modules/stripe/package.json et déduit la version d'API depuis une table locale (hardcoded, zéro I/O réseau). Si la version SDK n'est pas tabulée: retour null (fail-safe).",
+        "Table de correspondance: N>=5 entrées. stripe-node v12.0.0 (2023-04-06), v13, v14, v15, v16, v17, v18 (2025-03-31). Source: https://github.com/stripe/stripe-node/releases (fixture commitée ou table inline avec citations).",
+        "Intégration dans resolvePinnedApiVersion(project, stripe): si AST-client-option retourne no-client, relancer resolveImplicitStripePinnedVersion(). Le champ source du résultat rend visible quelle méthode a trouvé la version.",
+        "Test e2e: fixture reproduisant le cas agnai (aucun apiVersion dans le code, stripe v13 installé, change porte apiVersion 2025-03-31.basil). Le change est bloqué par US-7 et src/matcher/api-version/implicit.ts signale la version implicite trouvée.",
+        "Aucun appel réseau: npm test passe sans Internet.",
+        "npx tsc --noEmit et npm test verts."
+      ],
+      "status": "backlog",
+      "priority": 3,
+      "component": "matcher",
+      "epic": "EPIC-mvp-proof",
+      "dependencies": [
+        "US-7"
+      ],
+      "assignee": "orchestrateur"
     }
   ]
 }

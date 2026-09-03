@@ -4097,6 +4097,120 @@
       "actor": "qa",
       "us": "US-7",
       "note": "RISQUE RESIDUEL non bloquant, N=1, a surveiller. En isolant npx tsx --test tests/api-version.test.ts, un batch de 4 executions a montre 3 echecs intermittents avec des donnees croisees entre tests. Non reproduit sur ~29 executions suivantes, y compris sous charge CPU artificielle et via npm test / dod.sh (le vrai gate, x8) toutes vertes. Hypothese: contention environnementale (plusieurs agents actifs sur la machine partagee), pas un bug deterministe du code revu. Action SI recidive sur dod.sh: --test-concurrency=1 en CI. Pas dUS ouverte a ce stade: preuve insuffisante."
+    },
+    {
+      "ts": "2026-09-03T21:41:21.373Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:41:34.776Z",
+      "type": "delegate",
+      "actor": "orchestrateur",
+      "target": "po",
+      "us": "US-9",
+      "payload": {
+        "goal": "Refaire remplir le backlog: toutes les US-1 a US-8 sont done ou en review, plus rien nest ready",
+        "suites_identifiees_pendant_le_cycle": {
+          "pin_implicite_stripe_node": "PRINCIPAL. Larchitecte la explicitement renvoye au PO dans hors_scope_explicite de la DoR US-7. Fait verifie: depuis stripe-node v12 (2023-04-06), SANS option apiVersion le SDK epingle IMPLICITEMENT la version dAPI courante au moment de sa propre release (fichier API_VERSION du paquet); avant v12 il utilise la version par defaut du compte. Donc aucun apiVersion dans le code NE signifie PAS derniere version: cest le trou residuel du garde livre en US-7, qui ne voit que les pins litteraux. Le champ source: ast-client-option de PinnedApiVersion a ete pose des maintenant pour quune 2e source sajoute sans changer les appelants.",
+          "compteur_skipped_mort": "src/cli.ts declare skipped, lincremente et ne laffiche jamais pour les causes AUTRES que pinned-api-version (US-7 na traite que sa propre cause, le reste est explicitement hors scope). Un skip invisible se lit 0 pull requests donc votre code est propre.",
+          "flakiness_tests": "N=1, preuve insuffisante (cf. event risk du 2026-09-03). Ne pas ouvrir dUS sans recidive."
+        },
+        "contrainte": "scope guards CLAUDE.md: pas de multi-vendor, pas de multi-langage, pas dUI/dashboard/auth/billing, pas delargissement de la detection automatique au-dela de ce qui est deja cadre",
+        "gate": "backlog raffine = porte humaine (souple): proposer, ne pas sy suspendre"
+      }
+    },
+    {
+      "ts": "2026-09-03T21:42:05.911Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:42:49.032Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:44:06.463Z"
+    },
+    {
+      "ts": "2026-09-03T21:44:53.684Z",
+      "type": "decision",
+      "actor": "orchestrateur",
+      "us": "US-9",
+      "note": "US-9 ouverte par le PO. DEV BLOQUE par dependance dure: US-9 etend src/matcher/api-version.ts et src/changes/api-version.ts, qui nexistent que sur feature/US-7-api-version-gating (PR #10 non mergee, porte humaine). Brancher US-9 sur main aujourdhui produirait un conflit garanti. Le CADRAGE architecte est en revanche possible des maintenant (lecture seule, la branche US-7 est lisible). INCOHERENCE A ARBITRER PAR LARCHITECTE: le titre de lUS dit fichier API_VERSION du paquet, mais son AC3 prescrit de lire node_modules/stripe/package.json puis de deduire via une table SDK->API hardcodee (AC4, N>=5 entrees). Or la DoR US-7 a etabli que la version dAPI est encodee DANS le fichier API_VERSION du paquet installe: lire ce fichier serait exact et sans table a maintenir, la table etant une source de peremption silencieuse. Le PO a par ailleurs sur-specifie la conception (chemin de module, forme du type): ce nest pas son perimetre, larchitecte reprend la main dessus."
+    },
+    {
+      "ts": "2026-09-03T21:45:03.736Z",
+      "type": "delegate",
+      "actor": "orchestrateur",
+      "target": "architecte",
+      "us": "US-9",
+      "payload": {
+        "goal": "Cadrer US-9 (pin implicite stripe-node) et poser la DoR. Le dev est bloque par le merge de PR #10, le cadrage ne lest pas.",
+        "arbitrage_principal": "titre vs AC3/AC4: lire le fichier API_VERSION du paquet installe (exact, zero table) VS lire package.json + table SDK->API hardcodee (perime silencieusement). Verifier dans node_modules/stripe ce qui existe REELLEMENT et trancher sur preuve.",
+        "perimetre_a_corriger": "le PO a sur-specifie la conception (chemin de sous-module, forme exacte du type, N>=5 entrees de table). Reprendre la main: reecrire les AC de conception si la preuve les contredit, en tracant lecart.",
+        "point_dur": "le resolveur US-7 travaille sur un ts-morph Project; la source implicite travaille sur un chemin disque et depend de node_modules INSTALLE dans la cible. Definir le comportement quand node_modules est absent (cas courant) sans reintroduire de faux negatif silencieux.",
+        "contrainte_us7": "ne pas changer le comportement du resolveur explicite ni la comparaison pure; le champ source de PinnedApiVersion a ete pose exactement pour accueillir cette 2e source sans casser les appelants.",
+        "interdits": [
+          "lire un .env",
+          "reseau pendant les tests",
+          "toucher docs/proof/**",
+          "multi-vendor / multi-langage / UI"
+        ]
+      }
+    },
+    {
+      "ts": "2026-09-03T21:45:14.288Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:46:17.450Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:47:02.149Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:47:46.999Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:48:31.679Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:49:16.343Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:50:00.802Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:50:14.785Z",
+      "type": "decision",
+      "actor": "orchestrateur",
+      "us": "US-9",
+      "note": "ARRET DE SESSION (humain va eteindre la machine). Cadrage US-9 lance mais INTERROMPU: la DoR nest pas ecrite, larchitecte a ete tue avant de la journaliser. A relancer a la prochaine session, avec les 3 arbitrages deja poses dans levent delegate ci-dessus (API_VERSION vs table hardcodee; sur-specification de conception par le PO; comportement quand node_modules est absent). Rien nest perdu: aucun travail de code nest en vol, les 2 PR sont poussees."
     }
   ]
 }
