@@ -49,8 +49,16 @@ import { Node, SyntaxKind } from 'ts-morph';
 import type { Identifier, Project } from 'ts-morph';
 import type { Change, Codemod, Match } from '../types.js';
 
-/** `require('<moduleName>')` */
-function isRequireCall(node: Node, moduleName: string): boolean {
+/**
+ * `require('<moduleName>')`
+ *
+ * Exported (US-7) so `./api-version.ts` reuses this exact primitive rather
+ * than re-implementing "is this the vendor's module" a second time — the two
+ * modules ask different questions (that one looks for the CLIENT's
+ * construction site, this one for its CALL sites) but must never disagree on
+ * what counts as the vendor.
+ */
+export function isRequireCall(node: Node, moduleName: string): boolean {
   if (!Node.isCallExpression(node)) return false;
   const callee = node.getExpression();
   if (!Node.isIdentifier(callee) || callee.getText() !== 'require') return false;
@@ -64,8 +72,12 @@ function isVendorFactoryCall(node: Node, moduleName: string): boolean {
   return isRequireCall(node.getExpression(), moduleName);
 }
 
-/** Does `id`'s declaration trace back to an `import ... from '<moduleName>'`? */
-function identifierImportedFromModule(id: Identifier, moduleName: string): boolean {
+/**
+ * Does `id`'s declaration trace back to an `import ... from '<moduleName>'`?
+ * Covers default, named and namespace imports alike — they all sit under the
+ * same `ImportDeclaration`. Exported (US-7) for `./api-version.ts`.
+ */
+export function identifierImportedFromModule(id: Identifier, moduleName: string): boolean {
   const symbol = id.getSymbol();
   if (!symbol) return false;
   for (const decl of symbol.getDeclarations()) {
