@@ -83,6 +83,17 @@ const change: Change = {
     'https://github.com/stripe/stripe-node/releases/tag/v18.0.0 (matching Node SDK release, cited by the changelog entry)',
   ],
   confidence: 'medium',
+  // The API version this takes effect FROM — sourced from `references[0]`
+  // above, which literally reads "API version 2025-03-31.basil", corroborated
+  // by the `## 2025-03-31.basil` heading of https://docs.stripe.com/changelog.md
+  // (re-verified 2026-09-03).
+  //
+  // US-7: this is what stops the pipeline applying this change to a repo that
+  // pins an OLDER version. On `agnaistic/agnai` (US-6 proof) the client is
+  // built with `apiVersion: '2023-08-16'`; `current_period_end` IS still on
+  // the Subscription there, so the "fix" broke correct code while `npm test`
+  // stayed green.
+  apiVersion: '2025-03-31.basil',
 };
 
 /** The two fields the vendor moved off Subscription onto Subscription Item. */

@@ -2,7 +2,9 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { codemods as defaultCodemods } from './changes/index.js';
+import { isPinnedBefore, oldestApiVersion } from './changes/api-version.js';
 import { findMatches, loadProject } from './matcher/index.js';
+import { resolvePinnedApiVersion, type PinnedApiVersion } from './matcher/api-version.js';
 import { applyFix } from './fixer/index.js';
 import { verify } from './verifier/index.js';
 import { buildPrBody } from './pr.js';
@@ -98,6 +100,46 @@ async function runCodemod(
   const matches = findMatches(project, codemod);
   if (matches.length === 0) { cleanup(); return empty; }
 
+  const relativize = (list: typeof matches) =>
+    list.map((m) => ({ ...m, filePath: path.relative(workspace, m.filePath) }));
+
+  // ── US-7: the pinned-API-version guard ────────────────────────────────────
+  // Runs AFTER find() on purpose. A repo with no matches must report "no
+  // match" (the ordinary case), not "blocked" — "blocked" is only interesting
+  // when there ARE call sites we are choosing to leave alone. And it runs
+  // BEFORE createBranch(): a refusal here must produce no branch, no commit,
+  // no artifact at all. A draft PR carrying a known-wrong fix invites someone
+  // to merge it; the fail-safe is to ship nothing and say why.
+  //
+  // Only changes that carry an `apiVersion` are gated (see src/types.ts): a
+  // product deprecation like charges -> paymentIntents is not tied to an API
+  // version, so it never pays for this at all.
+  let pinned: PinnedApiVersion | undefined;
+  if (codemod.change.apiVersion) {
+    pinned = resolvePinnedApiVersion(project, codemod.change.vendor);
+    if (pinned.status === 'pinned') {
+      const oldest = oldestApiVersion(pinned.versions.map((v) => v.version));
+      if (oldest && isPinnedBefore(oldest, codemod.change.apiVersion)) {
+        const skipped = {
+          reason: 'pinned-api-version' as const,
+          pinnedVersion: oldest,
+          changeApiVersion: codemod.change.apiVersion,
+          pinnedVersions: pinned.versions.map((v) => ({
+            ...v,
+            filePath: path.relative(workspace, v.filePath),
+          })),
+        };
+        // Relativize the matches too — without this, throwaway
+        // `/tmp/apidrift-xxxx` paths leak into the report and the CLI output.
+        const displayMatches = relativize(matches);
+        cleanup();
+        // verify: null — nothing was edited, so running the suite would be
+        // pure cost for an answer we already have.
+        return { ...empty, matches: displayMatches, applied: false, skipped };
+      }
+    }
+  }
+
   // An AI-only change (no deterministic codemod) needs an LLM. Without one, skip
   // it cleanly rather than failing the whole run.
   if (typeof codemod.apply !== 'function' && !opts.llm) {
@@ -122,10 +164,15 @@ async function runCodemod(
   const draft = !result.passed;
   const { title, body } = buildPrBody({
     change: codemod.change, matches, diff, verify: result, workspaceDir: workspace, draft,
+    // Present only for a version-gated change (see the guard above). This is
+    // the OTHER direction of "no silent regression": we applied the change, so
+    // the PR must say what we could — or could not — establish about the
+    // reader's pinned API version.
+    pinnedApiVersion: pinned,
   });
   const cr = await host.publish({ branch, title, body, draft });
 
-  const displayMatches = matches.map((m) => ({ ...m, filePath: path.relative(workspace, m.filePath) }));
+  const displayMatches = relativize(matches);
   cleanup();
 
   return {
