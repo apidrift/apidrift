@@ -326,13 +326,14 @@
         "Test dedie: un fichier avec un style de formatage delibere different du defaut TypeScript (ex: pas despace avant les parentheses de fonction) garde ce style sur les lignes non touchees apres un fix",
         "npx tsc --noEmit et npm test verts"
       ],
-      "status": "backlog",
+      "status": "review",
       "priority": 3,
       "component": "fixer",
       "epic": "EPIC-mvp-proof",
       "dependencies": [
         "US-6"
-      ]
+      ],
+      "assignee": "dev#5"
     }
   ]
 }
