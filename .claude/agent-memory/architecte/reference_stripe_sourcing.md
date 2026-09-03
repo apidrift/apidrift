@@ -20,6 +20,9 @@ Entry points that worked (verified 2026-09-01):
   breaking, and the per-SDK version boundary (e.g. stripe-node v18.0.0).
 - `https://docs.stripe.com/upgrades.md` — versioning policy, what Stripe
   considers backward-compatible.
+- `https://docs.stripe.com/api/versioning.md` + `https://docs.stripe.com/sdks/set-version.md`
+  — per-SDK pinning semantics. These two are the source for anything about
+  *which* API version a caller is actually on; see [[decision-api-version-gating]].
 
 Structure exploitable par machine (relevée 2026-09-01) :
 - l'index : heading `## <date>.<release>`, sous-heading `### <domaine>`, puis

@@ -2953,6 +2953,1150 @@
       "actor": "orchestrateur",
       "us": "US-6",
       "note": "review>done"
+    },
+    {
+      "ts": "2026-09-03T20:35:45.547Z",
+      "type": "decision",
+      "actor": "orchestrateur",
+      "us": "US-7",
+      "note": "Priorisation US-7 avant US-8 (priorite nominale 2 vs 3 concordante, pas doverride). Critere CLAUDE.md verification is the moat + correction avant cosmetique. US-7 echoue SILENCIEUSEMENT: fix runtime faux, npm test vert, PR non-draft -> le vert ne signifie plus rien, cest le moat lui-meme qui est attaque. US-8 echoue BRUYAMMENT: linter declenche, PR en draft, revue humaine -> fail-safe. PO saute: les 6 AC de US-7 sont deja testables et lAC1 exige une decision darchitecte. Contexte concurrence: session apidrift-33 opere EN PLACE sur ce repo; le dev travaillera en worktree isole et je relis le board depuis le disque avant chaque ecriture."
+    },
+    {
+      "ts": "2026-09-03T20:35:47.415Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T20:36:02.241Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T20:37:14.402Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T20:38:01.814Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T20:38:48.837Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T20:41:06.145Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T20:41:53.866Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T20:42:41.290Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T20:43:37.165Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T20:43:59.628Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T20:44:47.000Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T20:45:32.195Z",
+      "type": "update",
+      "actor": "architecte",
+      "us": "US-7",
+      "payload": {
+        "fields": [
+          "definition_of_ready"
+        ],
+        "before": {},
+        "after": {
+          "definition_of_ready": {
+            "cadre_par": "architecte (2026-09-03)",
+            "verdict": "READY",
+            "principe_directeur": "Verification is the moat (CLAUDE.md) ne vaut que si un run vert veut dire quelque chose. Une PR verifiee-mais-fausse est pire qu'une absence de PR. Le comportement vise est FAIL-SAFE (ne pas appliquer), pas best-effort.",
+            "D1_detection_version_epinglee": {
+              "ou": "NOUVEAU module src/matcher/api-version.ts (l'AST vit dans src/matcher/, regle CLAUDE.md). Signature: resolvePinnedApiVersion(project: Project, vendorModule: string): PinnedApiVersion.",
+              "quoi_chercher": "les CONSTRUCTIONS du client vendor (new X(...) ou X resout au module vendor, et require('<vendor>')(...)), pas les appels de methode. Le 2e argument est l'objet d'options qui porte apiVersion.",
+              "formes_reconnues_verifiees_prototype_ts_morph_2026_09_03": [
+                "import Stripe from 'stripe' + new Stripe(key, {...}) -> OK (cas agnai)",
+                "import { Stripe } from 'stripe' + new Stripe(...) -> OK",
+                "import * as S from 'stripe' + new S.Stripe(...) -> OK (racine = PropertyAccessExpression sur le namespace)",
+                "const Stripe = require('stripe') + new Stripe(...) -> OK",
+                "const { Stripe } = require('stripe') + new Stripe(...) -> OK (BindingElement, remonter au VariableDeclaration ancetre)",
+                "require('stripe')(key, {...}) -> OK",
+                "import Stripe from 'not-stripe' -> correctement REJETE",
+                "aucune construction -> no-client (cas fixtures/acme-payments, verifie)"
+              ],
+              "contrat_de_retour": {
+                "type": "type PinnedApiVersion = { status: 'pinned'; source: 'ast-client-option'; versions: Array<{ version: string; filePath: string; line: number }> } | { status: 'unresolved'; reason: 'no-client' | 'no-option' | 'non-literal' }",
+                "note": "le champ source: 'ast-client-option' est ajoute DES MAINTENANT pour qu'une 2e source (node_modules/stripe/API_VERSION, hors scope ici) s'ajoute sans changer les appelants."
+              },
+              "verdict_par_cas": [
+                "1 ou plusieurs litteraux lisibles -> status 'pinned'. La comparaison utilise la date la PLUS ANCIENNE de la liste. Deux clients divergents ne sont pas un cas special: bloquer si le plus vieux est anterieur, parce qu'on ne sait pas quel site d'appel appartient a quel client. Le rapport nomme TOUTES les versions trouvees.",
+                "client trouve mais pas de 2e argument, ou objet d'options sans cle apiVersion -> 'no-option' -> APPLIQUER + divulguer (D4).",
+                "valeur non litterale (Identifier, process.env.STRIPE_API_VERSION, TemplateExpression, ShorthandPropertyAssignment, 2e argument non ObjectLiteralExpression, ou objet contenant un SpreadAssignment) -> 'non-literal' -> APPLIQUER + divulguer.",
+                "litteral present mais illisible comme date (ex: 'latest') -> 'non-literal'. Ne jamais deviner.",
+                "aucune construction de client -> 'no-client' -> APPLIQUER, aucune divulgation supplementaire au-dela de la ligne standard."
+              ],
+              "pourquoi_appliquer_sur_non_detectable": "AC2 conditionne le fail-safe a 'detectable ET anterieure'. Bloquer sur toute configuration par variable d'environnement tuerait l'outil sur la majorite des repos reels, de facon invisible - c'est la regression du sens 2 (cf. D4). Le non-detectable est traite par divulgation, pas par blocage.",
+              "STRIPE_API_VERSION": "nomme dans AC1: lire process.env du repo cible est impossible, et lire un .env est INTERDIT (secrets, blast radius CLAUDE.md). La forme apiVersion: process.env.STRIPE_API_VERSION tombe donc en 'non-literal'. C'est une decision, pas un oubli."
+            },
+            "D2_modele_de_donnee": {
+              "champ": "Change.apiVersion?: string dans src/types.ts",
+              "format": "chaine vendor verbatim, YYYY-MM-DD suivi optionnellement de .<canal>. Verifie 2026-09-03 sur https://docs.stripe.com/changelog.md: canaux observes acacia, basil, clover, dahlia, preview; les versions anterieures a Acacia n'ont AUCUN suffixe (2023-08-16).",
+              "semantique": "version d'API a partir de laquelle le change prend effet. ABSENT = change non gate par une version d'API (depreciation produit/SDK) -> le garde ne se declenche jamais. C'est le defaut et c'est ce qui preserve AC4.",
+              "comparaison": "src/changes/api-version.ts, PUR, zero AST: apiVersionDate(v) = v.slice(0,10) valide par /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/ sinon null; isPinnedBefore(pinned, changeVersion) = comparaison LEXICOGRAPHIQUE stricte des deux dates (ISO zero-padde => ordre chronologique). Pas de new Date() (pieges de fuseau).",
+              "pieges": [
+                "NE JAMAIS comparer la chaine complete. '2026-03-25.dahlia' < '2026-03-25.preview' lexicographiquement alors que preview est un canal PARALLELE, pas un successeur. Et l'ordre acacia<basil<clover<dahlia est une coincidence de nommage alphabetique, pas un contrat.",
+                "L'egalite n'est PAS anterieure: comparaison STRICTE. Une cible epinglee exactement sur la version du change recoit le change.",
+                "Canal .preview a date egale d'un canal stable: compare egal donc non bloque. LIMITE ASSUMEE documentee, aucune logique de canal (evidence N=0)."
+              ],
+              "valeurs_retroactives_des_2_changes_existants": {
+                "stripe-charges-create-to-payment-intents": "PAS d'apiVersion (champ absent). Source = guide de migration https://docs.stripe.com/payments/payment-intents/migration, PAS une entree du changelog versionne - fait deja consigne et verifie (contrainte COUVERTURE du composant detection, 2026-09-01). Depreciation produit, pas changement de version d'API: le garde ne doit jamais s'y appliquer.",
+                "stripe-subscription-current-period-to-items": "apiVersion: '2025-03-31.basil'. Source = son propre references[0] qui porte deja litteralement 'API version 2025-03-31.basil', corrobore par le heading '## 2025-03-31.basil' de https://docs.stripe.com/changelog.md (re-verifie 2026-09-03)."
+              },
+              "changes_detectes": "src/detection/stripe-changelog.ts, buildDetectedChanges(): ajouter apiVersion: entry.release. Le heading <date>.<canal> est deja parse, c'est UNE ligne. C'est le chemin qui a le plus besoin du garde: confidence 'low', aucun humain dans la boucle, fix produit par le tier 2 IA."
+            },
+            "D3_ou_branche_le_garde": {
+              "decision": "dans src/pipeline.ts::runCodemod, entre le `if (matches.length === 0)` (l.99 aujourd'hui) et le skip AI-sans-LLM (l.103). Donc APRES find(), AVANT host.createBranch().",
+              "justification": [
+                "PAS le matcher: un find() vide confondrait 'ton code n'utilise pas ca' et 'ce change ne te concerne pas', et il faudrait dupliquer le garde dans chaque find() ecrit a la main. On veut au contraire CONNAITRE les sites pour dire 'N sites trouves, non modifies'.",
+                "PAS le fixer: trop tard, la branche existe deja; un refus y ressortirait en diff vide -> applied:false (l.116), indistinguable du garde-fou de l'agent IA.",
+                "LE pipeline: il lit deja codemod.change (branche, titre) donc zero couplage nouveau, un seul point pour tous les codemods, et le Project est deja charge l.97 donc zero parse supplementaire.",
+                "L'ordre importe: apres le test matches.length===0, pour qu'un repo sans usage rapporte 'no match' (cas ordinaire) et pas 'bloque'. Bloque n'est interessant que s'il Y A des sites d'appel."
+              ],
+              "resultat_retourne": "{ ...empty, matches: displayMatches, applied: false, skipped: {...} } apres cleanup(). Pas de branche, pas de commit, pas de publish, AUCUN artefact .md/.patch ecrit. verify: null (rien n'a bouge, lancer la suite serait du cout pur). draft: false, prPath: null, patchPath: null.",
+              "piege_a_ne_pas_rater": "relativiser les chemins des matches. La relativisation (path.relative(workspace, ...)) n'existe aujourd'hui QUE dans le chemin succes (l.128). Sans elle, des chemins /tmp/apidrift-xxxx fuient dans le rapport et la sortie CLI.",
+              "contrat_PipelineResult": "ajout d'un champ OPTIONNEL: skipped?: { reason: 'pinned-api-version'; pinnedVersion: string; changeApiVersion: string }. Optionnel = non cassant. Consommateurs verifies: src/cli.ts l.148 (`if (!r.applied)`), src/runner.ts l.34 (`if (!r.applied) continue`), src/service/job.ts (re-exporte le type). Aucun ne casse."
+            },
+            "D4_AC3_pas_de_regression_silencieuse_dans_les_deux_sens": {
+              "sens_1_sous_detection": "un pin existe mais on ne sait pas le lire -> on applique quand meme -> risque agnai residuel. FAIT VERIFIE 2026-09-03 (https://docs.stripe.com/sdks/set-version.md et https://docs.stripe.com/api/versioning.md): depuis stripe-node v12 (2023-04-06), SANS option apiVersion, le SDK epingle IMPLICITEMENT la version d'API courante au moment de sa propre release (encodee dans le fichier API_VERSION du paquet); avant v12 il utilise la version par defaut du compte. Donc 'aucun apiVersion dans le code' ne signifie PAS 'derniere version'. C'est le trou principal, et il est HORS SCOPE ici (cf. hors_scope) - il doit donc etre ECRIT, pas suppose connu.",
+              "sens_2_sur_blocage": "on bloque et personne ne le voit: l'utilisateur lit 'done - 0 pull requests' et conclut que son code est propre. C'est la regression symetrique, et sans doute la pire ('pas de nouvelles = bonnes nouvelles'). Constat factuel a corriger: src/cli.ts declare `let opened = 0, skipped = 0`, incremente skipped l.151 et ne l'affiche JAMAIS.",
+              "rendre_visible_sens_2": "src/cli.ts doit imprimer un bloc dedie (couleur amber, meme forme que les resultats existants) pour tout r.skipped: titre du change, version du change, version epinglee trouvee + fichier:ligne, et la liste des sites NON modifies. AUCUN artefact n'est produit: une PR draft portant un fix connu-faux inviterait a la merger, le fail-safe c'est ne rien produire. (Corriger le compteur skipped mort dans le cas general est hors scope: seul le cas pinned-api-version doit etre affiche.)",
+              "rendre_visible_sens_1_sans_bruit": "UNE ligne dans la section existante '## What changed upstream' de src/pr.ts, emise UNIQUEMENT si change.apiVersion est defini. Pas de banniere, pas d'emoji d'alerte, pas de section nouvelle. Le texte varie selon le resolveur: no-client/no-option -> 'aucun apiVersion epingle trouve dans ce repo; stripe-node >= v12 epingle implicitement a la version courante au moment de sa release - verifiez la votre'; non-literal -> 'ce repo definit apiVersion depuis une valeur non litterale qu'APIdrift ne peut pas lire; confirmez qu'elle est >= <version>'; pinned et >= -> confirmation positive 'ce repo epingle <version>'. buildPrBody() recoit la resolution via un champ OPTIONNEL de son argument (absent -> aucune ligne).",
+              "zero_bruit_sur_l_existant": "le change n1 (charges->intents) n'a pas d'apiVersion -> aucune ligne. Le chemin le plus visible du produit est inchange."
+            },
+            "D5_fixtures": {
+              "acme_payments_verifie_2026_09_03": "AUCUN new Stripe ni require('stripe') dans fixtures/acme-payments. Le client est un PARAMETRE (chargeCustomer(stripe, ...) dans src/checkout.js, getBillingPeriod(stripe, ...) dans src/billing.js) et lib/stripe-mock.js ne construit rien du vendor. Resolution = 'no-client' -> les 2 changes continuent de s'appliquer. AC4 tient SANS toucher a la fixture.",
+              "ne_pas_epingler_acme": "ajouter un cas epingle a acme-payments bloquerait le change n2 sur la fixture de reference, casserait `npm run demo` (2 paires .md/.patch attendues) et les assertions de non-collision de tests/stripe-subscription-current-period-to-items.test.ts. Elle doit rester le cas NON epingle.",
+              "3e_artefact": "CREER fixtures/pinned-legacy-stripe/ reproduisant le cas agnai: un module qui construit le client avec new Stripe(key, { apiVersion: '2023-08-16' }) depuis un import/require du module 'stripe', un autre module avec const sub = await stripe.subscriptions.retrieve(id) suivi d'une lecture de sub.current_period_end, un package.json avec un scripts.test qui passe au VERT sans reseau ni dependance installee (le test de la fixture ne doit pas importer le module qui construit le client). Rappel: test/** est exclu par loadProject, donc le test de la fixture est invisible au matcher.",
+              "delta_assume_sur_acme": "le PR.md du change n2 gagne UNE ligne informative (le change porte un apiVersion, la fixture n'a pas de pin). Comportement inchange: fix applique, tests verts, PR non-draft, patch identique. C'est la SEULE modification attendue d'un test existant - ajuster consciemment les assertions de tests/pr.test.ts, ne pas les casser en silence."
+            },
+            "fichiers": {
+              "creer": [
+                "src/changes/api-version.ts - PUR (zero AST, zero I/O): apiVersionDate(), isPinnedBefore().",
+                "src/matcher/api-version.ts - AST: type PinnedApiVersion + resolvePinnedApiVersion(project, vendorModule).",
+                "fixtures/pinned-legacy-stripe/ - cf. D5.",
+                "tests/api-version.test.ts - cf. tests_attendus."
+              ],
+              "modifier": [
+                "src/types.ts - Change.apiVersion?: string (avec commentaire de doc: absent = non gate par une version d'API); PipelineResult.skipped?.",
+                "src/changes/stripe-subscription-current-period-to-items.ts - + apiVersion: '2025-03-31.basil'.",
+                "src/matcher/symbol.ts - EXPORTER isRequireCall et le helper de resolution identifiant->module, pour que src/matcher/api-version.ts ne duplique pas la primitive de securite. NE PAS changer le comportement de resolveRootToVendor ni de rootIsNotProvablyForeign (cf. hors_scope).",
+                "src/pipeline.ts - le garde (D3).",
+                "src/pr.ts - argument optionnel + 1 ligne conditionnelle (D4).",
+                "src/cli.ts - affichage du cas bloque (D4).",
+                "src/detection/stripe-changelog.ts - apiVersion: entry.release (D2)."
+              ],
+              "ne_pas_toucher": [
+                "docs/proof/** - artefacts geles, ce sont des preuves.",
+                "src/verifier/** - aucun assouplissement ni elargissement de la moat dans cette US.",
+                "src/fixer/** - c'est US-8.",
+                "fixtures/acme-payments/** - cf. D5."
+              ]
+            },
+            "vigilance_ast": [
+              "AST via ts-morph uniquement. Jamais getText() compare a du texte source, jamais de regex sur le source du repo cible.",
+              "Racine du new: Identifier OU PropertyAccessExpression dont l'expression est l'identifiant de namespace (new S.Stripe(...)).",
+              "Resolution d'identifiant vers module: decl.getFirstAncestorByKind(SyntaxKind.ImportDeclaration)?.getModuleSpecifierValue() === vendor, OU Node.isVariableDeclaration(decl) / decl.getFirstAncestorByKind(SyntaxKind.VariableDeclaration) (cas BindingElement du require destructure) dont l'initializer est require('<vendor>').",
+              "Options: getArguments()[1], exiger Node.isObjectLiteralExpression.",
+              "obj.getProperty('apiVersion') puis EXIGER Node.isPropertyAssignment. VERIFIE au prototype: { apiVersion } est un ShorthandPropertyAssignment et n'est PAS un PropertyAssignment.",
+              "Si l'objet contient un SpreadAssignment quelconque -> degrader en 'non-literal' MEME si un litteral apiVersion est present: un spread ulterieur peut l'ecraser.",
+              "Deballer AsExpression / SatisfiesExpression / ParenthesizedExpression avant le test de litteral. VERIFIE au prototype: { apiVersion: '2026-08-26.dahlia' as Stripe.LatestApiVersion } est la forme TS courante et echoue sans deballage.",
+              "Accepter StringLiteral et NoSubstitutionTemplateLiteral; rejeter TemplateExpression, Identifier, PropertyAccessExpression (process.env.X).",
+              "Le Project est celui de loadProject(): test/**, tests/**, examples/**, dist/**, build/** sont deja exclus, donc un apiVersion d'exemple ou de test ne pollue pas la resolution. Un .js compile a cote de son .ts (cas agnai) porte le MEME litteral -> dedupliquer sur la VALEUR, pas sur le site."
+            ],
+            "tests_attendus": [
+              "Comparaison pure: 2023-08-16 vs 2025-03-31.basil -> bloque; egalite -> applique; 2026-08-26.dahlia vs 2025-03-31.basil -> applique; 'latest' -> non parseable; 2026-08-26.preview vs 2026-08-26.dahlia -> applique (limite canal documentee).",
+              "Resolveur, une assertion par forme: les 6 formes de client reconnues, module etranger rejete, no-client, no-option (pas de 2e arg / objet sans la cle), process.env, shorthand, spread, as-expression, et deux clients divergents -> la version la plus ancienne l'emporte.",
+              "e2e run() sur fixtures/pinned-legacy-stripe: applied === false, skipped.reason === 'pinned-api-version', matches.length > 0 avec des chemins RELATIFS, aucun fichier ecrit dans outputDir, workspace nettoye.",
+              "Non-regression fixtures/acme-payments: les 2 changes toujours appliques, skipped absent, contenu des patchs inchange.",
+              "src/pr.ts: aucune ligne ajoutee quand change.apiVersion est absent (change n1); exactement une ligne quand il est present, et son texte varie selon le reason.",
+              "Detection: un Change construit depuis fixtures/stripe-changelog/ porte apiVersion === entry.release.",
+              "AC6: npx tsc --noEmit et npm test verts (gate scripts/dod.sh)."
+            ],
+            "hors_scope_explicite": [
+              "Lire node_modules/stripe/API_VERSION ou le range semver de package.json pour deduire le pin IMPLICITE de stripe-node >= v12. C'est le complement le plus couvrant (cf. D4 sens 1) mais il depend de node_modules installe et d'une table version-SDK -> version-API. A ouvrir en US separee par le PO. Le champ source de PinnedApiVersion est la pour qu'elle s'ajoute sans changer les appelants.",
+              "Lire un fichier .env du repo cible: interdit (secrets, blast radius).",
+              "Toute logique de canal de release (.preview / .basil / ordre des noms).",
+              "Lancer scripts.typecheck du repo cible en plus de scripts.test: elargir la moat est une autre decision, une autre US.",
+              "Modifier resolveRootToVendor / rootIsNotProvablyForeign: elargir la reconnaissance du client cote matcher generique elargirait ce qui est EDITE - direction d'erreur opposee a celle de cette US (ici elargir = bloquer plus = plus sur). Le finder large vit dans src/matcher/api-version.ts et n'est utilise que par le garde.",
+              "Multi-vendor, autre langage, UI, detection automatique elargie: scope guards CLAUDE.md.",
+              "Corriger le compteur skipped mort de src/cli.ts pour les autres causes de skip."
+            ],
+            "methode_de_verification_du_cadrage": "Chaque affirmation AST de cette DoR a ete verifiee par un prototype ts-morph jetable dans /tmp (11 formes de code, non commite) contre loadProject() du repo. Chaque affirmation sur Stripe a ete verifiee le 2026-09-03 sur les variantes .md de docs.stripe.com (changelog.md, sdks/set-version.md, api/versioning.md, upgrades.md)."
+          }
+        }
+      }
+    },
+    {
+      "ts": "2026-09-03T20:46:04.662Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T20:46:51.518Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T20:47:38.989Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T20:47:49.719Z",
+      "type": "move",
+      "actor": "architecte",
+      "us": "US-7",
+      "note": "ready"
+    },
+    {
+      "ts": "2026-09-03T20:47:49.767Z",
+      "type": "refinement",
+      "actor": "architecte",
+      "us": "US-7",
+      "note": "US-7 cadree: Change.apiVersion? (facultatif, absent=non gate); garde fail-safe dans pipeline.ts entre find() et createBranch(); resolveur AST dans src/matcher/api-version.ts (6 formes de client verifiees au prototype), comparaison pure sur les 10 premiers caracteres dans src/changes/api-version.ts; PipelineResult.skipped? optionnel + sortie CLI (regression sens 2); 1 ligne conditionnelle dans PR.md (sens 1); 3e fixture pinned-legacy-stripe, acme-payments intouchee. Hors scope: node_modules/stripe/API_VERSION, .env, logique de canal."
+    },
+    {
+      "ts": "2026-09-03T20:48:26.269Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T20:49:13.842Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T20:49:45.572Z",
+      "type": "move",
+      "actor": "dev#4",
+      "us": "US-7",
+      "note": "ready>in_progress"
+    },
+    {
+      "ts": "2026-09-03T20:49:45.621Z",
+      "type": "delegate",
+      "actor": "orchestrateur",
+      "target": "dev#4",
+      "us": "US-7",
+      "payload": {
+        "goal": "Porte de pertinence: ne pas appliquer un Change fonde sur un changelog versionne a une cible epinglee sur une version anterieure (fix silencieusement faux = attaque du moat)",
+        "detection": "nouveau src/matcher/api-version.ts, resolvePinnedApiVersion(project, vendorModule): cherche les CONSTRUCTIONS du client (new X(...) / require(stripe)(...)), pas les appels",
+        "verdicts": {
+          ">=1 litteral": "comparer la PLUS ANCIENNE date (couvre les clients divergents sans cas special)",
+          "no-client / no-option / non-literal": "APPLIQUER + divulguer (bloquer sur config par env tuerait loutil sur la majorite des repos, invisiblement)"
+        },
+        "modele": "Change.apiVersion? verbatim vendor; comparaison sur les 10 PREMIERS CARACTERES seulement, lexicographique, dans src/changes/api-version.ts (pur)",
+        "piege_comparaison": "ne jamais comparer la chaine entiere: .preview est un canal PARALLELE a la meme date; acacia<basil<clover<dahlia est une coincidence alphabetique, pas un contrat",
+        "retroactif": {
+          "charges->intents": "PAS de apiVersion (sa source est un guide de migration, pas le changelog versionne)",
+          "subscription": "2025-03-31.basil, sourcee par son propre references[0]"
+        },
+        "branchement": "le PIPELINE, entre matches.length===0 (l.99) et le skip AI-sans-LLM (l.103). PipelineResult.skipped? OPTIONNEL (runner.ts:34, cli.ts:148, service/job.ts ne cassent pas)",
+        "piege_pipeline": "relativiser les chemins des matches: la relativisation nexiste aujourdhui que dans le chemin succes (l.128)",
+        "visibilite": "src/cli.ts declare skipped (l.145), lincremente (l.151) et ne laffiche JAMAIS -> un change bloque sans affichage fait lire 0 pull requests et conclure que le code est propre. Bloc CLI dedie + AUCUN artefact produit (une PR draft connue-fausse invite a la merger) + UNE ligne dans la section ## What changed upstream de src/pr.ts, emise seulement si change.apiVersion est defini",
+        "fixture": "NE PAS epingler fixtures/acme-payments (casserait le change #2, npm run demo et les assertions de non-collision). Nouveau 3e artefact fixtures/pinned-legacy-stripe/ reproduisant agnai",
+        "delta_assume": "tests/pr.test.ts est le SEUL test existant a ajuster consciemment (ligne informative sur le PR.md du change #2)",
+        "interdits": [
+          "regex",
+          "lire .env (secrets, blast radius)",
+          "toucher docs/proof/** (preuves gelees)",
+          "etendre au multi-vendor / multi-langage / UI",
+          "lire node_modules/stripe/API_VERSION (hors scope, remonte comme US separee)",
+          "PR/push vers un repo tiers"
+        ],
+        "dod": "npx tsc --noEmit + npm test verts"
+      }
+    },
+    {
+      "ts": "2026-09-03T20:50:05.061Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:08:51.720Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:08:58.287Z",
+      "type": "move",
+      "actor": "qa",
+      "us": "US-7",
+      "note": "in_progress>review"
+    },
+    {
+      "ts": "2026-09-03T21:08:58.335Z",
+      "type": "report",
+      "actor": "dev#4",
+      "us": "US-7",
+      "payload": {
+        "pr": "https://github.com/apidrift/apidrift/pull/10",
+        "branche": "feature/US-7-api-version-gating",
+        "dod": {
+          "tsc": "clean",
+          "npm_test": "118/118",
+          "dod_sh": "exit 0"
+        },
+        "tests_ajoutes": 41,
+        "mutation_verifiee": [
+          "isPinnedBefore < -> <= : 3 rouges",
+          "apiVersionDate compare la chaine entiere : 6 rouges",
+          "retrait de la degradation spread : 1 rouge",
+          "retrait de relativize() dans la branche bloquee : 1 rouge",
+          "retrait de change.apiVersion : 3 rouges"
+        ],
+        "ecarts_dor": [
+          "skipped porte un 4e champ pinnedVersions[] (D1 exige de nommer TOUTES les versions trouvees, le contrat a 3 champs ne peut pas lexprimer) - additif et optionnel",
+          "tests/pr.test.ts NON modifie: le delta predit par la DoR ne sest pas materialise (la ligne est gatee sur change.apiVersion, or pr.test.ts nexerce que le change charges non tague)",
+          "src/matcher/api-version.ts importe apiVersionDate depuis ../changes/api-version.js (sens matcher->changes) pour eviter une divergence silencieuse entre resolveur et comparateur"
+        ]
+      }
+    },
+    {
+      "ts": "2026-09-03T21:09:26.597Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:10:25.419Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:11:10.616Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:11:54.156Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:11:58.718Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:12:05.083Z",
+      "type": "delegate",
+      "actor": "orchestrateur"
+    },
+    {
+      "ts": "2026-09-03T21:12:05.127Z"
+    },
+    {
+      "ts": "2026-09-03T21:12:18.157Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:12:43.721Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:12:52.783Z",
+      "type": "delegate",
+      "actor": "orchestrateur",
+      "target": "qa",
+      "us": "US-7",
+      "payload": {
+        "goal": "Revue de code + acceptation US-7 sur PR #10 (branche feature/US-7-api-version-gating), face aux 6 AC et a la DoR de l architecte",
+        "points_de_controle": [
+          "AC1 decision de conception implementee conforme D1/D2/D3",
+          "AC2 fail-safe: pinned strictement anterieure -> non applique, AUCUN artefact ecrit, explication claire",
+          "AC3 pas de regression silencieuse dans les DEUX sens: bloc CLI visible pour skipped (le compteur skipped etait mort) + 1 ligne conditionnelle dans PR.md quand change.apiVersion defini",
+          "AC4 non-regression acme-payments: 2 changes toujours appliques, patchs inchanges, npm run demo intact",
+          "AC5 test dedie reproduisant agnai (fixtures/pinned-legacy-stripe)",
+          "AC6 tsc + npm test verts"
+        ],
+        "vigilance": [
+          "comparaison sur les 10 premiers caracteres seulement, STRICTE (egalite = applique); jamais la chaine entiere (.preview canal parallele)",
+          "chemins des matches RELATIVISES dans la branche bloquee (pas de fuite /tmp/apidrift-xxxx)",
+          "aucune regex sur le source cible, ts-morph uniquement",
+          "fixer/ et verifier/ non touches, docs/proof/** intact, pas de lecture .env ni node_modules/stripe/API_VERSION",
+          "3 ecarts DoR declares par dev#4 a arbitrer: skipped.pinnedVersions[] additif; tests/pr.test.ts non modifie; import matcher->changes"
+        ],
+        "livrable": "verdict accepte|renvoye + ecarts + note de demo pour la porte humaine"
+      }
+    },
+    {
+      "ts": "2026-09-03T21:13:03.026Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:13:24.732Z",
+      "type": "delegate",
+      "actor": "orchestrateur",
+      "target": "architecte",
+      "us": "US-8",
+      "payload": {
+        "goal": "Cadrer US-8 (blast radius du formatage) et poser la Definition of Ready",
+        "contexte": "US-6 a montre sur feross/studynotes.org que sf.formatText() dans src/fixer/index.ts reformate le FICHIER ENTIER apres codemod -> lignes jamais touchees modifiees -> linter du repo cible declenche -> PR en draft. Violation de blast radius only (CLAUDE.md).",
+        "po_saute": "les 5 AC sont deja testables et lAC1 exige une decision darchitecte (meme motif que US-7)",
+        "attendu": [
+          "decision explicite: formater uniquement la plage AST reellement editee, ou alternative documentee si ts-morph ne lexpose pas proprement (formatText accepte-t-il une plage? sinon: reformater puis ne garder que le hunk? sinon: ne plus formater du tout et faire produire du texte deja bien forme par le codemod?)",
+          "impact sur les 2 codemods existants et sur les tests dassertion de formatage exact",
+          "comment prouver lAC2 sur le cas gele docs/proof/US-6/feross-studynotes.org/ SANS toucher a docs/proof/** (artefacts geles = preuves)",
+          "fixture ou cas de test avec un style delibere non-defaut (AC4)",
+          "impact eventuel sur le tier 2 IA (src/fixer/agent.ts) et sur les guardrails: ne pas les affaiblir"
+        ],
+        "interdits": [
+          "toucher docs/proof/** (preuves gelees)",
+          "affaiblir les guardrails du fixer IA ou le verifier (la moat)",
+          "regex sur le source cible",
+          "multi-vendor / multi-langage / UI / detection elargie"
+        ]
+      }
+    },
+    {
+      "ts": "2026-09-03T21:13:29.095Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:13:30.792Z",
+      "type": "decision",
+      "actor": "orchestrateur",
+      "us": "US-8",
+      "note": "US-8 tiree en raffinage pendant que US-7 est en review (WIP 0/3 en in_progress, aucune porte bloquante). PO saute: les 5 AC ecrites a la cloture de US-6 sont deja testables et sourcees sur une preuve reelle (feross/studynotes.org), et AC1 exige une decision d architecte, pas un raffinage produit. Meme motif que US-7. Deux evenements vides (ts 21:12:05) subsistent dans le journal: artefacts d appels board.mjs sans arguments, sans effet sur letat, non supprimables (ecriture directe refusee)."
+    },
+    {
+      "ts": "2026-09-03T21:13:48.845Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:14:01.434Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:14:49.124Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:14:59.379Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:15:00.024Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:15:04.140Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:16:01.561Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:16:02.839Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:16:55.337Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:16:57.057Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:17:48.872Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:17:50.164Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:18:39.093Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:19:09.191Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:19:28.074Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:20:14.809Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:20:24.389Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:20:49.840Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:21:09.421Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:21:15.752Z",
+      "type": "update",
+      "actor": "architecte",
+      "us": "US-8",
+      "payload": {
+        "fields": [
+          "definition_of_ready"
+        ],
+        "before": {},
+        "after": {
+          "definition_of_ready": {
+            "cadre_par": "architecte (2026-09-03)",
+            "verdict": "READY",
+            "po_saute": "volontaire (AC deja testables, AC1 est une decision d'architecte). Aucun arbitrage produit ouvert.",
+            "principe_directeur": "Blast radius only (CLAUDE.md). Un fix ne touche que ce qu'il a matche. Le formatage est un moyen de rendre l'edition lisible, pas une licence pour reecrire le fichier. Corollaire operationnel: sur un repo cible dont npm test commence par un linter, chaque ligne hors zone est un risque de faux draft.",
+            "D1_decision_de_conception_AC1": {
+              "retenu": "(a) formater UNIQUEMENT la plage AST reellement editee, via l'API ts-morph Node#formatText() appelee sur le noeud de chaque Match, a la place de SourceFile#formatText() sur le fichier entier.",
+              "fait_verifie_api": "ts-morph 24.0.0 EXPOSE le formatage a la plage, contrairement a ce qu'affirme le README de preuve US-6 ('ts-morph's public API doesn't expose range-scoped formatting as directly' -> FAUX, corrige ici). Deux niveaux disponibles: (1) Node#formatText(settings) declare dans node_modules/ts-morph/lib/ts-morph.d.ts:3852, implemente dans node_modules/ts-morph/dist/ts-morph.js:3743 par languageService.getFormattingEditsForRange(filePath, [this.getStart(true), this.getEnd()], settings); (2) LanguageService#getFormattingEditsForRange(filePath, [start, end], settings): TextChange[] (ts-morph.d.ts:9236) + SourceFile#applyTextChanges (ts-morph.d.ts:7724) si un jour il faut la plage brute. Le niveau (1) suffit: aucun code de plumbing a ecrire, une ligne change.",
+              "changement_concret": "src/fixer/index.ts lignes 31-37: remplacer la boucle `for (const filePath of touched) { sf.formatText(...) }` par un formatage par match: `for (const m of matches) if (!m.node.wasForgotten()) m.node.formatText({ indentSize: 2, convertTabsToSpaces: true })`. Le Set `touched` (des filePath) disparait au profit des noeuds. project.saveSync() reste.",
+              "garde_obligatoire_wasForgotten": "src/changes/stripe-subscription-current-period-to-items.ts fait match.node.replaceWithText(...) et se protege deja lui-meme par `if (match.node.wasForgotten()) return`. Le fixer DOIT porter la meme garde: un noeud oublie leve a l'appel de formatText(). Mesure du prototype (2026-09-03): sur les 2 codemods du registre, avec 2 matches dans le meme fichier, AUCUN noeud n'est oublie apres apply() (ts-morph re-lie le noeud remplace de meme kind a la meme position) ni apres les formatText successifs. La garde est donc un filet, pas le cas nominal.",
+              "fallback_si_noeud_oublie": "remonter au plus proche ancetre Statement CAPTURE AVANT apply() (verifie survivant dans le prototype, texte relu correct apres replaceWithText) et le formater. Si l'ancetre est lui aussi oublie: NE RIEN formater pour ce match. Interdiction explicite de retomber sur SourceFile#formatText() en fallback: ce serait reintroduire exactement le bug de US-6 sur un chemin non teste.",
+              "settings": "conserver { indentSize: 2, convertTabsToSpaces: true } tel quel. Ne PAS enrichir FormatCodeSettings (option (d) du README US-6): cela troque un defaut arbitraire contre un autre, ne sait pas lire le style reel du repo cible, et ne corrige PAS le blast radius (le formatage resterait fichier-entier).",
+              "preuve_prototype_2026_09_03": {
+                "methode": "routes/order.js de feross/studynotes.org re-telecharge depuis raw.githubusercontent.com au SHA epingle 7556fd62512213dc227d00674ed146a57a792be5 (le meme que docs/proof/US-6, mais SANS lire ni toucher docs/proof/), codemod stripe-charges-to-intents applique via find()+apply(), puis les 3 strategies comparees et passees au vrai linter `standard`.",
+                "whole_file_actuel": "reproduit le bug US-6: 6 `function (x)` -> `function(x)` hors zone. `standard` sort en code 1.",
+                "node_scoped_option_a": "SEULE la ligne du call et les cles ajoutees/renommees changent. `function (app)`, `function (req, res, next)`, `function (cb)`, `order.save(function (err, order)`, `}, function (err, r) {` INTACTS. `standard` sort en code 0, avec exactement les memes findings que le fichier d'origine (5 warnings object-shorthand preexistants, decales de +2 lignes). AC2 satisfait par construction.",
+                "no_format_option_c": "`standard` sort en code 1: 2 erreurs `indent` ('Expected indentation of 10 spaces but found 12') sur les cles ajoutees par addPropertyAssignment. Option (c) refutee PAR LA MESURE, pas par avis.",
+                "non_regression_fixture_de_reference": "sur fixtures/acme-payments/src/checkout.js ET src/billing.js, la sortie whole-file et la sortie node-scoped sont OCTET POUR OCTET IDENTIQUES. `npm run demo` et tests/pipeline.test.ts ne peuvent pas bouger a cause de ce changement.",
+                "multi_match": "2 stripe.charges.create dans un meme fichier, style `function (req, res)`: les 2 noeuds survivent, les 2 sont formates correctement, le style hors zone est preserve."
+              },
+              "alternatives_ecartees": [
+                {
+                  "option": "(b) formater tout le fichier puis ne conserver que les hunks touchant les lignes editees",
+                  "cout": "exige une couche diff/hunk maison + une comptabilite de plages de lignes qui se decalent sous les editions (ts-morph ne fournit pas de mapping avant/apres). Environ 10x le code de (a).",
+                  "pourquoi_ecarte": "produit exactement la meme sortie que (a) sur les deux cas prototypes (studynotes et acme), pour un cout et une surface de bug incomparables. Complexite sans gain mesurable."
+                },
+                {
+                  "option": "(c) ne plus formater du tout, exiger que les codemods emettent du texte deja bien forme",
+                  "cout": "deplace la responsabilite du formatage dans CHAQUE codemod present et futur (multiplie la surface, contre 'one hard case fully solved'), et obligerait a editer src/changes/*.ts.",
+                  "pourquoi_ecarte": "1) refute par la mesure: sans formatage, addPropertyAssignment produit une indentation fausse (12 au lieu de 10 espaces) qui declenche 2 erreurs `indent` du linter standard sur studynotes -- donc (c) ne resout meme pas le cas de reference. 2) collision de merge: src/changes/stripe-subscription-current-period-to-items.ts est modifie par US-7 (en review)."
+                },
+                {
+                  "option": "(d) passer un FormatCodeSettings plus complet (piste evoquee dans docs/proof/US-6/.../README.md)",
+                  "pourquoi_ecarte": "ne corrige pas le blast radius: le formatage resterait fichier-entier. Troque le defaut TypeScript contre un autre defaut arbitraire, incapable de detecter le style reel du repo cible."
+                }
+              ]
+            },
+            "D2_perimetre": {
+              "a_modifier": [
+                "src/fixer/index.ts -- UNIQUEMENT le bloc de formatage (lignes 31-37 sur main). La signature de applyFix(), FixInput, FixOutcome et le choix de tier ne changent pas."
+              ],
+              "a_creer": [
+                "tests/fixer-format-scope.test.ts -- nouveau fichier de test dedie, porte AC2 et AC4 (voir D4/D5)."
+              ],
+              "interdits_fermes": [
+                "docs/proof/** -- artefacts geles, ce sont des preuves datees. Le fix.patch de US-6 doit continuer a montrer le bug: c'est la preuve historique. Ne pas le regenerer.",
+                "src/verifier/** -- la moat, hors sujet ici.",
+                "src/fixer/agent.ts -- les guardrails du tier 2 (ensemble editable ligne 63, refus ligne 105, interdiction d'editer les tests) ne sont ni touches ni affaiblis.",
+                "fixtures/acme-payments/** -- fixture de reference de npm run demo, ne bouge pas (et n'a pas besoin de bouger: sortie identique, cf. preuve).",
+                "src/changes/** -- aucun codemod n'a besoin de changer avec l'option (a).",
+                "src/pipeline.ts, src/pr.ts, src/cli.ts, src/types.ts, src/matcher/** -- non concernes, et modifies par US-7."
+              ]
+            },
+            "D3_branchement_et_collisions_US7": {
+              "verdict": "US-8 branche sur main MAINTENANT, ne pas attendre le merge de US-7.",
+              "fait_verifie": "git diff --name-only main...feature/US-7-api-version-gating (2026-09-03) = fixtures/pinned-legacy-stripe/{package.json,src/format.js,src/renewal.js,src/stripe-client.js,test/format.test.js}, src/changes/api-version.ts, src/changes/stripe-subscription-current-period-to-items.ts, src/cli.ts, src/detection/stripe-changelog.ts, src/matcher/api-version.ts, src/matcher/symbol.ts, src/pipeline.ts, src/pr.ts, src/types.ts, tests/api-version.test.ts.",
+              "collision_fichier": "AUCUNE. US-7 ne touche pas src/fixer/**. Le perimetre d'ecriture de US-8 (src/fixer/index.ts + tests/fixer-format-scope.test.ts) est disjoint de celui de US-7.",
+              "adjacence_semantique": "US-7 ajoute une garde de version en AMONT (le pipeline peut refuser d'appliquer un change), US-8 agit en AVAL (comment l'edition est formatee). Les deux ne se rencontrent pas. Rebase attendu trivial dans les deux sens.",
+              "piege": "ne PAS creer de nouvelle fixture sous fixtures/ (cf. D5): US-7 en ajoute une (pinned-legacy-stripe) et un repertoire de plus complique la lecture du diff pour rien."
+            },
+            "D4_preuve_AC2_sans_toucher_docs_proof": {
+              "regle": "docs/proof/US-6/feross-studynotes.org/ reste tel quel. La preuve US-8 ne se fabrique PAS en regenerant un artefact de preuve; elle se fabrique en rejouant le cas et en l'ancrant dans un test.",
+              "quoi_rejouer": "recloner (ou re-telecharger) feross/studynotes.org au SHA 7556fd62512213dc227d00674ed146a57a792be5 dans /tmp, y relancer `npx tsx src/cli.ts run <clone> --deterministic-only --out /tmp/...` avec le fixer corrige, et lire le patch produit. Attendu, mesure au prototype: seules les lignes du call changent, `standard` (que `npm test` du repo lance en premier) passe, donc verify.passed=true et draft=false la ou US-6 avait draft=true. Ce run va dans le RAPPORT de dev (board), pas dans docs/proof/.",
+              "assertion_durable_dans_le_test": "tests/fixer-format-scope.test.ts recree en tmpdir (pattern deja utilise par tests/pipeline.test.ts:31) une reduction fidele de routes/order.js -- meme style `function (x)`, meme stripe.charges.create({...}, cb) imbrique dans des callbacks -- provenance citee en commentaire (URL + SHA). Puis: charger via loadProject, findMatches, applyFix, relire le texte.",
+              "assertion_exacte_aucune_ligne_hors_zone": "AVANT apply, capturer la plage de lignes du call matche: [call.getStartLineNumber(), call.getEndLineNumber()]. APRES, comparer avant/apres ligne a ligne et exiger que TOUT index de ligne divergent tombe dans cette plage (bornes d'origine, elargies uniquement des lignes inserees). Doubler d'une assertion de symptome, lisible et non-brittle: le nombre d'occurrences de `function (` est inchange ET `function(` n'apparait nulle part dans le fichier resultat. La 1ere assertion est la propriete generale (blast radius), la 2e nomme le symptome exact de US-6 pour qu'une regression soit auto-explicative.",
+              "hors_scope_du_test": "ne pas faire dependre le test du binaire `standard` (dependance reseau/dev absente du repo). Le lien 'aucune ligne hors zone => linter du repo cible content' est etabli par la mesure du cadrage et par le rejeu manuel, pas par le CI."
+            },
+            "D5_AC4_cas_de_test_style_non_defaut": {
+              "decision": "PAS de nouvelle fixture sous fixtures/. Le cas vit en memoire/tmpdir dans tests/fixer-format-scope.test.ts.",
+              "pourquoi_la": [
+                "fixtures/ est reserve aux cibles en forme de REPO, consommees par le pipeline et le verifier (package.json, script test, mock). Ce cas n'a besoin ni de package.json, ni de npm test: c'est une propriete du fixer, verifiable sur un seul fichier.",
+                "fixtures/acme-payments est la fixture de reference de npm run demo et ne doit pas bouger -- et n'a pas a bouger: sa sortie est identique avant/apres (mesure).",
+                "ajouter un repertoire fixtures/ cree une 2e 'cible de reference' que chaque US future devra garder verte, pour un gain nul ici.",
+                "evite toute proximite avec fixtures/pinned-legacy-stripe/ ajoute par US-7."
+              ],
+              "style_delibere": "espace avant les parentheses de fonction (`function (cb)`, `module.exports = function (app)`) -- le style de `standard`, l'inverse du defaut TypeScript (insertSpaceAfterFunctionKeywordForAnonymousFunctions vaut false par defaut). C'est precisement le style qui a fait basculer US-6 en draft. Ajouter au moins un 2e marqueur de style hors zone (ex. `.catch(() => {})`, le symptome observe sur agnaistic/agnai) pour ne pas tester un seul caractere.",
+              "les_deux_codemods": "couvrir le tier 1 avec les DEUX codemods du registre (charges->paymentIntents ET subscription current_period->items), parce que le second passe par replaceWithText sur le noeud matche: c'est lui qui exerce la garde wasForgotten() / le fallback ancetre."
+            },
+            "D6_effet_sur_les_deux_tiers": {
+              "fait_verifie_2026_09_03": "NON, les deux tiers ne partagent PAS formatText(). `grep -rn formatText src/` ne remonte qu'UNE occurrence dans tout le code: src/fixer/index.ts:35, dans la branche tier 1 (codemod deterministe). Le tier 2 IA n'utilise pas ts-morph pour ecrire: src/fixer/agent.ts:106 fait fs.writeFileSync(abs, String(input.content)) -- l'agent ecrit le texte integral du fichier, tel qu'il l'a redige. src/pipeline.ts ne formate rien apres applyFix().",
+              "consequence": "le bug de US-6 est un bug du TIER 1 UNIQUEMENT, et le correctif est un correctif du tier 1 uniquement. Le tier 2 n'a deja aucun formateur.",
+              "interdiction": "ne PAS 'harmoniser' en ajoutant un formatage au tier 2. Le blast radius du tier 2 est deja borne par une autre mecanique (l'ensemble editableFiles, src/fixer/index.ts:49 -> agent.ts:63/105) et cette mecanique ne se touche pas dans cette US. Le tier 2 a son propre risque de blast radius (l'agent reecrit tout le fichier et peut deriver hors zone): il est reel, il est HORS SCOPE ici, et il merite une US separee s'il est un jour constate sur un repo reel -- pas de correctif speculatif."
+            },
+            "D7_AC3_inventaire_regressions": {
+              "fait_verifie": "AUCUN test existant n'assert le formatage produit par applyFix(). Inventaire complet du repertoire tests/ (2026-09-03):",
+              "detail": [
+                "tests/stripe-charges-to-intents.test.ts (helper runCodemod, lignes 76-83) et tests/stripe-subscription-current-period-to-items.test.ts (helper migrate, lignes 28-33): appellent codemod.find()+codemod.apply() EN DIRECT et lisent getFullText(). Ils ne passent JAMAIS par applyFix(), donc jamais par formatText(). Insensibles a ce changement.",
+                "tests/pipeline.test.ts: assertions comportementales (applied, matches.length, verify.passed, draft, existence de l'artefact PR). Aucune assertion textuelle sur le source migre.",
+                "tests/ai-fixer.test.ts: chemin tier 2, ne passe pas par formatText().",
+                "tests/node-modules-link.test.ts:73: assert que le patch ne mentionne pas node_modules. Insensible.",
+                "tests/pr.test.ts: assert des resumes de sortie de test, pas du source.",
+                "tests/matcher*.test.ts, tests/detection*.test.ts, tests/config.test.ts: hors chemin fixer."
+              ],
+              "verdict": "la liste des tests 'mis a jour consciemment' est VIDE, et c'est un resultat, pas un oubli. Corollaire opposable au dev: si un test existant devient rouge, ce n'est PAS un snapshot a reajuster, c'est une vraie regression a comprendre. Renforce par la mesure: sortie octet-pour-octet identique sur fixtures/acme-payments (les 2 fichiers)."
+            },
+            "hors_scope_explicite": [
+              "aucun formateur maison ni integration de prettier / dprint / eslint --fix",
+              "aucune lecture ni execution du linter du repo cible (pas de detection de .eslintrc/standard, pas de npx standard --fix dans le pipeline)",
+              "aucune tentative de deduire le style du repo cible pour en deriver des FormatCodeSettings",
+              "aucun changement du contrat Codemod (find/apply) ni du modele Change",
+              "aucun changement du tier 2 IA ni de ses guardrails",
+              "pas de regeneration des artefacts docs/proof/**",
+              "pas de detection, pas d'UI, pas de multi-vendor, pas de multi-langage"
+            ],
+            "definition_of_done_specifique": [
+              "AC5: npx tsc --noEmit + npm test verts (gate scripts/dod.sh)",
+              "src/fixer/index.ts ne contient plus aucun appel a SourceFile#formatText() (grep -n 'sf.formatText\\|sourceFile.formatText' src/ vide)",
+              "rapport de dev sur le board portant le rejeu studynotes.org au SHA epingle: patch obtenu + verdict draft, sans ecrire dans docs/proof/"
+            ],
+            "risques_identifies": [
+              "Noeud oublie apres apply() -> couvert par la garde wasForgotten() + fallback ancetre Statement. Interdiction de fallback fichier-entier.",
+              "Formatage a la plage qui reformate quand meme l'INTERIEUR de la zone editee si celle-ci contient du style non-defaut: c'est acceptable et c'est la definition d'AC2 (la zone editee est le blast radius legitime). A ne pas confondre avec une regression.",
+              "Le call matche peut etre imbrique tres profond: la plage formatee reste celle du CallExpression, pas de son conteneur. Verifie sur le cas studynotes (le call est un ExpressionStatement dans un callback, la plage reste 6 lignes)."
+            ]
+          }
+        }
+      },
+      "note": "DoR US-8: formatage a la plage AST (Node#formatText), tier 1 uniquement"
+    },
+    {
+      "ts": "2026-09-03T21:21:33.872Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:21:43.275Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:21:50.011Z",
+      "type": "move",
+      "actor": "architecte",
+      "us": "US-8",
+      "note": "ready"
+    },
+    {
+      "ts": "2026-09-03T21:21:59.375Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:22:00.947Z",
+      "type": "human_review_requested",
+      "actor": "architecte",
+      "target": "humain",
+      "us": "US-8",
+      "note": "Revue archi async (lavish-axi absent du PATH, ouvrir architecture/architecture.html via un serveur statique). 1 question ouverte, NON bloquante pour le dev: docs/proof/US-6/feross-studynotes.org/README.md affirme que ts-morph n'expose pas le formatage a la plage — c'est faux (Node#formatText, ts-morph 24.0.0). Les artefacts de preuve sont geles par convention: soit on les laisse tels quels (preuve datee, erreur d'analyse incluse), soit l'humain autorise un erratum date en fin de README. Defaut retenu si pas de reponse: on ne touche pas a docs/proof/, la correction du fait vit dans architecture.json et la DoR d'US-8."
+    },
+    {
+      "ts": "2026-09-03T21:22:26.104Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:22:33.058Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:22:54.171Z",
+      "type": "report",
+      "actor": "qa",
+      "us": "US-7",
+      "payload": {
+        "us": "US-7",
+        "agent": "qa",
+        "status": "done",
+        "pr": "10",
+        "tests": {
+          "passed": 118,
+          "failed": 0
+        },
+        "obstacle": "AC1-AC6 tous PASS, re-executes. DoD exit 0 (tsc clean, 118/118). Fail-safe verifie sur fixtures/pinned-legacy-stripe: zero artefact, fixture intacte (sha256), aucune branche. Non-refus generalise verifie: pinned equal/newer/no-pin/env-pin appliquent tous. AC4: corps des 2 patches acme byte-identiques a main; PR.md charges byte-identique; +1 ligne sur PR.md subscription (delta sanctionne par la DoR D5). 11 mutations QA independantes: 11 tuees, source restauree par checksum. Reserves NON bloquantes: (1) src/runner.ts ignore r.skipped -> un change bloque reste invisible sur le chemin Enterprise (D4 sens_2 non couvert hors CLI); (2) architecture.json non mis a jour: matcher depends_on [] alors que src/matcher/api-version.ts importe src/changes/api-version.ts (a synchroniser par l architecte); (3) commentaire de fixture referencant test/renewal.test.js inexistant."
+      }
+    },
+    {
+      "ts": "2026-09-03T21:22:56.786Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:23:19.034Z",
+      "type": "move",
+      "actor": "dev#5",
+      "us": "US-8",
+      "note": "ready>in_progress"
+    },
+    {
+      "ts": "2026-09-03T21:23:19.097Z",
+      "type": "delegate",
+      "actor": "orchestrateur",
+      "target": "dev#5",
+      "us": "US-8",
+      "payload": {
+        "goal": "Blast radius only sur le formatage: le fix ne doit reformater QUE la plage AST reellement editee",
+        "decision_architecte": "option (a) formatage par match: remplacer la boucle sf.formatText() de src/fixer/index.ts (l.31-37) par match.node.formatText({indentSize:2,convertTabsToSpaces:true}). ts-morph 24 EXPOSE bien le formatage a la plage (Node#formatText delegue a getFormattingEditsForRange) - le README de preuve US-6 affirme le contraire et il a tort",
+        "mesure_prototype": {
+          "fichier_entier": "standard exit 1, 6 erreurs (bug US-6 reproduit)",
+          "plage_ast": "standard exit 0",
+          "aucun_formatage": "standard exit 1, 2 erreurs indent"
+        },
+        "non_regression_mesuree": "sur fixtures/acme-payments (checkout.js, billing.js) sortie octet pour octet identique entre fichier-entier et plage-AST: npm run demo et tests/pipeline.test.ts ne peuvent pas bouger",
+        "garde_obligatoire": "wasForgotten() avant formatText(); fallback = plus proche ancetre Statement CAPTURE AVANT apply(). INTERDICTION de fallback fichier-entier (ce serait le bug US-6 sur un chemin non teste)",
+        "perimetre": {
+          "modifier": [
+            "src/fixer/index.ts (bloc de formatage seul)"
+          ],
+          "creer": [
+            "tests/fixer-format-scope.test.ts"
+          ],
+          "ne_pas_toucher": [
+            "docs/proof/** (preuves gelees, le patch US-6 doit continuer a montrer le bug)",
+            "src/verifier/**",
+            "src/fixer/agent.ts et ses guardrails",
+            "fixtures/acme-payments/**",
+            "src/changes/**",
+            "tout fichier de US-7 en review"
+          ]
+        },
+        "branche": "sur main: aucun fichier src/fixer/** dans le diff de feature/US-7-api-version-gating, zero collision",
+        "ac3": "AUCUN test existant nassert le formatage dapplyFix (les 2 tests de codemod appellent find+apply en direct sans passer par formatText). Liste des tests a ajuster = VIDE, donc un test rouge = vraie regression",
+        "ac4": "PAS de nouvelle fixture: cas en tmpdir dans le test (pattern tests/pipeline.test.ts:31). Style delibere: function (cb) + .catch(() => {}). Couvrir les DEUX codemods (le second exerce la garde wasForgotten)",
+        "tiers_ia": "les 2 tiers NE partagent PAS formatText (une seule occurrence, src/fixer/index.ts:35, tier 1). Le tier 2 ecrit via fs.writeFileSync et son blast radius est borne par editableFiles. INTERDIT dharmoniser en ajoutant un formatage au tier 2",
+        "dod": "npx tsc --noEmit + npm test verts (scripts/dod.sh)"
+      }
+    },
+    {
+      "ts": "2026-09-03T21:23:26.513Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:23:48.959Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:24:01.977Z",
+      "type": "decision",
+      "actor": "orchestrateur",
+      "us": "US-8",
+      "note": "Question ouverte de larchitecte tranchee par defaut, non bloquante: le README de preuve US-6 (docs/proof/US-6/feross-studynotes.org/) contient une affirmation FAUSSE (ts-morph nexposerait pas le formatage a la plage; il lexpose via Node#formatText -> getFormattingEditsForRange). docs/proof/** reste GELE et non corrige: cest une preuve datee, la reecrire detruirait sa valeur. Lerratum vit dans la DoR US-8 et dans la memoire architecte. A soumettre a lhumain a la porte de demo, pas avant. lavish-axi absent du PATH: les portes humaines passent par le board + la PR laissee ouverte, comme pour US-1 a US-6."
+    },
+    {
+      "ts": "2026-09-03T21:24:52.627Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:24:52.849Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:26:09.423Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:27:55.864Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:29:46.661Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:30:45.840Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:32:31.643Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:33:19.925Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:33:40.722Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:34:04.437Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:34:11.471Z",
+      "type": "report",
+      "actor": "dev#5",
+      "us": "US-8",
+      "payload": {
+        "pr": "https://github.com/apidrift/apidrift/pull/11",
+        "branche": "feature/US-8-format-blast-radius",
+        "dod": {
+          "tsc": "clean",
+          "npm_test": "79/79",
+          "dod_sh": "exit 0"
+        },
+        "fichiers": [
+          "src/fixer/index.ts (formatage par match via Node#formatText, garde wasForgotten + fallback ancetre Statement capture avant apply(), aucun fallback fichier-entier)",
+          "tests/fixer-format-scope.test.ts (2 tests, les 2 codemods, style delibere function (x) + .catch(() => {}), assertion de plage avant/apres + assertion de symptome)"
+        ],
+        "studynotes_replay": {
+          "sha": "7556fd62512213dc227d00674ed146a57a792be5",
+          "hors_docs_proof": true,
+          "resultat": "patch ne touche plus que routes/order.js:19 (call migre + cles ajoutees); standard (1er step de npm test) passe -> non-draft, alors que US-6 etait draft"
+        },
+        "non_regression": "fixtures/acme-payments: patch bodies octet pour octet identiques (diff uniquement hash de commit/date); npm run demo et tests/pipeline.test.ts inchanges",
+        "ac3": "aucun test existant passe au rouge, liste des tests a ajuster vide comme predit par la DoR",
+        "ecarts_dor": "aucun sur le code",
+        "incident_process": "le dev a ecrit le board DANS son worktree (board/*.json forkes de 05b61e4, sans les events US-7 ni la DoR US-8) et les a committes sur la branche; merger la PR aurait silencieusement fait reculer le board. Commit 67331ef revert ces fichiers sur la branche, letat est rejournalise ici."
+      }
+    },
+    {
+      "ts": "2026-09-03T21:34:11.516Z",
+      "type": "move",
+      "actor": "qa",
+      "us": "US-8",
+      "note": "in_progress>review"
+    },
+    {
+      "ts": "2026-09-03T21:34:18.926Z",
+      "type": "gate",
+      "actor": "orchestrateur",
+      "us": "US-8",
+      "note": "INCIDENT PROCESS corrige. dev#5 a exécute board.mjs depuis son worktree isole: board/board.json et board/backlog.json y etaient forkes du commit 05b61e4, donc SANS les events US-7 ni la DoR US-8 posee par larchitecte (elle est non committee sur le checkout principal). Le commit b26635a les embarquait dans la PR #11: la merger aurait fait RECULER le board en silence. Correction: revert 67331ef pousse sur la branche (PR #11 redevient code-only: src/fixer/index.ts + tests/fixer-format-scope.test.ts), rapport dev#5 et move>review rejournalises sur le checkout principal. Regle a capitaliser en retro: le board sécrit toujours depuis le checkout principal, jamais depuis un worktree de feature. Meme classe de cause racine que le referentiel divergent de US-3 (2026-09-01)."
+    },
+    {
+      "ts": "2026-09-03T21:34:27.595Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:34:29.951Z",
+      "type": "delegate",
+      "actor": "orchestrateur",
+      "target": "qa",
+      "us": "US-8",
+      "payload": {
+        "goal": "Revue de code + acceptation US-8 sur PR #11 (branche feature/US-8-format-blast-radius, apres revert 67331ef qui la rend code-only), face aux 5 AC et a la DoR de larchitecte",
+        "points_de_controle": [
+          "AC1 formatage a la plage AST implemente (Node#formatText par match), pas de sf.formatText() fichier-entier residuel",
+          "AC2 preuve sur le cas studynotes.org: aucune ligne modifiee hors de la zone editee",
+          "AC3 aucun test existant casse ni ajuste (la DoR predit une liste VIDE: un rouge = vraie regression)",
+          "AC4 test dedie avec style delibere non-defaut preserve sur les lignes non touchees",
+          "AC5 tsc + npm test verts"
+        ],
+        "vigilance": [
+          "INTERDICTION de fallback fichier-entier: verifier que le fallback est bien le plus proche ancetre Statement CAPTURE AVANT apply(), et que wasForgotten() est teste (codemod subscription)",
+          "le tier 2 IA ne doit PAS avoir recu de formatage (src/fixer/agent.ts intact, une seule occurrence de formatText dans le repo)",
+          "docs/proof/** intact et NON regenere (le fix.patch US-6 doit continuer a montrer le bug)",
+          "fixtures/acme-payments/** intacte, sortie de npm run demo inchangee",
+          "board/*.json ne doivent PLUS apparaitre dans le diff de la branche"
+        ],
+        "livrable": "verdict accepte|renvoye + ecarts + note de demo pour la porte humaine"
+      }
+    },
+    {
+      "ts": "2026-09-03T21:34:49.518Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:35:38.071Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:35:45.566Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:36:31.216Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:37:19.885Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:37:24.872Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:38:06.765Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:38:11.136Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:38:43.438Z",
+      "type": "report"
+    },
+    {
+      "ts": "2026-09-03T21:38:54.720Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:38:58.580Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:39:38.411Z",
+      "type": "report",
+      "actor": "qa",
+      "us": "US-8",
+      "payload": {
+        "verdict": "accepte",
+        "pr": "https://github.com/apidrift/apidrift/pull/11",
+        "branche_verifiee": "origin/feature/US-8-format-blast-radius @ 67331ef",
+        "diff_perimetre": "src/fixer/index.ts + tests/fixer-format-scope.test.ts uniquement (confirme via git diff main...origin/feature/US-8-format-blast-radius --stat)",
+        "AC1_decision_D1a": "satisfait -- code lu ligne a ligne: Node#formatText() par match (src/fixer/index.ts), fallback = plus proche ancetre Statement capture AVANT apply() (map fait avant la boucle apply), garde wasForgotten() sur le match ET sur le fallback, aucun fallback fichier-entier. Correspond mot pour mot a la DoR architecte.",
+        "AC2_studynotes": "satisfait -- rejoue independamment par QA (pas seulement le rapport dev): clone frais feross/studynotes.org au SHA 7556fd62512213dc227d00674ed146a57a792be5, npm install, baseline npm test 9/9 vert. npx tsx src/cli.ts run <clone> --deterministic-only avec le fixer de la branche: patch = 8 lignes changees dans le seul bloc stripe.charges.create (vs 66 lignes / fichier entier dans docs/proof/US-6/feross-studynotes.org/fix.patch, gele et intact). git apply du nouveau patch puis npm test: standard 0 erreur (etait 6), tape 9/9, exit 0. Le .md genere dit All checks passed (non-draft), contre opened as a draft en US-6. Confirme l affirmation du dev. Aucune ecriture dans docs/proof/.",
+        "AC3_regressions": "satisfait -- git diff main...origin/feature/US-8-format-blast-radius -- tests/ ne contient QUE l ajout de tests/fixer-format-scope.test.ts, zero test existant modifie. Conforme a la prediction D7 de la DoR (liste vide).",
+        "AC4_style_non_defaut": "satisfait -- tests/fixer-format-scope.test.ts, 2 tests couvrant les 2 codemods du registre (charges vers paymentIntents et subscription current_period vers items, ce dernier exerce reellement wasForgotten() via replaceWithText), style function (x) et .catch(() => {}) preserve hors zone, assertion de plage (assertEditsWithinRanges) plus assertion de symptome (function( absent). npm test: ok 29 et ok 30.",
+        "AC5_dod": "satisfait -- rejoue par QA, pas seulement rapporte par dev: npx tsc --noEmit exit 0, npm test 79/79 (0 fail), bash scripts/dod.sh exit 0, sur origin/feature/US-8-format-blast-radius @ 67331ef.",
+        "points_chauds": {
+          "grep_formatText": "grep -rn formatText src/ -> une seule occurrence, src/fixer/index.ts:53 (tier 1). Aucun sf.formatText ou sourceFile.formatText residuel.",
+          "agent_ts_intact": "src/fixer/agent.ts non modifie par le diff de la branche; guardrails lus et intacts (editableFiles ligne 63, refus TEST_RE ligne 104, fs.writeFileSync ligne 106).",
+          "docs_proof_intact": "git diff main -- docs/proof (sur la branche) = vide. fix.patch US-6 relu: montre toujours le bug (66 lignes, function (x) devient function(x) hors zone).",
+          "fixtures_acme_intact_et_sortie_verifiee": "git diff main -- fixtures/acme-payments (sur la branche) = vide. QA a rejoue npm run demo (via cli --deterministic-only) sur main ET sur la branche: les 2 .patch et les 2 .md generes sont identiques octet pour octet modulo hash de commit et date (diff filtre).",
+          "scope_creep": "aucun -- pas de formateur maison, pas d integration de linter cible, pas de multi-vendor ou multi-langage ou UI. D2, D6 et hors_scope_explicite de la DoR respectes."
+        },
+        "dod_sh": "exit 0 (rejoue par QA)",
+        "artefact_demo": "/tmp/claude-1000/-home-clemuscle-apidrift/ce078b85-5218-493b-a408-f60734939a21/scratchpad/demo/us8-demo.html (lavish-axi absent du PATH, meme situation que la revue archi -- artefact HTML statique prepare pour la porte humaine)",
+        "board_hygiene": "verifie: board/*.json absents du diff de la branche (confirme via git diff main...origin/feature/US-8-format-blast-radius --stat). Commande executee depuis le checkout principal /home/clemuscle/apidrift, pas depuis un worktree.",
+        "recommandation": "US-8 non deplacee vers done par QA -- porte humaine requise avant cloture, conformement au protocole."
+      }
+    },
+    {
+      "ts": "2026-09-03T21:39:40.821Z",
+      "type": "report"
+    },
+    {
+      "ts": "2026-09-03T21:39:43.228Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:39:46.841Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:40:04.040Z",
+      "type": "report",
+      "actor": "qa",
+      "us": "US-7",
+      "payload": {
+        "verdict": "accepte",
+        "pr": "https://github.com/apidrift/apidrift/pull/10",
+        "branche": "feature/US-7-api-version-gating",
+        "sha": "adf41ad",
+        "ac_verifies": {
+          "AC1": "satisfait - D1-D5 suivies a la lettre (matcher/api-version.ts resolveur AST 6 formes, changes/api-version.ts comparaison pure)",
+          "AC2": "satisfait - run reel sur fixtures/pinned-legacy-stripe: not applied, 2 sites listes, 0 PR, 0 artefact",
+          "AC3": "satisfait - ligne PR.md conditionnelle (sens 1) + bloc CLI amber pour skipped (sens 2), verifies en execution reelle",
+          "AC4": "satisfait - run reel acme-payments: 2 PR produites, patch change#2 inchange (0 apiVersion dans le diff), 0 ligne API version sur change#1",
+          "AC5": "satisfait - fixtures/pinned-legacy-stripe/ + e2e tests/api-version.test.ts reproduisent le cas agnai",
+          "AC6": "satisfait - tsc clean, npm test 118/118 rejoue x5 + dod.sh x3, tous verts"
+        },
+        "dod": "tsc --noEmit clean, npm test 118/118 (x5), scripts/dod.sh exit 0 (x3), tous rejoues independamment dans le worktree dev",
+        "ecarts_dor_arbitres": [
+          "skipped.pinnedVersions[] 4e champ additif optionnel: acceptable, requis par D1 (nommer TOUTES les versions), non cassant",
+          "tests/pr.test.ts non modifie: acceptable, le delta predit ne se materialise pas car la ligne est gatee sur change.apiVersion (verifie par execution reelle: 0 occurrence sur le change charges)",
+          "import src/matcher/api-version.ts vers changes/api-version.js: acceptable, module importe est pur (zero AST/IO), evite une divergence resolveur/comparateur, ne viole aucune frontiere de composant"
+        ],
+        "scope_guards": "verifies OK: src/fixer, src/verifier, docs/proof, fixtures/acme-payments non touches; aucune lecture .env ni node_modules/stripe/API_VERSION; aucune regex sur le source cible (DATE_HEAD s applique a un litteral extrait par AST, jamais au texte source); symbol.ts inchange en comportement (exports additifs seulement)",
+        "risques_residuels": [
+          "flakiness transitoire observee en isolant tests/api-version.test.ts seul (3 echecs sur 1 batch de 4 runs, donnees croisees entre tests) - non reproduite sur environ 29 runs suivants dont 8 via npm test/dod.sh (le vrai gate). Compatible avec contention environnementale (machine partagee, plusieurs agents actifs) plutot qu un bug deterministe du code revu. A surveiller: si ca recidive sur dod.sh, envisager test-concurrency=1 en CI",
+          "hors scope assume et documente par la DoR: node_modules/stripe/API_VERSION (pin implicite stripe-node>=v12) non lu - trou connu, disclosure explicite dans PR.md, US separee a ouvrir par le PO"
+        ],
+        "demo_artifact": ".lavish/us7-qa-report.html",
+        "note": "Revue complete du diff face a D1-D5, 6 AC verifies avec preuve d execution reelle (pas seulement les tests), DoD rejoue independamment. Verdict ACCEPTE, transmis a l orchestrateur pour la porte humaine - QA ne deplace pas l US en done."
+      }
+    },
+    {
+      "ts": "2026-09-03T21:40:18.782Z",
+      "type": "gate",
+      "actor": "orchestrateur",
+      "us": "US-8",
+      "note": "PORTE HUMAINE OUVERTE (demo/acceptation). QA accepte: 5/5 AC PASS, verifies independamment (clone frais de feross/studynotes.org au SHA 7556fd6, npm install, baseline 9/9, patch applique, standard 0 erreur contre 6 avant, tape 9/9, artefact non-draft). Blast radius: 8 lignes changees dans le seul bloc stripe.charges.create, contre 66 lignes / fichier entier dans docs/proof/US-6/feross-studynotes.org/fix.patch (relu, intact). Non-regression acme-payments: sortie npm run demo octet pour octet identique main vs branche. formatText: une seule occurrence dans src/ (fixer tier 1); src/fixer/agent.ts et ses guardrails intacts. DoD rejouee par QA: tsc exit 0, 79/79, dod.sh exit 0. CI verte node 20+22, PR #11 MERGEABLE/CLEAN, non-draft. ATTENTE DECISION HUMAINE: merge de la PR #11. Aucun auto-merge. Question secondaire a trancher au meme moment: le README de preuve US-6 contient une affirmation fausse (ts-morph nexposerait pas le formatage a la plage); defaut retenu = ne pas toucher docs/proof/, lerratum vit dans la DoR US-8 et la memoire architecte."
+    },
+    {
+      "ts": "2026-09-03T21:40:31.511Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-03T21:40:47.635Z",
+      "type": "gate",
+      "actor": "orchestrateur",
+      "us": "US-7",
+      "note": "PORTE HUMAINE OUVERTE (demo/acceptation). QA accepte: 6/6 AC satisfaits, verifies par execution reelle et pas seulement par les tests. Cas bloque rejoue (npx tsx src/cli.ts run fixtures/pinned-legacy-stripe --deterministic-only): not applied, 2 sites listes, done 0 pull requests / 1 change not applied, dossier de sortie VIDE. Non-regression rejouee (fixtures/acme-payments): 2 PR produites, patch du change #2 inchange, 0 occurrence API version dans le PR.md du change #1, ligne de divulgation presente uniquement sur le change #2. D1-D5 de la DoR tenues a la lettre. Interdits verifies vides: src/fixer/, src/verifier/, docs/proof/, fixtures/acme-payments/. Aucune regex sur le source cible. DoD rejouee: tsc clean, 118/118 sur 5 executions, dod.sh exit 0 sur 3. CI verte node 20+22, PR #10 MERGEABLE/CLEAN. 3 ecarts DoR de dev#4 arbitres ACCEPTABLES par la QA (pinnedVersions[] additif requis par D1; tests/pr.test.ts non modifie car le delta predit ne se materialise pas, verifie par execution; import matcher->changes pur, aucune frontiere violee). ATTENTE DECISION HUMAINE: merge de la PR #10. Aucun auto-merge."
+    },
+    {
+      "ts": "2026-09-03T21:40:53.001Z",
+      "type": "risk",
+      "actor": "qa",
+      "us": "US-7",
+      "note": "RISQUE RESIDUEL non bloquant, N=1, a surveiller. En isolant npx tsx --test tests/api-version.test.ts, un batch de 4 executions a montre 3 echecs intermittents avec des donnees croisees entre tests. Non reproduit sur ~29 executions suivantes, y compris sous charge CPU artificielle et via npm test / dod.sh (le vrai gate, x8) toutes vertes. Hypothese: contention environnementale (plusieurs agents actifs sur la machine partagee), pas un bug deterministe du code revu. Action SI recidive sur dod.sh: --test-concurrency=1 en CI. Pas dUS ouverte a ce stade: preuve insuffisante."
     }
   ]
 }
