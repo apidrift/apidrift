@@ -1,4 +1,5 @@
 import path from 'node:path';
+import type { PinnedApiVersion } from './matcher/api-version.js';
 import type { Change, Match, VerifyResult } from './types.js';
 
 /**
@@ -63,6 +64,40 @@ export function summarizeVerification(verify: Pick<VerifyResult, 'passed' | 'out
   return '(all checks passed — command exited 0; no recognized test-summary line found in its output)';
 }
 
+/**
+ * The one line the PR body says about API versions (US-7), or `null` for none.
+ *
+ * Emitted ONLY when the change is gated on an API version AND we have a
+ * resolution to report. That is why the charges -> paymentIntents change — a
+ * product deprecation with no `apiVersion` — gains nothing: the most visible
+ * path of the product stays byte-identical.
+ *
+ * Kept to one line inside the existing "What changed upstream" section, on
+ * purpose: no banner, no alert emoji, no new section. This is a disclosure
+ * that closes a known blind spot, not an incident. A warning that fires on
+ * every PR is a warning nobody reads.
+ *
+ * The blind spot itself, stated rather than assumed known: since stripe-node
+ * v12 a client built with NO `apiVersion` is still pinned — implicitly, to
+ * whatever API version was current when that SDK release shipped. So "we found
+ * no pin" is not "you are on the latest version", and we say so.
+ */
+function apiVersionNote(change: Change, pinned: PinnedApiVersion | undefined): string | null {
+  if (!change.apiVersion || !pinned) return null;
+
+  if (pinned.status === 'pinned') {
+    const list = pinned.versions.map((v) => `\`${v.version}\``).join(', ');
+    return `this repo pins ${list} — at or after this change, so the fix applies.`;
+  }
+  if (pinned.reason === 'non-literal') {
+    return 'this repo sets `apiVersion` from a value APIdrift cannot read statically '
+      + `(an env var, a variable or a spread) — confirm it is \`${change.apiVersion}\` or later.`;
+  }
+  return 'no pinned `apiVersion` found in this repo. Note that stripe-node v12+ pins '
+    + 'IMPLICITLY to the API version current at its own release, so "no pin in the code" '
+    + 'is not "latest" — check yours.';
+}
+
 /** Builds the PR/MR description in APIdrift's house format. */
 export function buildPrBody(args: {
   change: Change;
@@ -71,6 +106,12 @@ export function buildPrBody(args: {
   verify: VerifyResult;
   workspaceDir: string;
   draft: boolean;
+  /**
+   * What the pinned-version guard resolved. OPTIONAL: absent (the pre-US-7
+   * call shape, and every non-version-gated change) means no API-version line
+   * at all.
+   */
+  pinnedApiVersion?: PinnedApiVersion;
 }): { title: string; body: string } {
   const { change, matches, diff, verify, workspaceDir, draft } = args;
 
@@ -81,6 +122,9 @@ export function buildPrBody(args: {
 
   const title = `${draft ? '[draft] ' : ''}${change.title}`;
 
+  const note = apiVersionNote(change, args.pinnedApiVersion);
+  const apiVersionLine = note === null ? '' : `\n- **API version:** takes effect from \`${change.apiVersion}\` — ${note}`;
+
   const body = `# ${change.title}
 
 ${status}
@@ -89,7 +133,7 @@ ${status}
 - **Vendor:** ${change.vendor}
 - **Type:** ${change.kind} (confidence: ${change.confidence})
 - **What:** \`${change.target.symbol}\` — ${change.migration.detail}
-- **Changelog:** ${change.references[0] ?? 'n/a'}
+- **Changelog:** ${change.references[0] ?? 'n/a'}${apiVersionLine}
 
 ## What this PR does
 Updated ${matches.length} usage${matches.length === 1 ? '' : 's'} across ${files.length} file${files.length === 1 ? '' : 's'}:
