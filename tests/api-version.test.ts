@@ -18,7 +18,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { apiVersionDate, isPinnedBefore, oldestApiVersion } from '../src/changes/api-version.js';
-import { resolvePinnedApiVersion } from '../src/matcher/api-version.js';
+import { resolveAstClientOption } from '../src/matcher/api-version.js';
 import { loadProject } from '../src/matcher/index.js';
 import { buildPrBody } from '../src/pr.js';
 import { run } from '../src/pipeline.js';
@@ -41,10 +41,15 @@ function makeRepo(files: Record<string, string>): string {
   return repo;
 }
 
+// US-9 (AC1) repointed this helper from `resolvePinnedApiVersion` onto the
+// function extracted out of it, `resolveAstClientOption`. Every assertion below
+// is untouched: these tests are about reading the pin a human WROTE, and that
+// logic did not change. What changed is that `resolvePinnedApiVersion` now also
+// consults the installed SDK — covered in tests/installed-sdk.test.ts.
 function resolveIn(files: Record<string, string>) {
   const repo = makeRepo(files);
   try {
-    return resolvePinnedApiVersion(loadProject(repo), 'stripe');
+    return resolveAstClientOption(loadProject(repo), 'stripe');
   } finally {
     fs.rmSync(repo, { recursive: true, force: true });
   }

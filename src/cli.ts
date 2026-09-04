@@ -8,6 +8,7 @@ import { resolveInference, describePolicy, type CliFlags } from './config.js';
 import { codemods as defaultCodemods } from './changes/index.js';
 import { detectChanges, type Fetcher } from './detection/index.js';
 import { genericSymbolCodemod } from './matcher/symbol.js';
+import { apiVersionNote } from './pr.js';
 import type { Change, Codemod } from './types.js';
 
 const c = {
@@ -155,16 +156,26 @@ async function main() {
       if (r.skipped?.reason === 'pinned-api-version') {
         blocked += 1;
         const s = r.skipped;
+        // US-9: name the SOURCE of the pin. "You wrote this" and "the package
+        // you installed imposes this" have different remedies, and in the
+        // implicit case the blocking version appears nowhere in the user's own
+        // code — printing it without saying where it came from reads as noise.
+        const fromSdk = s.source === 'installed-sdk-default';
         console.log(`${c.amber}●${c.reset} ${c.bold}${r.change.title}${c.reset}`);
-        console.log(`  ${c.amber}not applied — this repo pins an older Stripe API version${c.reset}`);
+        console.log(`  ${c.amber}not applied — ${fromSdk
+          ? `the installed ${r.change.vendor} SDK (v${s.sdkVersion}) pins an older Stripe API version`
+          : 'this repo pins an older Stripe API version'}${c.reset}`);
         console.log(`  ${c.dim}change takes effect from:${c.reset} ${s.changeApiVersion}`);
         for (const p of s.pinnedVersions) {
-          console.log(`  ${c.dim}this repo pins:${c.reset} ${p.version}  ${c.dim}(${p.filePath}:${p.line})${c.reset}`);
+          const label = fromSdk ? 'the installed SDK pins IMPLICITLY:' : 'this repo pins:';
+          console.log(`  ${c.dim}${label}${c.reset} ${p.version}  ${c.dim}(${p.filePath}:${p.line})${c.reset}`);
         }
         console.log(`  ${c.dim}${r.matches.length} site${r.matches.length === 1 ? '' : 's'} found and left UNCHANGED:${c.reset}`);
         for (const m of r.matches) console.log(`    ${c.dim}${m.filePath}:${m.line}  ${m.snippet}${c.reset}`);
-        console.log(`  ${c.dim}applying it would migrate code that is correct on ${s.pinnedVersion}. Upgrade your`);
-        console.log(`  pinned API version first, then re-run apidrift.${c.reset}`);
+        console.log(`  ${c.dim}applying it would migrate code that is correct on ${s.pinnedVersion}. ${fromSdk
+          ? `Upgrade the ${r.change.vendor} package (or set a newer apiVersion on your client)`
+          : 'Upgrade your pinned API version'}`);
+        console.log(`  first, then re-run apidrift.${c.reset}`);
         console.log('');
         continue;
       }
@@ -179,6 +190,13 @@ async function main() {
     console.log(`${dot} ${c.bold}${r.change.title}${c.reset}`);
     console.log(`  ${c.dim}vendor:${c.reset} ${r.change.vendor}  ${c.dim}confidence:${c.reset} ${r.change.confidence}  ${c.dim}via:${c.reset} ${r.method}`);
     console.log(`  ${c.dim}branch:${c.reset} ${c.blue}${r.branch}${c.reset}`);
+    // US-9, AC7: applying is not the end of the story. When we could NOT check
+    // the API version this repo really runs on (uninstalled clone, unreadable
+    // package), the terminal must say so — silence here reads as "checked, all
+    // good", which is the one thing we must never imply about something we did
+    // not look at. Same sentence as the PR body, so the two never diverge.
+    const note = apiVersionNote(r.change, r.pinnedApiVersion);
+    if (note) console.log(`  ${c.dim}api version: takes effect from ${r.change.apiVersion} — ${note.replace(/`/g, '')}${c.reset}`);
     for (const m of r.matches) console.log(`    ${c.dim}${m.filePath}:${m.line}  ${m.snippet}${c.reset}`);
     console.log(`  ${verdict}`);
     console.log(`  ${c.dim}PR:${c.reset} ${r.prPath}`);

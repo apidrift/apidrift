@@ -114,9 +114,15 @@ async function runCodemod(
   // Only changes that carry an `apiVersion` are gated (see src/types.ts): a
   // product deprecation like charges -> paymentIntents is not tied to an API
   // version, so it never pays for this at all.
+  //
+  // US-9: the resolution root is the WORKSPACE, not the target directory.
+  // linkNodeModules() above has already symlinked the target's node_modules in
+  // (and in-place mode makes the two the same directory anyway), so there is
+  // one root and no branch — and the reported path relativizes to
+  // `node_modules/stripe/cjs/apiVersion.js` with no absolute leak.
   let pinned: PinnedApiVersion | undefined;
   if (codemod.change.apiVersion) {
-    pinned = resolvePinnedApiVersion(project, codemod.change.vendor);
+    pinned = resolvePinnedApiVersion(project, codemod.change.vendor, workspace);
     if (pinned.status === 'pinned') {
       const oldest = oldestApiVersion(pinned.versions.map((v) => v.version));
       if (oldest && isPinnedBefore(oldest, codemod.change.apiVersion)) {
@@ -128,6 +134,8 @@ async function runCodemod(
             ...v,
             filePath: path.relative(workspace, v.filePath),
           })),
+          source: pinned.source,
+          ...(pinned.source === 'installed-sdk-default' ? { sdkVersion: pinned.sdkVersion } : {}),
         };
         // Relativize the matches too — without this, throwaway
         // `/tmp/apidrift-xxxx` paths leak into the report and the CLI output.
@@ -135,7 +143,7 @@ async function runCodemod(
         cleanup();
         // verify: null — nothing was edited, so running the suite would be
         // pure cost for an answer we already have.
-        return { ...empty, matches: displayMatches, applied: false, skipped };
+        return { ...empty, matches: displayMatches, applied: false, skipped, pinnedApiVersion: pinned };
       }
     }
   }
@@ -144,7 +152,7 @@ async function runCodemod(
   // it cleanly rather than failing the whole run.
   if (typeof codemod.apply !== 'function' && !opts.llm) {
     cleanup();
-    return { ...empty, applied: false };
+    return { ...empty, applied: false, pinnedApiVersion: pinned };
   }
 
   host.createBranch(branch);
@@ -157,7 +165,7 @@ async function runCodemod(
   // there is nothing to commit or open.
   if (diff.trim() === '') {
     cleanup();
-    return { ...empty, applied: false };
+    return { ...empty, applied: false, pinnedApiVersion: pinned };
   }
 
   host.commitAll(codemod.change.title);
@@ -181,6 +189,9 @@ async function runCodemod(
     patchPath: opts.mode === 'workspace'
       ? path.join(opts.outputDir, `${branch.replace(/\//g, '-')}.patch`) : null,
     draft, method: outcome.method,
+    // Applied, but the reader still needs to know what we could — or could not
+    // — establish about their API version (US-9, AC7).
+    pinnedApiVersion: pinned,
   };
 }
 
