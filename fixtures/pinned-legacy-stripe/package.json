@@ -1,0 +1,9 @@
+{
+  "name": "pinned-legacy-stripe",
+  "version": "1.0.0",
+  "description": "Sample target repo pinned to a pre-Basil Stripe API version — the agnaistic/agnai shape from the US-6 proof. Its subscription-level current_period_* reads are CORRECT on 2023-08-16 and must not be migrated.",
+  "type": "commonjs",
+  "scripts": {
+    "test": "node --test"
+  }
+}

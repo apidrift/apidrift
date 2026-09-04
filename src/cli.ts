@@ -142,10 +142,32 @@ async function main() {
   }
 
   const results = await run(targetDir, { outputDir, mode: 'workspace', llm, codemods });
-  let opened = 0, skipped = 0;
+  let opened = 0, skipped = 0, blocked = 0;
 
   for (const r of results) {
     if (!r.applied) {
+      // A change we matched and then deliberately did NOT apply has to be
+      // said out loud. Silence here reads as "done — 0 pull requests", i.e.
+      // "your code is clean", which is the exact opposite of the truth: we
+      // found call sites and left them alone on purpose. No artifact is
+      // written for this case either — a draft PR carrying a known-wrong fix
+      // would just invite someone to merge it.
+      if (r.skipped?.reason === 'pinned-api-version') {
+        blocked += 1;
+        const s = r.skipped;
+        console.log(`${c.amber}●${c.reset} ${c.bold}${r.change.title}${c.reset}`);
+        console.log(`  ${c.amber}not applied — this repo pins an older Stripe API version${c.reset}`);
+        console.log(`  ${c.dim}change takes effect from:${c.reset} ${s.changeApiVersion}`);
+        for (const p of s.pinnedVersions) {
+          console.log(`  ${c.dim}this repo pins:${c.reset} ${p.version}  ${c.dim}(${p.filePath}:${p.line})${c.reset}`);
+        }
+        console.log(`  ${c.dim}${r.matches.length} site${r.matches.length === 1 ? '' : 's'} found and left UNCHANGED:${c.reset}`);
+        for (const m of r.matches) console.log(`    ${c.dim}${m.filePath}:${m.line}  ${m.snippet}${c.reset}`);
+        console.log(`  ${c.dim}applying it would migrate code that is correct on ${s.pinnedVersion}. Upgrade your`);
+        console.log(`  pinned API version first, then re-run apidrift.${c.reset}`);
+        console.log('');
+        continue;
+      }
       const needsAi = !r.verify && r.matches.length === 0;
       if (!needsAi) skipped += 1;
       continue;
@@ -164,7 +186,10 @@ async function main() {
     console.log('');
   }
 
-  console.log(`${c.bold}done${c.reset} — ${opened} pull request${opened === 1 ? '' : 's'} in ${c.bold}${outputDir}${c.reset}`);
+  const blockedNote = blocked > 0
+    ? `, ${c.amber}${blocked} change${blocked === 1 ? '' : 's'} not applied (pinned API version)${c.reset}`
+    : '';
+  console.log(`${c.bold}done${c.reset} — ${opened} pull request${opened === 1 ? '' : 's'} in ${c.bold}${outputDir}${c.reset}${blockedNote}`);
   if (inference.policy === 'deterministic-only') {
     console.log(`${c.dim}tip: set ANTHROPIC_API_KEY and pass --ai to also fix changes without a codemod.${c.reset}`);
   }
