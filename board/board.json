@@ -4449,6 +4449,18 @@
       "type": "gate",
       "actor": "orchestrateur",
       "note": "lavish-axi introuvable sur cette machine (command -v vide): les portes humaines de cette session sont presentees en texte dans la reponse a lhumain, pas via un artefact lavish. Trois portes ouvertes simultanement: merge PR #10 (US-7), merge PR #11 (US-8), et revue de la DoR US-9 (12 AC, correction de la premisse du PO). Le cycle na plus rien de tirable tant quaucune nest franchie."
+    },
+    {
+      "ts": "2026-09-04T22:09:44.034Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-04T22:36:14.761Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
     }
   ]
 }
