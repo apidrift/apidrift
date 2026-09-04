@@ -595,7 +595,7 @@
         "AC11 - Zero reseau dans les tests : aucun npm install, aucun fetch, le stub est la seule source. Tests exiges : le cas bloquant e2e (stripe 13 installe + change 2025-03-31.basil -> skipped, pas de branche), au moins un cas par raison unresolved (pas de node_modules ; stripe v11 installe ; apiVersion.js absent), le cas majeur >= 12 avec version POSTERIEURE au change (applique), et la precedence explicite > implicite (les deux presents, l'explicite gagne).",
         "AC12 - npx tsc --noEmit et npm test verts (scripts/dod.sh). Interdits : lire un .env, toucher docs/proof/**, elargir resolveRootToVendor/isVendorConstructor (src/matcher/symbol.ts), ajouter node_modules au Project de la cible."
       ],
-      "status": "review",
+      "status": "done",
       "priority": 3,
       "component": "matcher",
       "epic": "EPIC-mvp-proof",
@@ -663,6 +663,51 @@
           "Depend du merge de la PR #10. Si US-7 bouge en revue humaine (renommage du type, des raisons), rejouer ce cadrage sur les noms - la substance (D1, D3) ne bouge pas."
         ]
       }
+    },
+    {
+      "id": "US-10",
+      "title": "Un vendor non supporte est annonce comme une lecture de SDK ratee",
+      "why": "src/matcher/installed-sdk.ts (~ligne 230) est generique dans sa forme mais refuse explicitement tout vendor autre que stripe, et repond dans ce cas la raison sdk-version-unreadable : le message produit affirme lechec de lecture dun paquet npm qui na jamais ete ouvert et cite un mecanisme (apiVersion.js / DEFAULT_API_VERSION) propre a stripe-node, pour un vendor qui nest pas stripe. La phrase est malhonnete. Le chemin est inatteignable aujourdhui (un seul change gated, un seul vendor), il cesse de letre au 2e vendor : a corriger AVANT.",
+      "acceptance_criteria": [
+        "AC1 - Un vendor non supporte produit une raison propre et distincte des trois raisons US-9 existantes (sdk-not-installed, sdk-predates-implicit-pin, sdk-version-unreadable) ; un test asserte cette raison pour un vendorModule autre que stripe.",
+        "AC2 - sdk-version-unreadable reste reservee au cas ou le vendor EST stripe et ou la lecture echoue reellement (paquet absent ou corrompu, forme inedite, litteral introuvable) : les tests US-9 couvrant ces cas restent verts sans quune seule assertion soit modifiee.",
+        "AC3 - Aucune sortie destinee a un humain (CLI et PR.md) pour un vendor non supporte naffirme la lecture dun paquet npm ni ne nomme apiVersion.js ou DEFAULT_API_VERSION : un test asserte labsence de ces termes dans la phrase produite.",
+        "AC4 - La phrase produite pour un vendor non supporte dit ce qui est vrai : le vendor nest pas couvert, donc on na pas regarde. Elle est differente des phrases des trois autres raisons.",
+        "AC5 - Invariant US-7/US-9 preserve : aucune sortie ne peut affirmer labsence de pin dans un cas ou on na pas pu regarder. Le test US-9 qui compte les phrases CLI reellement distinctes reste vert, ajuste au nombre de raisons effectivement supportees.",
+        "AC6 - Zero scope creep : aucun vendor autre que stripe ne devient supporte par cette US ; la resolution de la version dAPI implicite reste stripe-only.",
+        "AC7 - Non-regression : les 2 changes existants sur fixtures/acme-payments et la fixture fixtures/implicit-pinned-stripe se comportent a lidentique (memes branches, memes artefacts, meme skipped).",
+        "AC8 - npx tsc --noEmit et npm test verts (scripts/dod.sh)."
+      ],
+      "status": "backlog",
+      "priority": 2,
+      "component": "matcher",
+      "epic": "EPIC-mvp-proof",
+      "dependencies": [
+        "US-9"
+      ],
+      "assignee": "orchestrateur"
+    },
+    {
+      "id": "US-11",
+      "title": "Des chemins absolus fuient dans PipelineResult.pinnedApiVersion quand le change est applique",
+      "why": "Dans la branche applied de src/pipeline.ts (lignes ~179 et ~194), pinnedApiVersion est rendu tel quel, sans la relativisation appliquee ailleurs (matches, skipped.pinnedVersions) : des chemins absolus du workspace jetable (ex. /tmp/apidrift-xxxx) atterrissent dans le rapport. Sans consequence visible aujourdhui, mais cest une fuite de chemins locaux vers tout futur consommateur du rapport ou de la PR.",
+      "acceptance_criteria": [
+        "AC1 - Pour tout PipelineResult rendu par la pipeline, branche applied comprise, aucun chemin de fichier porte par pinnedApiVersion nest absolu : tous sont relatifs a la racine du workspace, comme le sont deja matches et skipped.pinnedVersions.",
+        "AC2 - Test dedie : run e2e en mode workspace (repertoire jetable) sur une fixture ou le change EST applique ET ou un pin est resolu ; assert quaucune chaine de pinnedApiVersion ne commence par un separateur absolu, ne contient le chemin du workspace, ni de segment ...",
+        "AC3 - Le meme test couvre la source installed-sdk-default : le chemin rendu est de la forme node_modules/stripe/<dir>/apiVersion.js.",
+        "AC4 - Aucun chemin absolu du workspace jetable dans PR.md ni dans la sortie CLI, dans la branche applied comme dans la branche skipped.",
+        "AC5 - La forme publique du type PinnedApiVersion est inchangee : les consommateurs (pipeline.ts, pr.ts) continuent de lire .versions sans branchement supplementaire.",
+        "AC6 - Non-regression : fixtures/acme-payments et fixtures/implicit-pinned-stripe produisent les memes artefacts quavant, aux chemins relativises pres.",
+        "AC7 - npx tsc --noEmit et npm test verts (scripts/dod.sh)."
+      ],
+      "status": "backlog",
+      "priority": 5,
+      "component": "pipeline",
+      "epic": "EPIC-mvp-proof",
+      "dependencies": [
+        "US-9"
+      ],
+      "assignee": "orchestrateur"
     }
   ]
 }

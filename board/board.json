@@ -4736,6 +4736,88 @@
       "actor": "orchestrateur",
       "us": "US-9",
       "note": "PORTE HUMAINE OUVERTE: acceptation de demo US-9 + merge PR #12. lavish-axi toujours ABSENT du PATH (3e confirmation), porte presentee en texte + artefact HTML /tmp/apidrift-us9-demo.html. US-9 reste en review jusqua decision humaine. En attente aussi: validation de la capitalisation retro (3 entrees)."
+    },
+    {
+      "ts": "2026-09-04T23:16:59.819Z",
+      "type": "move",
+      "actor": "orchestrateur",
+      "us": "US-9",
+      "note": "review>done"
+    },
+    {
+      "ts": "2026-09-04T23:16:59.873Z",
+      "type": "human_feedback",
+      "actor": "orchestrateur",
+      "us": "US-9",
+      "note": "PR #12 (US-9, detection du pin implicite stripe-node) squash-mergee sur main par l humain. main local et distant synchro. DoD rejouee post-merge: 157/157 tests verts, tsc --noEmit clean. Porte d acceptation de demo fermee: accepte."
+    },
+    {
+      "ts": "2026-09-04T23:17:30.123Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-04T23:18:35.501Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-04T23:18:52.804Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-04T23:19:48.312Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-04T23:20:43.483Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-04T23:21:16.506Z",
+      "type": "note",
+      "actor": "po",
+      "note": "US-10 (p2, matcher) et US-11 (p5, pipeline) ouvertes en backlog a partir du suivi non bloquant de la QA d US-9. Statut backlog volontaire: aucun cadrage architecte fait, l etape n est pas sautee."
+    },
+    {
+      "ts": "2026-09-04T23:21:16.558Z",
+      "type": "report",
+      "actor": "retro",
+      "us": "US-9",
+      "payload": {
+        "cycle": "US-7 / US-8 / US-9",
+        "fenetre": "events 296-469",
+        "apprentissages": 3,
+        "statut": "NON CAPITALISE - en attente de validation humaine explicite",
+        "titres": [
+          "1. Le board ne s ecrit jamais depuis un worktree de feature (2e occurrence, revert 67331ef)",
+          "2. Une prescription de conception qui nomme un artefact vendor doit etre verifiee sur l artefact reel avant d atteindre le dev (US-9: fichier API_VERSION inexistant, table SDK->API fausse 2/7)",
+          "3. L ecart de cadrage declare est un livrable, pas une faute (10 declares, 10 acceptes, aucun champ de rapport pour les porter)"
+        ],
+        "ecartes": [
+          "lavish-axi absent du PATH (fait d environnement, rien bloque)",
+          "artefact de demo sans emplacement conventionnel (candidat 4e slot)",
+          "3 portes humaines simultanees (action cote humain)",
+          "reports vides idx 124/391/395",
+          "flakiness api-version.test.ts N=1"
+        ],
+        "memoire": ".claude/agent-memory/retro/MEMORY.md toujours VIDE - les 3 propositions de la retro precedente (event 452) jamais validees ni ecrites"
+      }
+    },
+    {
+      "ts": "2026-09-04T23:21:16.607Z",
+      "type": "gate",
+      "actor": "orchestrateur",
+      "us": "US-9",
+      "note": "PORTE HUMAINE OUVERTE: validation des 3 apprentissages retro avant capitalisation en memoire projet. Rien ecrit en memoire, sur demande explicite de l humain. lavish-axi toujours absent du PATH (4e confirmation): les 3 apprentissages sont presentes en texte."
     }
   ]
 }
