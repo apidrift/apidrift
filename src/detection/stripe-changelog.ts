@@ -304,6 +304,11 @@ export function buildDetectedChanges(args: {
           `${indexUrl} (consulted ${indexFetchedAt})`,
         ],
         confidence: 'low',
+        // The release heading this row was found under IS the API version the
+        // change takes effect from — already parsed, verbatim. This is the
+        // path that needs the pinned-version guard most: confidence 'low', no
+        // human in the loop, and the fix comes from the tier-2 AI agent.
+        apiVersion: entry.release,
       };
 
       out.push({ change, autoExecutable: classified.kind === 'method', classification: classified.kind });

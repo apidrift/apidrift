@@ -21,6 +21,22 @@ export interface Change {
   };
   references: string[];
   confidence: 'high' | 'medium' | 'low';
+  /**
+   * The vendor API version this change TAKES EFFECT FROM, verbatim as the
+   * vendor writes it (`'2025-03-31.basil'`, `'2023-08-16'`).
+   *
+   * ABSENT means "not gated on an API version" — a product/SDK deprecation
+   * whose source is a migration guide rather than a versioned changelog entry
+   * (e.g. `stripe-charges-create-to-payment-intents`). The pipeline's
+   * pinned-version guard then never fires. Absent is the default, and it is
+   * what keeps every pre-US-7 change behaving exactly as before.
+   *
+   * When PRESENT, the pipeline refuses to apply the change to a repo it can
+   * prove pins an OLDER API version (src/matcher/api-version.ts +
+   * src/changes/api-version.ts) — the fix would otherwise migrate correct code
+   * to a shape the vendor will never return to that account.
+   */
+  apiVersion?: string;
 }
 
 /**
@@ -67,4 +83,27 @@ export interface PipelineResult {
   patchPath: string | null;
   draft: boolean;
   method?: 'deterministic' | 'ai';
+  /**
+   * Set ONLY when the change matched real call sites but was deliberately not
+   * applied. Optional by design: every existing consumer branches on
+   * `applied`, so none of them break by ignoring this.
+   *
+   * `applied: false` alone is ambiguous (no match / no LLM / guardrail refusal
+   * / this). Callers that want to tell a user "we found N sites and chose not
+   * to touch them" need this field — see src/cli.ts, which prints it. A skip
+   * nobody sees reads as "0 pull requests", i.e. "your code is fine".
+   */
+  skipped?: {
+    reason: 'pinned-api-version';
+    /** The version compared against: the OLDEST of `pinnedVersions`. */
+    pinnedVersion: string;
+    /** `change.apiVersion` — the version the change takes effect from. */
+    changeApiVersion: string;
+    /**
+     * EVERY pinned version found, with workspace-relative `file:line`. Two
+     * clients pinned differently are both reported: we cannot know which call
+     * site belongs to which client, so a human must see both.
+     */
+    pinnedVersions: Array<{ version: string; filePath: string; line: number }>;
+  };
 }
