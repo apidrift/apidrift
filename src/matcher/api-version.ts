@@ -24,12 +24,15 @@
  * gets EDITED — the narrow, fail-closed resolvers in `symbol.ts` keep that
  * job untouched.
  *
+ * ## The second source (US-9)
+ * The client option is only the pin a human WROTE. Since stripe-node v12 the
+ * SDK also pins IMPLICITLY, to the API version current at its own release, so
+ * "no apiVersion in the source" does NOT mean "latest". That second source is
+ * read by `./installed-sdk.ts` and folded in by `resolvePinnedApiVersion`
+ * below; the `source` discriminant was placed here in US-7 precisely so it
+ * could arrive without changing a single caller — and it did.
+ *
  * ## Explicitly out of scope
- * - `node_modules/stripe/API_VERSION` (stripe-node >= v12 pins IMPLICITLY to
- *   the API version current at its own release, so "no apiVersion in the
- *   source" does NOT mean "latest"). That is the biggest remaining hole and it
- *   is tracked as its own US; the `source` discriminant below exists so a
- *   second source can be added without changing a single caller.
  * - Reading the target's `.env`: forbidden — secrets, blast radius
  *   (CLAUDE.md). `apiVersion: process.env.STRIPE_API_VERSION` therefore falls
  *   into `'non-literal'`. That is a decision, not an omission.
@@ -44,6 +47,7 @@ import type { Identifier, ObjectLiteralExpression, Project } from 'ts-morph';
 // the comparator later refuses (or vice-versa) — a silent divergence in
 // exactly the code whose job is to prevent silent wrongness.
 import { apiVersionDate } from '../changes/api-version.js';
+import { resolveInstalledSdkDefaultApiVersion } from './installed-sdk.js';
 import { identifierImportedFromModule, isRequireCall } from './symbol.js';
 
 /** One `apiVersion` literal read off a client construction. */
@@ -56,15 +60,59 @@ export interface PinnedApiVersionSite {
 }
 
 /**
+ * What the CLIENT-OPTION reader alone can establish — the US-7 verdict set,
+ * unchanged.
+ */
+export type AstClientOptionApiVersion =
+  | { status: 'pinned'; source: 'ast-client-option'; versions: PinnedApiVersionSite[] }
+  | { status: 'unresolved'; reason: 'no-client' | 'no-option' | 'non-literal' };
+
+/**
+ * Why we could not name a pinned version. Six reasons, deliberately NOT
+ * collapsed: three describe the target's SOURCE (US-7), three the installed
+ * SDK (US-9), and each maps to a different sentence to a human. Merging
+ * "we could not look" with "we looked and found nothing" is the exact
+ * regression US-9 exists to prevent.
+ */
+export type UnresolvedPinReason =
+  /** No vendor client construction found in the source. */
+  | 'no-client'
+  /** A client, but no `apiVersion` key on it. */
+  | 'no-option'
+  /** An `apiVersion` we can see but not read statically (env var, variable, spread, `'latest'`). */
+  | 'non-literal'
+  /** No `node_modules/<vendor>`: an uninstalled clone. WE DID NOT LOOK. */
+  | 'sdk-not-installed'
+  /** Installed major <= 11: the SDK sends no version header, the ACCOUNT default applies. */
+  | 'sdk-predates-implicit-pin'
+  /** The package is there but its version / generated `apiVersion.js` is unreadable. */
+  | 'sdk-version-unreadable';
+
+/**
  * What we could establish about the target's pinned API version.
  *
- * `source` is present from day one so that a future second source (the
- * implicit stripe-node pin, see the module doc) slots in as another variant
- * without changing the shape callers destructure.
+ * `source` was present from day one (US-7) so that a second source could slot
+ * in as another variant without changing the shape callers destructure. US-9
+ * is that second source, and it kept the promise: both `pinned` variants carry
+ * the SAME `versions` array, so `pipeline.ts` and `pr.ts` still read
+ * `.versions` with no branching on `source` — they branch on it only to NAME
+ * the source to a human, which is the point.
  */
 export type PinnedApiVersion =
   | { status: 'pinned'; source: 'ast-client-option'; versions: PinnedApiVersionSite[] }
-  | { status: 'unresolved'; reason: 'no-client' | 'no-option' | 'non-literal' };
+  | {
+      status: 'pinned';
+      source: 'installed-sdk-default';
+      /** The installed package version that carries this default (`'13.0.0'`). */
+      sdkVersion: string;
+      versions: PinnedApiVersionSite[];
+    }
+  | {
+      status: 'unresolved';
+      reason: UnresolvedPinReason;
+      /** Present only when we got far enough to read it. Disclosure only. */
+      sdkVersion?: string;
+    };
 
 /** What one client construction told us. */
 type SiteVerdict =
@@ -198,7 +246,14 @@ function verdictFor(construction: Node): SiteVerdict {
 }
 
 /**
- * Resolves the vendor API version this project pins its client to.
+ * Reads the vendor API version this project's SOURCE pins its client to — the
+ * explicit pin, and nothing else. This is the US-7 resolver, extracted
+ * verbatim so that US-9 could add a second source above it without touching a
+ * line of its logic; the US-7 tests point straight at it.
+ *
+ * Exported for those tests and for that reason only: production code goes
+ * through `resolvePinnedApiVersion`, which is the one that also consults the
+ * implicit pin. Calling this directly re-opens the hole US-9 closed.
  *
  * Verdict precedence, from the most to the least informative:
  *   1. at least ONE readable literal anywhere -> `'pinned'`, listing them all.
@@ -222,7 +277,7 @@ function verdictFor(construction: Node): SiteVerdict {
  * which is why an `apiVersion` in a test or an example never pollutes the
  * verdict.
  */
-export function resolvePinnedApiVersion(project: Project, vendorModule: string): PinnedApiVersion {
+export function resolveAstClientOption(project: Project, vendorModule: string): AstClientOptionApiVersion {
   const versions: PinnedApiVersionSite[] = [];
   const seenVersions = new Set<string>();
   let sawNonLiteral = false;
@@ -247,4 +302,60 @@ export function resolvePinnedApiVersion(project: Project, vendorModule: string):
   if (sawNonLiteral) return { status: 'unresolved', reason: 'non-literal' };
   if (sawClient) return { status: 'unresolved', reason: 'no-option' };
   return { status: 'unresolved', reason: 'no-client' };
+}
+
+/**
+ * Resolves the vendor API version this project runs on, from BOTH sources —
+ * the pin a human wrote and the pin the installed SDK imposes (US-9).
+ *
+ * ## Precedence, read off the SDK itself
+ * stripe-node's core does `version: props.apiVersion || DEFAULT_API_VERSION`,
+ * and this mirrors it exactly:
+ *   - `'pinned'` (an explicit literal) -> returned as-is. The explicit pin
+ *     wins, because at runtime it does.
+ *   - `'non-literal'` -> returned as-is. The code DOES set `apiVersion`, to
+ *     something we cannot read; it therefore overwrites the SDK default, so
+ *     reading that default would be reporting a version that never applies.
+ *   - `'no-client'` AND `'no-option'` -> consult the installed SDK. `no-option`
+ *     is the MAIN case (a client built with just a key): stopping at
+ *     `no-client` would miss nearly every repo this exists for.
+ *
+ * ## `projectPath` is REQUIRED, on purpose
+ * Making it optional would let any future caller silently fall back to
+ * source-only resolution — i.e. silently re-open the hole this closes. A
+ * caller that has no path must be forced to notice.
+ *
+ * It is the WORKSPACE root, not the user's checkout: `linkNodeModules()` has
+ * already symlinked the target's `node_modules` in, and the guard runs after.
+ *
+ * ## Known limitation, documented rather than hidden
+ * An explicit `{ apiVersion: undefined }` is falsy to the SDK — the default
+ * therefore applies — but we classify it `'non-literal'` and do not consult the
+ * implicit source. Zero cases observed; disclosure covers it.
+ */
+export function resolvePinnedApiVersion(
+  project: Project,
+  vendorModule: string,
+  projectPath: string,
+): PinnedApiVersion {
+  const explicit = resolveAstClientOption(project, vendorModule);
+  if (explicit.status === 'pinned' || explicit.reason === 'non-literal') return explicit;
+
+  const implicit = resolveInstalledSdkDefaultApiVersion(projectPath, vendorModule);
+  if (implicit.status === 'resolved') {
+    return {
+      status: 'pinned',
+      source: 'installed-sdk-default',
+      sdkVersion: implicit.sdkVersion,
+      // One element, same shape as the explicit variant: callers keep mapping
+      // `.versions` without ever branching on `source`.
+      versions: [{ version: implicit.apiVersion, filePath: implicit.filePath, line: implicit.line }],
+    };
+  }
+
+  // Never emit `sdkVersion: undefined` — an own key holding `undefined` is not
+  // the same object as one without it, and callers (and tests) compare deeply.
+  return implicit.sdkVersion === undefined
+    ? { status: 'unresolved', reason: implicit.reason }
+    : { status: 'unresolved', reason: implicit.reason, sdkVersion: implicit.sdkVersion };
 }

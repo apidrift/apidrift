@@ -1,4 +1,6 @@
 import type { Node, Project } from 'ts-morph';
+// Type-only, so it is erased at compile time and creates no runtime cycle.
+import type { PinnedApiVersion } from './matcher/api-version.js';
 
 /**
  * The normalized description of one vendor API change.
@@ -105,5 +107,23 @@ export interface PipelineResult {
      * site belongs to which client, so a human must see both.
      */
     pinnedVersions: Array<{ version: string; filePath: string; line: number }>;
+    /**
+     * WHERE the pin came from (US-9). A human must be able to tell "you wrote
+     * this pin" from "the stripe package you installed imposes it" — the
+     * remedy is completely different, and for the implicit one the version
+     * appears nowhere in their own code.
+     */
+    source: 'ast-client-option' | 'installed-sdk-default';
+    /** The installed SDK version, when the pin came from it. */
+    sdkVersion?: string;
   };
+  /**
+   * What the pinned-version guard established, for a version-gated change
+   * (US-9). Carried so the CLI can disclose it on APPLIED changes too: "we
+   * could not look at your installed SDK" and "we looked and there is no pin"
+   * must never print as the same thing.
+   *
+   * Absent for changes with no `apiVersion` — those never reach the guard.
+   */
+  pinnedApiVersion?: PinnedApiVersion;
 }

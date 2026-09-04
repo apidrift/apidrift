@@ -65,7 +65,9 @@ export function summarizeVerification(verify: Pick<VerifyResult, 'passed' | 'out
 }
 
 /**
- * The one line the PR body says about API versions (US-7), or `null` for none.
+ * The one line said about API versions (US-7, extended by US-9), or `null` for
+ * none. Shared verbatim by the PR body and by the CLI, so a reader never gets
+ * two different accounts of the same finding.
  *
  * Emitted ONLY when the change is gated on an API version AND we have a
  * resolution to report. That is why the charges -> paymentIntents change — a
@@ -81,21 +83,65 @@ export function summarizeVerification(verify: Pick<VerifyResult, 'passed' | 'out
  * v12 a client built with NO `apiVersion` is still pinned — implicitly, to
  * whatever API version was current when that SDK release shipped. So "we found
  * no pin" is not "you are on the latest version", and we say so.
+ *
+ * ## The rule US-9 adds: never claim an absence you did not verify
+ * Six reasons, and they do NOT collapse into one sentence. Three situations a
+ * reader must be able to tell apart:
+ *   - "we LOOKED and there is no pin"  -> `no-client` / `no-option`, only
+ *     reachable when a caller resolved from the source alone;
+ *   - "we could NOT look"              -> `sdk-not-installed`,
+ *     `sdk-version-unreadable`. The old "no pinned apiVersion found in this
+ *     repo" line asserted a fact we had not checked, and must never come out
+ *     here;
+ *   - "the SDK imposes no pin, your ACCOUNT default applies" ->
+ *     `sdk-predates-implicit-pin`. Neither a pin nor an absence of one, and
+ *     nothing static analysis can ever see.
  */
-function apiVersionNote(change: Change, pinned: PinnedApiVersion | undefined): string | null {
+export function apiVersionNote(change: Change, pinned: PinnedApiVersion | undefined): string | null {
   if (!change.apiVersion || !pinned) return null;
 
   if (pinned.status === 'pinned') {
     const list = pinned.versions.map((v) => `\`${v.version}\``).join(', ');
+    if (pinned.source === 'installed-sdk-default') {
+      // The version appears NOWHERE in the reader's own code, so say where it
+      // does come from — otherwise this line looks like an invention.
+      return `this repo's code sets no \`apiVersion\`, but the installed \`${change.vendor}\` `
+        + `v${pinned.sdkVersion} pins IMPLICITLY to ${list} — at or after this change, so the fix applies.`;
+    }
     return `this repo pins ${list} — at or after this change, so the fix applies.`;
   }
-  if (pinned.reason === 'non-literal') {
-    return 'this repo sets `apiVersion` from a value APIdrift cannot read statically '
-      + `(an env var, a variable or a spread) — confirm it is \`${change.apiVersion}\` or later.`;
+
+  switch (pinned.reason) {
+    case 'non-literal':
+      return 'this repo sets `apiVersion` from a value APIdrift cannot read statically '
+        + `(an env var, a variable or a spread) — confirm it is \`${change.apiVersion}\` or later.`;
+
+    case 'sdk-not-installed':
+      return `this repo's code sets no \`apiVersion\`, and APIdrift could not check the implicit one: `
+        + `\`node_modules/${change.vendor}\` is not installed here. stripe-node v12+ pins IMPLICITLY to `
+        + 'the API version current at its own release, so "no pin in the code" is not "latest" — '
+        + `install dependencies and re-run, or confirm yours is \`${change.apiVersion}\` or later.`;
+
+    case 'sdk-version-unreadable':
+      return `this repo's code sets no \`apiVersion\`, and APIdrift could not read the default one from `
+        + `the installed \`${change.vendor}\` package${pinned.sdkVersion ? ` (v${pinned.sdkVersion})` : ''}. `
+        + 'stripe-node v12+ pins IMPLICITLY to the API version current at its own release, so "no pin in '
+        + `the code" is not "latest" — confirm yours is \`${change.apiVersion}\` or later.`;
+
+    case 'sdk-predates-implicit-pin':
+      return `this repo's code sets no \`apiVersion\` and the installed \`${change.vendor}\` `
+        + `v${pinned.sdkVersion} predates v12, so it sends no version header at all: this repo runs on your `
+        + `${change.vendor} ACCOUNT's default API version, which no static analysis can see — `
+        + `confirm it is \`${change.apiVersion}\` or later.`;
+
+    default:
+      // `no-client` / `no-option`: we read the source and found no pin there.
+      // Reachable only from a source-only resolution — `resolvePinnedApiVersion`
+      // always goes on to consult the installed SDK.
+      return 'no pinned `apiVersion` found in this repo. Note that stripe-node v12+ pins '
+        + 'IMPLICITLY to the API version current at its own release, so "no pin in the code" '
+        + 'is not "latest" — check yours.';
   }
-  return 'no pinned `apiVersion` found in this repo. Note that stripe-node v12+ pins '
-    + 'IMPLICITLY to the API version current at its own release, so "no pin in the code" '
-    + 'is not "latest" — check yours.';
 }
 
 /** Builds the PR/MR description in APIdrift's house format. */
