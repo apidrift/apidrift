@@ -4824,6 +4824,69 @@
       "type": "gate",
       "actor": "dod",
       "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-04T23:39:44.531Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-04T23:40:10.250Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-04T23:41:04.982Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-04T23:41:59.056Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-04T23:43:02.156Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-04T23:43:08.269Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-04T23:43:36.158Z",
+      "type": "human_feedback",
+      "actor": "orchestrateur",
+      "us": "US-9",
+      "note": "PORTE FERMEE (gate event 475): l humain valide les 3 apprentissages retro. 1 = capitaliser + durcir, 2 = capitaliser (memoire seule), 3 = capitaliser + outiller. Capitalisation faite sur main, checkout principal."
+    },
+    {
+      "ts": "2026-09-04T23:43:36.204Z",
+      "type": "note",
+      "actor": "retro",
+      "us": "US-9",
+      "note": "CAPITALISE. Memoire retro creee: feedback_board_writes.md, feedback_cadrage_sur_preuve.md, feedback_ecarts_cadrage.md, project_portes_humaines_sans_lavish.md + MEMORY.md (index passe de VIDE a 4 entrees). Outillage: champ ecarts (array {quoi, justification, verdict?}) ajoute a report.schema.json; dev.md interdit toute ecriture board/architecture depuis le worktree et impose le champ ecarts; qa.md ajoute le controle bloquant git diff main...<branche> -- board/ architecture/ VIDE et le verdict PAR ecart; conventions.md section Fichiers de pilotage; po.md/architecte.md une clause chacun sur le cadrage verifie sur artefact reel. DoD verte: tsc 0, 157/157."
+    },
+    {
+      "ts": "2026-09-04T23:43:41.785Z",
+      "type": "note",
+      "actor": "retro",
+      "us": "US-8",
+      "note": "ORPHELINS RESORBES (retro event 452, 3 capitalisations proposees jamais validees): (1) prescription PO nommant fichier/table non verifiee -> couvert par feedback_cadrage_sur_preuve.md; (2) board/backlog jamais depuis un worktree -> couvert par feedback_board_writes.md (les 2 occurrences US-3 + US-8 y sont citees); (3) lavish-axi absent du PATH -> NON couvert par les 3 apprentissages valides, capitalise a part dans project_portes_humaines_sans_lavish.md. Plus aucun apprentissage retro NON CAPITALISE en attente."
+    },
+    {
+      "ts": "2026-09-04T23:43:56.442Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
     }
   ]
 }

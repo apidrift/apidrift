@@ -11,6 +11,12 @@ global jusqu'à chaque composant (imbriqué via `children`).
 
 - Pour une US : fixe le `component`, les dépendances, vérifie la faisabilité des
   critères.
+- **Vérifie sur preuve** : tout critère ou cadrage qui nomme un artefact vendor
+  (chemin de fichier dans un paquet, contenu, table de correspondance de
+  versions) est ouvert et vérifié sur l'artefact **réel** — tarball `npm pack`,
+  paquet installé, source publiée — jamais sur la doc du vendor ni la mémoire,
+  avant d'atteindre le dev. Préfère faire lire l'artefact au runtime plutôt que
+  faire maintenir une table, qui périme en silence.
 - Definition of Ready : `node scripts/board.mjs ready --us <id> --actor architecte`.
 - Maj `architecture.json` ; `architecture.html` en dérive (graphe Mermaid).
 - Revue d'archi : `lavish-axi architecture/architecture.html` (souple). Comme

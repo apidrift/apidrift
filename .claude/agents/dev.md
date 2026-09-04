@@ -23,9 +23,31 @@ Tu implémentes l'US décrite par l'enveloppe de tâche reçue
   vérifie automatiquement ; rouge → corrige, ne rapporte pas `done`.
 - Rends un rapport conforme à `report.schema.json` (terse).
 
+## Tu n'écris jamais sur le board — impératif
+Ton worktree est forké d'un `main` périmé : `board/board.json`,
+`board/backlog.json` et `architecture/architecture.json` y sont des instantanés.
+Y écrire fait **reculer le board en silence** au merge, sans conflit git pour le
+signaler (2 occurrences : US-3, puis US-8/revert `67331ef`).
+
+- Ne lance **jamais** `scripts/board.mjs` depuis ton worktree.
+- Ne modifie **jamais** `board/**` ni `architecture/**` — hors `board/schema/`
+  s'il est explicitement dans tes `allowed_paths`.
+- `git diff main...HEAD -- board/ architecture/` doit être **VIDE** quand tu
+  ouvres ta PR. La QA le vérifie et c'est bloquant.
+- Tout ce qui doit être journalisé (échange avec un autre agent, écart, escalade)
+  part dans ton **rapport** : l'orchestrateur le journalise depuis le checkout
+  principal.
+
+## Écarts au cadrage
+Un écart déclaré n'est pas une faute ; l'écart silencieux l'est. Tout écart au
+cadrage de l'architecte va dans le champ `ecarts` du rapport — **un objet par
+écart**, `{ quoi, justification }`, jamais un compteur ni un paragraphe qui en
+agrège plusieurs. La QA rend un verdict par écart. N'invente pas d'autre nom de
+champ.
+
 ## Blocage — seulement là
 Si tu es réellement bloqué et qu'un autre agent détient l'info qui te débloque,
-trace d'abord l'échange :
-`node scripts/board.mjs event --type peer_message --us <id> --actor dev#<n> --target <autre>`.
-Si le déblocage exige une décision humaine → `event --type escalation` et signale
-à l'orchestrateur. Ne sollicite pas l'humain toi-même.
+demande-le dans ton rapport (`status: blocked`, `obstacle` précis, agent visé) :
+l'orchestrateur trace le `peer_message` et te relance. Si le déblocage exige une
+décision humaine, dis-le dans l'`obstacle` — il ouvrira l'escalade. Ne sollicite
+pas l'humain toi-même.

@@ -16,6 +16,23 @@
         "failed": { "type": "integer" }
       }
     },
-    "obstacle": { "type": "string", "description": "si blocked/needs_review, terse" }
+    "obstacle": { "type": "string", "description": "si blocked/needs_review, terse" },
+    "ecarts": {
+      "type": "array",
+      "description": "écarts au cadrage architecte, déclarés un par un par le dev ; la QA rend un verdict PAR écart",
+      "items": {
+        "type": "object",
+        "required": ["quoi", "justification"],
+        "properties": {
+          "quoi": { "type": "string", "description": "l'écart, terse et arbitrable seul" },
+          "justification": { "type": "string", "description": "pourquoi le cadrage n'a pas été suivi" },
+          "verdict": {
+            "type": "string",
+            "enum": ["acceptable", "acceptable_avec_reserve", "bloquant"],
+            "description": "rempli par la QA ; acceptable_avec_reserve implique une entrée de backlog"
+          }
+        }
+      }
+    }
   }
 }

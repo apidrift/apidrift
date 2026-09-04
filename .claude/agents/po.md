@@ -17,3 +17,9 @@ Tu définis le QUOI et le POURQUOI, jamais le COMMENT.
 
 Un critère d'acceptation décrit un comportement observable, pas une solution
 technique. Le découpage technique revient à l'architecte.
+
+Tu poses le besoin et l'invariant, pas la conception : ni chemin de module, ni
+forme de type, ni table de correspondance de versions. Un critère qui nomme un
+artefact vendor (fichier dans un paquet, contenu, table) n'est pas de la
+précision tant qu'il n'a pas été vérifié — c'est une prémisse. L'architecte le
+vérifie sur l'artefact réel avant qu'il n'atteigne le dev.
