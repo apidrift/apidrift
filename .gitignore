@@ -1,4 +1,13 @@
 node_modules/
+# ...except inside fixtures. US-9's guard reads the API version stripe-node
+# pins implicitly, straight out of the installed package (node_modules/stripe/
+# package.json + cjs/apiVersion.js). Testing it needs an installed `stripe` to
+# read, and `npm install` in the test suite is forbidden: zero network, zero
+# non-determinism. So fixtures/implicit-pinned-stripe/node_modules/stripe/ is a
+# tiny committed STUB of the two files the resolver reads — see its README.md.
+# The re-include must name the DIRECTORY: git cannot un-ignore a file whose
+# parent directory is ignored.
+!fixtures/**/node_modules/
 dist/
 apidrift-out/
 *.log
