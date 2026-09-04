@@ -307,7 +307,7 @@
         "Test dedie reproduisant le cas agnai (client Stripe avec apiVersion anterieure au changelog du Change): le Change nest plus applique, ou le rapport signale explicitement le risque",
         "npx tsc --noEmit et npm test verts"
       ],
-      "status": "review",
+      "status": "done",
       "priority": 2,
       "component": "changes",
       "epic": "EPIC-mvp-proof",
@@ -440,7 +440,7 @@
         ],
         "methode_de_verification_du_cadrage": "Chaque affirmation AST de cette DoR a ete verifiee par un prototype ts-morph jetable dans /tmp (11 formes de code, non commite) contre loadProject() du repo. Chaque affirmation sur Stripe a ete verifiee le 2026-09-03 sur les variantes .md de docs.stripe.com (changelog.md, sdks/set-version.md, api/versioning.md, upgrades.md)."
       },
-      "assignee": "qa"
+      "assignee": "orchestrateur"
     },
     {
       "id": "US-8",
@@ -453,7 +453,7 @@
         "Test dedie: un fichier avec un style de formatage delibere different du defaut TypeScript (ex: pas despace avant les parentheses de fonction) garde ce style sur les lignes non touchees apres un fix",
         "npx tsc --noEmit et npm test verts"
       ],
-      "status": "review",
+      "status": "done",
       "priority": 3,
       "component": "fixer",
       "epic": "EPIC-mvp-proof",
@@ -575,7 +575,7 @@
           "Le call matche peut etre imbrique tres profond: la plage formatee reste celle du CallExpression, pas de son conteneur. Verifie sur le cas studynotes (le call est un ExpressionStatement dans un callback, la plage reste 6 lignes)."
         ]
       },
-      "assignee": "qa"
+      "assignee": "orchestrateur"
     },
     {
       "id": "US-9",
@@ -595,7 +595,7 @@
         "AC11 - Zero reseau dans les tests : aucun npm install, aucun fetch, le stub est la seule source. Tests exiges : le cas bloquant e2e (stripe 13 installe + change 2025-03-31.basil -> skipped, pas de branche), au moins un cas par raison unresolved (pas de node_modules ; stripe v11 installe ; apiVersion.js absent), le cas majeur >= 12 avec version POSTERIEURE au change (applique), et la precedence explicite > implicite (les deux presents, l'explicite gagne).",
         "AC12 - npx tsc --noEmit et npm test verts (scripts/dod.sh). Interdits : lire un .env, toucher docs/proof/**, elargir resolveRootToVendor/isVendorConstructor (src/matcher/symbol.ts), ajouter node_modules au Project de la cible."
       ],
-      "status": "ready",
+      "status": "review",
       "priority": 3,
       "component": "matcher",
       "epic": "EPIC-mvp-proof",

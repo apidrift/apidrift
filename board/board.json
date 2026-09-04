@@ -4461,6 +4461,281 @@
       "type": "gate",
       "actor": "dod",
       "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-04T22:39:34.797Z",
+      "type": "move",
+      "actor": "orchestrateur",
+      "us": "US-7",
+      "note": "review>done"
+    },
+    {
+      "ts": "2026-09-04T22:39:34.847Z",
+      "type": "move",
+      "actor": "orchestrateur",
+      "us": "US-8",
+      "note": "review>done"
+    },
+    {
+      "ts": "2026-09-04T22:39:34.899Z",
+      "type": "human_feedback",
+      "actor": "orchestrateur",
+      "note": "PR #10 (US-7) et PR #11 (US-8) squash-merges sur main par l humain, branches distantes supprimees. Porte d acceptation passee. DoD rejouee sur main: 120/120 verts, tsc clean. Colonnes recalees review->done."
+    },
+    {
+      "ts": "2026-09-04T22:39:43.053Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-04T22:39:58.314Z",
+      "type": "move",
+      "actor": "orchestrateur",
+      "us": "US-9",
+      "note": "ready>in_progress"
+    },
+    {
+      "ts": "2026-09-04T22:39:58.369Z",
+      "type": "delegate",
+      "actor": "orchestrateur",
+      "target": "dev#1",
+      "us": "US-9",
+      "payload": {
+        "goal": "Implementer US-9 (pin implicite stripe-node) de bout en bout dans un worktree isole, branche feature/US-9-implicit-sdk-pin depuis main, PR titree \"US-9 Detecter le pin implicite stripe-node (defaut d API version du SDK installe)\".",
+        "dependance_levee": "PR #10 (US-7) et PR #11 (US-8) sont mergees sur main. src/matcher/api-version.ts et src/changes/api-version.ts existent. Nommage verifie conforme a la DoR: PinnedApiVersion, source ast-client-option, raisons no-client/no-option/non-literal, resolvePinnedApiVersion(project, vendorModule). Aucun renommage a rejouer.",
+        "source_de_verite": "Les 12 AC de US-9 dans board/backlog.json ET son bloc definition_of_ready (P0 preuve vendor, D1 zero table, D3 node_modules absent, D4 integration, D5 pas la convention 4 morceaux). Le cadrage a ete fait sur preuve reelle (18 tarballs npm inspectes) : ne pas le rediscuter, lexecuter.",
+        "points_durs": [
+          "AC6: le 3e parametre projectPath de resolvePinnedApiVersion est REQUIS, pas optionnel.",
+          "AC7/D3: node_modules absent => APPLIQUER et DIVULGUER. La phrase de repli no pinned apiVersion found ne doit JAMAIS sortir quand on na pas pu regarder. Cest un test, pas une intention.",
+          "AC4: n accepter que StringLiteral (v22 ecrit exports.ApiMajorVersion = exports.ApiVersion = void 0), jamais le premier litteral du fichier (use strict), jamais ApiMajorVersion.",
+          "AC3: sonder cjs/ puis esm/ puis lib/ - la frontiere de chemin ne suit pas le majeur.",
+          "AC8: racine = workspace, ne pas realpath le symlink de linkNodeModules()."
+        ],
+        "interdits": [
+          "table de correspondance SDK->API version (D1: peremption silencieuse, la table du PO etait deja fausse 2 fois)",
+          "tout appel reseau, tout npm install dans les tests",
+          "lire un .env de la cible",
+          "toucher docs/proof/**, CI config, lockfiles",
+          "modifier src/changes/api-version.ts (doit rester byte-identique, AC1)",
+          "elargir resolveRootToVendor / isVendorConstructor (src/matcher/symbol.ts)",
+          "ajouter node_modules au Project de la cible",
+          "multi-vendor / multi-langage / UI (scope guards CLAUDE.md)"
+        ],
+        "dod": "scripts/dod.sh (npx tsc --noEmit + npm test) vert. Hook SubagentStop: suite rouge = tu corriges, tu ne rends pas done.",
+        "livrable": "Rapport JSON: branche, PR, fichiers touches, AC couverts un par un, limites assumees."
+      }
+    },
+    {
+      "ts": "2026-09-04T22:40:40.994Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-04T22:40:47.799Z",
+      "type": "delegate",
+      "actor": "orchestrateur",
+      "target": "retro",
+      "us": "US-8",
+      "payload": {
+        "goal": "Retro du lot US-7 + US-8 (les deux mergees sur main par lhumain: PR #10 et PR #11). Analyser le journal d events du board sur ce lot et en extraire des apprentissages FACTUELS.",
+        "pistes": [
+          "US-9 a du etre re-cadree apres arret de session (rien conserve, reparti du besoin) ET le cadrage a invalide une premisse du PO sur preuve (fichier API_VERSION inexistant, table SDK->API deja fausse 2 fois). Que dit ce lot sur la frontiere PO/architecte et sur le cout dun cadrage sans preuve?",
+          "3 portes humaines ouvertes simultanement + absence de lavish-axi tracee: quel effet reel sur le flux?",
+          "US-7 a livre un nommage conforme a la DoR (risque de renommage en revue non materialise). Utile de le noter comme signal positif."
+        ],
+        "contrainte": "Factuel, tire des events du board, pas de prose generique. Capitalisation en memoire projet SEULEMENT apres validation humaine."
+      }
+    },
+    {
+      "ts": "2026-09-04T22:40:47.850Z",
+      "type": "note",
+      "actor": "orchestrateur",
+      "note": "US-9 est le dernier item du backlog. Apres son passage en done, plus rien de tirable: il faudra un nouveau besoin humain (ou un raffinage PO) pour relancer une iteration."
+    },
+    {
+      "ts": "2026-09-04T22:41:59.504Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-04T22:42:57.272Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-04T22:43:47.046Z",
+      "type": "report",
+      "actor": "retro",
+      "us": "US-8",
+      "payload": {
+        "lot": "US-7 + US-8",
+        "fenetre": "events 296-449, 2026-09-03T20:35Z -> 2026-09-04T22:39Z",
+        "apprentissages": [
+          {
+            "n": 1,
+            "titre": "Un cadrage PO non verifie sur la source reelle coute une session entiere, pas une correction",
+            "preuve": "event 407 premisse non verifiee (table SDK->API, fichier API_VERSION); event 416 architecte tue avant journalisation; event 432 reprise a zero; event 435 preuve npm pack 18 tarballs: API_VERSION inexistant, table PO fausse 2 fois (v12=2022-11-15 pas 2023-04-06; v18 perd le canal .basil)",
+            "portee": "frontiere PO/architecte: une prescription de conception qui nomme un fichier ou une table doit etre verifiee sur la source vendor avant transmission au dev"
+          },
+          {
+            "n": 2,
+            "titre": "3 portes humaines simultanees ont arrete le flux, pas empile du travail",
+            "preuve": "event 438: 3 portes (PR #10, PR #11, DoR US-9). Gates ouvertes 2026-09-03T21:40Z -> merge 2026-09-04T22:39Z = ~25h traversant un arret de session (416) et sa reprise (419). WIP 0/3 (event 436), rien de tirable, seul le cadrage US-9 en lecture seule a avance."
+          },
+          {
+            "n": 3,
+            "titre": "Signal positif: nommage US-7 conforme DoR, risque trace non materialise",
+            "preuve": "risque event 436 (si US-7 bouge en revue, rejouer le cadrage sur les noms) vs constat au delegate US-9: PinnedApiVersion, ast-client-option, no-client/no-option/non-literal intacts. Squash-merge sans modification de noms."
+          },
+          {
+            "n": 4,
+            "titre": "2e occurrence: ecriture du board depuis un worktree isole a failli faire reculer le board en silence",
+            "preuve": "event 380: dev#5 (US-8) a execute board.mjs depuis son worktree forke de 05b61e4, sans les events US-7 ni la DoR US-8. Commit b26635a embarquait le fork dans PR #11. Revert avant merge. Meme classe de cause racine que le referentiel divergent de US-3 (2026-09-01)."
+          }
+        ],
+        "capitalisation_proposee": [
+          "feedback: ne jamais transmettre au dev une prescription de conception PO nommant un fichier/une table sans verification architecte sur la source vendor reelle",
+          "process: board.json et backlog.json ne s ecrivent que depuis le checkout principal, jamais depuis un worktree de feature (2 occurrences: US-3, US-8 event 380)",
+          "project: lavish-axi absent du PATH, les portes humaines passent par le board + texte direct"
+        ],
+        "statut": "NON CAPITALISE - en attente de validation humaine"
+      }
+    },
+    {
+      "ts": "2026-09-04T22:43:47.103Z",
+      "type": "note",
+      "actor": "orchestrateur",
+      "us": "US-9",
+      "note": "RISQUE ACTIF a verifier a la QA d US-9: apprentissage 4 de la retro (ecriture du board depuis un worktree isole, 2e occurrence US-3 puis US-8/event 380). L enveloppe de delegation d US-9 ne contient PAS cet interdit et le dev tourne deja. Controle obligatoire avant merge: git diff main..feature/US-9-implicit-sdk-pin -- board/ doit etre VIDE."
+    },
+    {
+      "ts": "2026-09-04T22:57:15.793Z",
+      "type": "move",
+      "actor": "orchestrateur",
+      "us": "US-9",
+      "note": "in_progress>review"
+    },
+    {
+      "ts": "2026-09-04T22:57:15.848Z",
+      "type": "report",
+      "actor": "dev#1",
+      "us": "US-9",
+      "payload": {
+        "branch": "feature/US-9-implicit-sdk-pin",
+        "pr": "https://github.com/apidrift/apidrift/pull/12",
+        "dod": {
+          "exit_code": 0,
+          "tsc": "green",
+          "tests": "157 pass / 0 fail (37 new)"
+        },
+        "commits": [
+          "e6ff439 feat(matcher)",
+          "239669e feat(pipeline)",
+          "0d61298 test(matcher)"
+        ],
+        "ac_couverts": "12/12, chacun avec le test nomme",
+        "ecarts_cadrage": 7,
+        "limites_assumees": 5,
+        "controle_orchestrateur": "git diff main...branch -- board/ architecture/ VIDE : lincident apprentissage-4 (ecriture board depuis worktree) ne sest PAS reproduit. src/changes/api-version.ts absent du diff (AC1 ok)."
+      }
+    },
+    {
+      "ts": "2026-09-04T22:57:15.904Z",
+      "type": "note",
+      "actor": "orchestrateur",
+      "us": "US-9",
+      "note": "7 ecarts de cadrage declares par le dev, a instruire par la QA. Les 3 a enjeu: (1) resolveAstClientOption EXPORTE alors quAC1 dit fonction interne - justifie par le repointage des tests US-7, docblock avertit de ne pas lappeler en prod; (2) vendor non-stripe resout vers sdk-version-unreadable alors quAC2 dit unresolved sans nommer la raison et AC5 fige le set a 3; (3) surface elargie: PipelineResult.pinnedApiVersion, skipped.source/sdkVersion, apiVersionNote exporte de pr.ts, unresolved.sdkVersion optionnel - justifie par AC7 (ligne CLI par raison) et AC9 (nommer la source)."
+    },
+    {
+      "ts": "2026-09-04T22:57:53.351Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-04T22:58:47.658Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-04T22:59:47.712Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-04T23:00:49.321Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-04T23:01:49.569Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-04T23:02:50.509Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-04T23:03:50.181Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-04T23:04:35.547Z",
+      "type": "report",
+      "actor": "qa",
+      "us": "US-9",
+      "payload": {
+        "verdict": "done - accepter a la porte humaine",
+        "dod_rejouee_par_qa": {
+          "commande": "bash scripts/dod.sh",
+          "exit_code": 0,
+          "tests": "157/157",
+          "tsc": "clean",
+          "rejouee": "2 fois"
+        },
+        "ac": "12/12 verts",
+        "preuves_fortes": {
+          "AC1": "corps de resolveAstClientOption byte-identique a lancien resolvePinnedApiVersion, seul ecart = ligne de signature. tests/api-version.test.ts: 2 lignes changees (import + appel), zero assertion touchee.",
+          "AC11": "zero reseau PROUVE et non declare: unshare -rn npx tsx --test tests/installed-sdk.test.ts -> 37/37 pass sans interface reseau.",
+          "AC9": "out dir vide (deepStrictEqual []), verify null, prPath null, patchPath null.",
+          "AC10": "git ls-tree confirme 3 fichiers tracks sous fixtures/implicit-pinned-stripe/node_modules/stripe/; git check-ignore confirme node_modules racine toujours ignore.",
+          "invariant_central": "les tests napassertent PAS des chaines fabriquees: bodyFor() appelle le vrai buildPrBody(), le test CLI spawn le vrai binaire npx tsx src/cli.ts. new Set(sorties reelles).size===4. Regex negative sur la sortie: !/no pinned .?apiVersion.? found/i."
+        },
+        "ecarts": {
+          "1_resolveAstClientOption_exporte": "ACCEPTABLE - grep exhaustif: seul appelant prod = pipeline.ts:125 via resolvePinnedApiVersion; resolveAstClientOption appele UNIQUEMENT par tests/api-version.test.ts:52. Trou non rouvert.",
+          "2_vendor_non_stripe": "ACCEPTABLE AVEC RESERVE - la phrase produite est malhonnete (affirme avoir lu un paquet paddle jamais ouvert, cite stripe-node pour un non-stripe). NON BLOQUANT: chemin inatteignable (1 seul change gated, vendor stripe) et ne viole pas linvariant (dit could not, pas il ny a pas de pin). -> backlog.",
+          "3_surface_publique": "ACCEPTABLE - deepStrictEqual US-7 pointent sur AstClientOptionApiVersion (type inchange, 3 raisons). types.ts:2 = import type, pas de cycle. Piege evite: sdkVersion undefined jamais emis comme cle propre (branche explicite ligne 358).",
+          "4_NoSubstitutionTemplateLiteral": "ACCEPTABLE - elargit vers plus de blocage, direction conservatrice, aligne sur le lecteur US-7.",
+          "5_refus_litteral_non_date": "ACCEPTABLE ET SOUHAITABLE - neutralise OPENAPI_VERSION=v2442.",
+          "6_break_au_lieu_de_continue": "ACCEPTABLE - fichier present en forme inconnue = hypothese cassee a remonter, pas a masquer.",
+          "7_gitignore": "SANCTIONNE PAR AC10 - exception nommee sur le repertoire, node_modules racine toujours ignore."
+        },
+        "demo": "/tmp/apidrift-us9-demo.html - 4 sorties CLI reelles capturees, aucune retapee",
+        "suivi_non_bloquant": [
+          "vendor-not-supported: 4e raison manquante, A CORRIGER AVANT LE 2e VENDOR (installed-sdk.ts:230)",
+          "chemins absolus dans PipelineResult.pinnedApiVersion branche applied (pipeline.ts:179/194) non relativises, sans consequence visible aujourdhui mais fuite potentielle de /tmp/apidrift-xxxx"
+        ]
+      }
+    },
+    {
+      "ts": "2026-09-04T23:04:35.602Z",
+      "type": "gate",
+      "actor": "orchestrateur",
+      "us": "US-9",
+      "note": "PORTE HUMAINE OUVERTE: acceptation de demo US-9 + merge PR #12. lavish-axi toujours ABSENT du PATH (3e confirmation), porte presentee en texte + artefact HTML /tmp/apidrift-us9-demo.html. US-9 reste en review jusqua decision humaine. En attente aussi: validation de la capitalisation retro (3 entrees)."
     }
   ]
 }
