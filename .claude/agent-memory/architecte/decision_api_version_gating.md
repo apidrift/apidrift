@@ -32,7 +32,8 @@ côté matcher, trou silencieux côté garde.
 - **le piège principal** : depuis `stripe-node` v12, l'absence d'option
   `apiVersion` ne veut PAS dire « dernière version » — le SDK épingle
   implicitement la version courante au moment de sa propre release.
-  Donc « aucun pin trouvé dans l'AST » ≠ « pas de pin ».
+  Donc « aucun pin trouvé dans l'AST » ≠ « pas de pin ». Ce trou est traité par
+  US-9 — mécanisme exact et seuil mesurés dans [[decision-implicit-sdk-pin]].
 
 **Fail-safe ≠ tout bloquer.** AC2 conditionne le refus à « détectable ET
 antérieure ». Un `apiVersion` non lisible (variable d'env, spread, shorthand)

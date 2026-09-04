@@ -289,9 +289,6 @@
       "note": "DoD ok"
     },
     {
-      "ts": "2026-09-01T17:08:40.759Z"
-    },
-    {
       "ts": "2026-09-01T17:09:00.722Z",
       "type": "gate",
       "actor": "dod",
@@ -3331,14 +3328,6 @@
       "note": "DoD ok"
     },
     {
-      "ts": "2026-09-03T21:12:05.083Z",
-      "type": "delegate",
-      "actor": "orchestrateur"
-    },
-    {
-      "ts": "2026-09-03T21:12:05.127Z"
-    },
-    {
       "ts": "2026-09-03T21:12:18.157Z",
       "type": "gate",
       "actor": "dod",
@@ -4134,9 +4123,6 @@
       "note": "DoD ok"
     },
     {
-      "ts": "2026-09-03T21:44:06.463Z"
-    },
-    {
       "ts": "2026-09-03T21:44:53.684Z",
       "type": "decision",
       "actor": "orchestrateur",
@@ -4211,6 +4197,252 @@
       "actor": "orchestrateur",
       "us": "US-9",
       "note": "ARRET DE SESSION (humain va eteindre la machine). Cadrage US-9 lance mais INTERROMPU: la DoR nest pas ecrite, larchitecte a ete tue avant de la journaliser. A relancer a la prochaine session, avec les 3 arbitrages deja poses dans levent delegate ci-dessus (API_VERSION vs table hardcodee; sur-specification de conception par le PO; comportement quand node_modules est absent). Rien nest perdu: aucun travail de code nest en vol, les 2 PR sont poussees."
+    },
+    {
+      "ts": "2026-09-03T21:50:47.556Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-04T21:53:59.668Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-04T21:54:06.681Z",
+      "type": "delegate",
+      "actor": "orchestrateur",
+      "target": "architecte",
+      "us": "US-9",
+      "payload": {
+        "goal": "RELANCE apres arret de session: cadrer US-9 (pin implicite stripe-node) et POSER LA DoR. Le cadrage precedent a ete interrompu avant journalisation, rien ne subsiste. Le dev reste bloque par le merge de PR #10, le cadrage ne lest pas (lecture seule sur feature/US-7-api-version-gating).",
+        "arbitrage_1_preuve": "titre vs AC3/AC4. Lire le fichier API_VERSION du paquet installe (exact, zero table a maintenir) VS lire package.json + table SDK->API hardcodee (AC3/AC4 du PO, source de peremption silencieuse). TRANCHER SUR PREUVE en inspectant reellement node_modules/stripe (existence du fichier API_VERSION, son contenu, depuis quelle version majeure il existe).",
+        "arbitrage_2_perimetre": "le PO a sur-specifie la conception (chemin de sous-module src/matcher/api-version/implicit.ts, forme exacte du type, N>=5 entrees de table). Ce nest pas son perimetre. Reprendre la main et REECRIRE les AC de conception si la preuve les contredit, en tracant explicitement lecart PO->architecte.",
+        "arbitrage_3_point_dur": "le resolveur US-7 travaille sur un ts-morph Project; la source implicite travaille sur un chemin disque et depend de node_modules INSTALLE dans la cible. Definir le comportement quand node_modules est ABSENT (cas courant) SANS reintroduire de faux negatif silencieux. Cest le coeur du fail-safe de lUS.",
+        "contrainte_us7": "ne pas changer le comportement du resolveur explicite ni la comparaison pure. Le champ source de PinnedApiVersion a ete pose exactement pour accueillir cette 2e source sans casser les appelants.",
+        "interdits": [
+          "lire un .env",
+          "reseau pendant les tests",
+          "toucher docs/proof/**",
+          "multi-vendor / multi-langage / UI (scope guards CLAUDE.md)"
+        ],
+        "livrable": "DoR US-9 journalisee sur le board + architecture.json a jour si le composant matcher evolue"
+      }
+    },
+    {
+      "ts": "2026-09-04T21:54:48.430Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-04T21:54:49.100Z",
+      "type": "gate",
+      "actor": "orchestrateur",
+      "us": "US-7",
+      "note": "Porte humaine toujours ouverte a la reprise de session: PR #10 OPEN, MERGEABLE, mergeStateStatus CLEAN, CI verte (node 20 + node 22). Rien ne bloque cote machine, seul le merge humain manque. Idem PR #11 (US-8). US-9 est bloquee au dev tant que #10 nest pas mergee."
+    },
+    {
+      "ts": "2026-09-04T21:55:20.202Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-04T21:56:07.839Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-04T21:56:56.573Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-04T21:57:44.783Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-04T21:58:32.947Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-04T21:59:21.755Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-04T22:00:10.310Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-04T22:00:59.075Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-04T22:02:37.986Z",
+      "type": "update",
+      "actor": "architecte",
+      "us": "US-9",
+      "payload": {
+        "fields": [
+          "title",
+          "why",
+          "acceptance_criteria",
+          "definition_of_ready"
+        ],
+        "before": {
+          "title": "Détecter le pin implicite stripe-node (fichier API_VERSION du paquet)",
+          "why": "Depuis stripe-node v12 (2023-04-06), sans option apiVersion dans le code, le SDK épingle implicitement la version d'API courante au moment de sa release (encodée dans node_modules/stripe/API_VERSION). US-7 traite le pin explicite seulement. Ce trou résiduel signifie un code sans apiVersion nest pas \"dernière version\" mais \"la version de la release installée\", un fail-safe critique: un repo avec stripe v20+ mais sans apiVersion peut recevoir un fix basé sur un changelog plus récent, silencieusement faux à runtime. Fait vérifié 2026-09-03 sur https://docs.stripe.com/sdks/set-version.md et https://docs.stripe.com/api/versioning.md.",
+          "acceptance_criteria": [
+            "Extension de src/changes/api-version.ts: apiVersionDate() et isPinnedBefore() restent inchanges, aucun impact sur US-7.",
+            "Extension de src/matcher/api-version.ts: PinnedApiVersion.source accepte node-modules-stripe-api-version en plus de ast-client-option. Type: { status: pinned; source: node-modules-stripe-api-version; version: string; filePath: string }.",
+            "Nouveau sous-module src/matcher/api-version/implicit.ts: resolveImplicitStripePinnedVersion(projectPath: string) lit node_modules/stripe/package.json et déduit la version d'API depuis une table locale (hardcoded, zéro I/O réseau). Si la version SDK n'est pas tabulée: retour null (fail-safe).",
+            "Table de correspondance: N>=5 entrées. stripe-node v12.0.0 (2023-04-06), v13, v14, v15, v16, v17, v18 (2025-03-31). Source: https://github.com/stripe/stripe-node/releases (fixture commitée ou table inline avec citations).",
+            "Intégration dans resolvePinnedApiVersion(project, stripe): si AST-client-option retourne no-client, relancer resolveImplicitStripePinnedVersion(). Le champ source du résultat rend visible quelle méthode a trouvé la version.",
+            "Test e2e: fixture reproduisant le cas agnai (aucun apiVersion dans le code, stripe v13 installé, change porte apiVersion 2025-03-31.basil). Le change est bloqué par US-7 et src/matcher/api-version/implicit.ts signale la version implicite trouvée.",
+            "Aucun appel réseau: npm test passe sans Internet.",
+            "npx tsc --noEmit et npm test verts."
+          ]
+        },
+        "after": {
+          "title": "Detecter le pin implicite stripe-node (defaut d'API version du SDK installe)",
+          "why": "Depuis stripe-node v12.0.0 (2023-04-06), sans option apiVersion dans le code, le SDK envoie quand meme un en-tete Stripe-Version : il epingle IMPLICITEMENT la version d'API courante au moment de sa propre release. Verifie 2026-09-05 dans le tarball npm : cjs/stripe.core.js fait `version: props.apiVersion || DEFAULT_API_VERSION` avec `DEFAULT_API_VERSION = apiVersion.ApiVersion` (v12+), la valeur etant le litteral du fichier genere cjs/apiVersion.js. En v11 et anterieur, ce meme `DEFAULT_API_VERSION` vaut `null` : aucun en-tete, c'est le defaut du compte qui s'applique. US-7 ne traite que le pin explicite (litteral lu sur la construction du client). Trou residuel : un repo avec stripe v13 et AUCUN apiVersion dans le code tourne en realite sur 2023-08-16 ; le garde US-7 le classe 'no-option', applique le fix base sur le changelog 2025-03-31.basil et produit une PR verte mais fausse a runtime. C'est exactement le scenario agnai (US-6) prive de son pin explicite.",
+          "acceptance_criteria": [
+            "AC1 - Aucune regression US-7 : src/changes/api-version.ts (apiVersionDate, isPinnedBefore, oldestApiVersion) reste byte-identique. La logique de lecture AST des options de construction livree en US-7 est extraite telle quelle dans une fonction interne resolveAstClientOption(project, vendorModule) au comportement inchange ; les tests US-7 qui la couvrent sont repointes dessus sans changer une assertion.",
+            "AC2 - src/matcher/installed-sdk.ts (NOUVEAU FICHIER SIBLING, pas de sous-dossier : convertir src/matcher/api-version.ts en repertoire deplacerait un fichier de la PR #10 encore ouverte pour zero benefice). Export unique : resolveInstalledSdkDefaultApiVersion(projectPath: string, vendorModule: string): InstalledSdkApiVersion. Si vendorModule !== 'stripe' -> unresolved (aucun scope creep multi-vendor).",
+            "AC3 - DEUX fichiers lus, ZERO table de correspondance. (a) <projectPath>/node_modules/<vendor>/package.json -> champ version -> majeur ; le majeur ne sert qu'a UN seuil, majeur >= 12, pas a deduire une date. (b) le premier existant parmi node_modules/<vendor>/{cjs,esm,lib}/apiVersion.js -> valeur exacte du litteral ApiVersion. La valeur n'est jamais derivee ni devinee : elle est lue.",
+            "AC4 - Lecture 100% AST (ts-morph), jamais regex, sur un Project jetable en memoire (le fichier NE DOIT PAS entrer dans le Project de la cible : node_modules y est exclu depuis US-1 et doit le rester). Formes a reconnaitre, les trois observees : `exports.ApiVersion = '<v>'` (BinaryExpression, PropertyAccessExpression a gauche) ; `export const ApiVersion = '<v>'` (VariableDeclaration) ; `module.exports = {ApiVersion: '<v>'}` (PropertyAssignment). PIEGES verifies au prototype 2026-09-05 : n'accepter que si le membre droit est un StringLiteral (v22 ecrit `exports.ApiMajorVersion = exports.ApiVersion = void 0;` avant l'affectation reelle) ; ne jamais prendre 'le premier litteral du fichier' ('use strict' en v12+) ni ApiMajorVersion ('clover', 'dahlia' - pas une date). La valeur lue passe par apiVersionDate() de src/changes/api-version.ts : meme regle de lisibilite des deux cotes, jamais dupliquee.",
+            "AC5 - Le type retour distingue 'trouve' de 'on ne sait pas', avec la raison. Nouvelle variante dans PinnedApiVersion : { status: 'pinned'; source: 'installed-sdk-default'; sdkVersion: string; versions: PinnedApiVersionSite[] } - meme champ `versions` (un seul element) que la variante ast-client-option, pour que pipeline.ts et pr.ts continuent de mapper `.versions` sans branchement. Nouvelles raisons unresolved, DISTINCTES entre elles et de 'no-client'/'no-option' : 'sdk-not-installed' (pas de node_modules/<vendor>), 'sdk-predates-implicit-pin' (majeur <= 11 : le SDK n'envoie pas d'en-tete, c'est le defaut du compte, inconnaissable statiquement), 'sdk-version-unreadable' (package.json ou apiVersion.js illisible / absent / litteral introuvable).",
+            "AC6 - Orchestration dans resolvePinnedApiVersion(project, vendorModule, projectPath) - le 3e parametre est REQUIS, pas optionnel : un parametre facultatif laisserait le trou ouvert en silence chez tout futur appelant. Precedence, alignee sur ce que fait le SDK (`props.apiVersion || DEFAULT_API_VERSION`) : 'pinned' explicite -> rendu tel quel, l'explicite gagne ; 'non-literal' -> rendu tel quel, le code ecrase le defaut du SDK par une valeur qu'on ne sait pas lire ; 'no-client' ET 'no-option' -> consulter la source implicite. 'no-option' est le cas PRINCIPAL (client construit sans apiVersion) : le restreindre a 'no-client' raterait la cible.",
+            "AC7 - node_modules absent : APPLIQUER + DIVULGUER, jamais bloquer, jamais se taire. Un clone non installe est le flux normal du tier Free ; bloquer la dessus tuerait l'outil invisiblement (meme arbitrage qu'US-7 sur 'non-literal'). Mais la phrase de repli actuelle de pr.ts ('no pinned apiVersion found in this repo...') NE DOIT PLUS pouvoir sortir quand on n'a pas pu regarder : une ligne PR.md et une ligne CLI par raison, ou 'on n'a pas pu regarder' (sdk-not-installed / sdk-version-unreadable), 'le SDK ne pose pas de pin, c'est le defaut de ton compte Stripe' (sdk-predates-implicit-pin) et 'on a regarde, il n'y a pas de pin' sont trois phrases differentes.",
+            "AC8 - Le racine de resolution est le WORKSPACE, pas le repertoire cible : linkNodeModules() (pipeline.ts, US-7) symlinke deja <target>/node_modules dans le workspace avant loadProject(), et le garde tourne apres. Consequence voulue : path.relative(workspace, filePath) rend 'node_modules/stripe/cjs/apiVersion.js' sans fuite de chemin absolu ni de '../'. Ne pas realpath le symlink.",
+            "AC9 - Quand la source implicite resout ET que la version est anterieure, le change est BLOQUE comme un pin explicite : aucune branche, aucun artefact, PipelineResult.skipped renseigne (reason 'pinned-api-version' inchange). La sortie CLI et PR.md nomment la source : un humain doit voir que la version vient du SDK installe, pas de son code.",
+            "AC10 - Fixture fixtures/implicit-pinned-stripe/ : la forme agnai SANS apiVersion (client construit avec la cle seule), des lectures subscription.current_period_* que le codemod subscription matche, une suite de tests verte et etanche (elle ne require jamais 'stripe') pour prouver que c'est le garde et non le verifier qui arrete le fix. Elle embarque un stub node_modules/stripe/ commite = package.json {version:'13.0.0'} + cjs/apiVersion.js contenant le contenu genere REEL de stripe 13.0.0 (exports.ApiVersion = '2023-08-16';). Verifie 2026-09-05 : ajouter '!fixtures/**/node_modules/' apres la ligne 'node_modules/' du .gitignore racine suffit a commiter ce stub sans desactiver l'ignore global.",
+            "AC11 - Zero reseau dans les tests : aucun npm install, aucun fetch, le stub est la seule source. Tests exiges : le cas bloquant e2e (stripe 13 installe + change 2025-03-31.basil -> skipped, pas de branche), au moins un cas par raison unresolved (pas de node_modules ; stripe v11 installe ; apiVersion.js absent), le cas majeur >= 12 avec version POSTERIEURE au change (applique), et la precedence explicite > implicite (les deux presents, l'explicite gagne).",
+            "AC12 - npx tsc --noEmit et npm test verts (scripts/dod.sh). Interdits : lire un .env, toucher docs/proof/**, elargir resolveRootToVendor/isVendorConstructor (src/matcher/symbol.ts), ajouter node_modules au Project de la cible."
+          ],
+          "definition_of_ready": {
+            "cadre_par": "architecte (2026-09-05 ; relance du cadrage interrompu le 2026-09-03, rien de conserve, reparti du besoin)",
+            "verdict": "READY",
+            "condition_d_entree": "US-9 etend des fichiers qui n'existent que sur feature/US-7-api-version-gating (PR #10, ouverte, porte humaine). Le dev branche depuis main APRES le merge de #10. C'est deja encode par dependencies:['US-7'] ; ne pas demarrer avant.",
+            "principe_directeur": "Un 'on ne sait pas' ne doit jamais s'afficher comme un 'il n'y a pas de pin'. US-7 a ferme le trou du pin lisible ; US-9 ferme celui du pin invisible. La regle du sens de l'erreur reste celle d'US-7 : ce module sert UNIQUEMENT le garde (elargir = bloquer davantage = direction conservatrice), jamais la decision d'EDITER.",
+            "P0_preuve_vendor_2026_09_05": {
+              "methode": "npm pack de 18 versions de stripe (8.222.0 -> 22.6.1) dans un scratch jetable, inspection du contenu des tarballs publies + lecture du core, puis prototype ts-morph d'extraction passe sur les 18. Zero supposition, zero doc.",
+              "constat_1_le_fichier_API_VERSION_N_EXISTE_PAS": "Aucun fichier 'API_VERSION' dans AUCUN des 18 tarballs, ni a la racine du depot git stripe-node (https://raw.githubusercontent.com/stripe/stripe-node/master/API_VERSION -> HTTP 404). Le titre de l'US et sa justification reposaient sur un artefact inexistant. Homonymes trompeurs a ne pas confondre : 'OPENAPI_VERSION' (present a partir de v18, vaut 'v2442' - un numero de build de spec, pas une date d'API) et 'VERSION' (git seulement, vaut la version du SDK).",
+              "constat_2_la_vraie_source": "Le seul artefact publie qui porte la version d'API est le fichier genere apiVersion.js. Chemin selon l'age du paquet : lib/apiVersion.js (v9 -> v11.17), cjs/apiVersion.js + esm/apiVersion.js (a partir de v11.18). La frontiere de chemin ne suit PAS le majeur (11.0.0 = lib/, 11.18.0 = cjs/), donc il faut sonder les chemins candidats, pas les deduire du majeur.",
+              "constat_3_le_seuil_est_v12_exactement": "Le fichier ne suffit pas : il faut savoir si le SDK s'en sert. lib/apiVersion.js existe des v9 mais le core y declare DEFAULT_API_VERSION = null (verifie sur 9.16.0, 10.17.0, 11.0.0 ET 11.18.0) -> aucun en-tete Stripe-Version envoye, la version effective est le defaut du compte. A partir de 12.0.0 : DEFAULT_API_VERSION = apiVersion.ApiVersion. 11.18.0 et 12.0.0 sont publies le MEME jour (2023-04-06, a 22 minutes d'ecart) et se comportent differemment : le seuil est le majeur, pas la date.",
+              "constat_4_extraction_verifiee": "Prototype ts-morph (3 formes, ~40 lignes) : 17 versions sur 18 rendent la valeur exacte. La seule qui echoue est 8.222.0, qui n'a pas le fichier et n'a pas non plus de pin implicite - l'echec tombe donc dans le bon cas. Valeurs lues (echantillon) : v12=2022-11-15, v13=2023-08-16, v14=2023-10-16, v15=2024-04-10, v16=2024-06-20, v17=2024-09-30.acacia, v18=2025-03-31.basil, v19=2025-09-30.clover, v20=2025-11-17.clover, v21=2026-03-25.dahlia, v22.6.1=2026-08-26.dahlia."
+            },
+            "D1_arbitrage_principal_TRANCHE": {
+              "decision": "LIRE LE PAQUET INSTALLE, ZERO TABLE. Les deux fichiers sont necessaires et ils ne repondent pas a la meme question : package.json repond 'ce SDK pose-t-il un pin implicite ?' (un seuil booleen, majeur >= 12) ; apiVersion.js repond 'lequel ?' (la valeur exacte, lue). Ce n'est pas un fallback, c'est une garde + une lecture.",
+              "pourquoi_pas_la_table": "Une table SDK->API est une source de peremption silencieuse, et son mode d'echec est precisement celui qu'US-9 existe pour fermer : a chaque release majeure de stripe-node, tout repo l'utilisant retombe dans 'non tabule -> null' et redevient un faux negatif muet. Le fichier, lui, est genere par Stripe a chaque release et livre dans le tarball : il ne peut pas se perimer.",
+              "preuve_que_la_table_derive_deja": "La table proposee par le PO etait deja fausse a deux endroits, et de deux facons instructives : 'v12.0.0 (2023-04-06)' confond la date de release du SDK avec la version d'API (v12 pointe en fait sur 2022-11-15, identique a v11) ; 'v18 (2025-03-31)' perd le canal (la vraie valeur est '2025-03-31.basil'). Une table ecrite a la main melange deux dates differentes des la 1re entree.",
+              "cout": "Deux lectures de fichier de quelques centaines d'octets, uniquement quand un change gate atteint le garde et que le resolveur explicite n'a rien trouve."
+            },
+            "D2_ecart_po_vers_architecte": {
+              "note": "Le PO avait sur-specifie la conception (chemin de sous-module, forme exacte du type, taille de table). Ce cadrage la reprend. Ecart trace ci-dessous, item par item.",
+              "retire_AC3_AC4_la_table_hardcodee_N_sup_5": "REMPLACE par la lecture de node_modules/<vendor>/{cjs,esm,lib}/apiVersion.js. Motif : peremption silencieuse (D1), et la table proposee etait deja fausse. package.json est CONSERVE mais reduit a un seuil (majeur >= 12), pas a une deduction.",
+              "retire_titre_et_why_fichier_API_VERSION": "Le fichier n'existe nulle part (P0 constat 1). Titre et justification corriges pour ne pas transmettre au dev une premisse fausse. La motivation produit, elle, est confirmee et meme renforcee : le mecanisme est reel, seule sa localisation etait supposee.",
+              "retire_AC3_chemin_src_matcher_api_version_implicit_ts": "REMPLACE par src/matcher/installed-sdk.ts, fichier frere. Motif : passer api-version.ts en repertoire obligerait a deplacer un fichier de la PR #10 non mergee (conflit garanti, benefice nul).",
+              "retire_AC2_source_node_modules_stripe_api_version": "REMPLACE par source: 'installed-sdk-default'. Motif : le discriminant doit nommer la SEMANTIQUE (le DEFAULT_API_VERSION du SDK) et non un chemin de fichier - le chemin a deja bouge une fois chez Stripe (lib/ -> cjs/, entre 11.17 et 11.18).",
+              "retire_AC2_forme_du_type_version_string_filePath_string": "REMPLACE par la meme forme `versions: PinnedApiVersionSite[]` que la variante existante (+ sdkVersion). Motif : la forme plate du PO aurait force pipeline.ts et pr.ts a brancher sur `source` juste pour lire une version, alors que le champ `source` avait justement ete pose en US-7 pour eviter de toucher les appelants.",
+              "retire_AC5_relancer_seulement_si_no_client": "ELARGI a 'no-client' ET 'no-option'. Motif : 'no-option' (client construit sans apiVersion) EST le cas cible ; s'en tenir a 'no-client' aurait rate la quasi-totalite des repos concernes. Le sens de la precedence est lu dans le SDK lui-meme : `props.apiVersion || DEFAULT_API_VERSION`.",
+              "conserve": "L'intention d'AC1 (ne pas toucher la comparaison pure), d'AC6 (fixture e2e forme agnai), d'AC7 (zero reseau) et d'AC8 (DoD). Elles sont reprises telles quelles, precisees."
+            },
+            "D3_node_modules_absent_LE_POINT_DUR": {
+              "regle": "APPLIQUER, et DIRE qu'on n'a pas pu regarder. Ne pas bloquer, ne pas se taire.",
+              "pourquoi_pas_bloquer": "Cloner un repo sans l'installer est le flux normal du tier Free. Bloquer tout change gate sur un repo non installe rendrait l'outil inoperant sur la majorite des cibles, et de facon invisible - exactement l'arbitrage deja tranche en US-7 pour 'non-literal'.",
+              "pourquoi_pas_se_taire": "C'est la regression de sens 2 (US-7) : une absence d'affichage se lit comme 'ton code est propre'. Ici le risque est pire, car la phrase de repli existante ('no pinned apiVersion found in this repo') affirme un fait qu'on n'a pas verifie.",
+              "trois_inconnues_a_ne_pas_fusionner": [
+                "sdk-not-installed : pas de node_modules/<vendor>. On n'a pas pu regarder. Action suggeree a l'humain : installer puis relancer.",
+                "sdk-predates-implicit-pin : majeur <= 11. On a regarde et le SDK ne pose PAS de pin ; la version effective est le defaut du compte, cote dashboard, hors de portee de toute analyse statique. Ce n'est ni un pin ni une absence de pin.",
+                "sdk-version-unreadable : paquet present mais package.json/apiVersion.js illisible ou litteral introuvable (paquet corrompu, forme inedite, stripe v8). Signal d'une hypothese cassee - a distinguer pour etre reperable en support."
+              ],
+              "invariant_a_tester": "Aucune sortie (CLI ou PR.md) ne doit pouvoir affirmer l'absence de pin dans un cas ou l'on n'a pas pu regarder. C'est un test, pas une intention."
+            },
+            "D4_integration": {
+              "appelant": "Unique : le garde d'US-7 dans src/pipeline.ts, entre matches.length === 0 et host.createBranch(). Emplacement inchange, aucune nouvelle position d'appel.",
+              "racine": "Le workspace (AC8). linkNodeModules() a deja symlinke <target>/node_modules dedans, et en mode in-place workspace === targetDir : une seule racine, pas de branchement double.",
+              "non_touche": "resolveRootToVendor / isVendorConstructor (src/matcher/symbol.ts) : intouches, comme en US-7. apiVersionDate / isPinnedBefore / oldestApiVersion : intouches. Le Project de la cible : n'accueille jamais node_modules.",
+              "limite_assumee": "`{ apiVersion: undefined }` explicite est falsy cote SDK (le defaut s'applique donc) mais notre lecteur le classe 'non-literal' et ne consulte pas l'implicite. Zero cas observe ; limite documentee, pas un oubli."
+            },
+            "D5_pourquoi_pas_la_convention_4_morceaux": "La convention 'un change ship en 4 morceaux' (Change+Codemod, registre, fixture, test) ne s'applique pas : US-9 n'ajoute aucun Change. Elle etend un garde. Livrables : module + extension du type + integration + fixture + tests.",
+            "hors_scope": [
+              "Tout autre vendor et tout autre langage (la fonction refuse explicitement vendorModule !== 'stripe').",
+              "Lire un .env de la cible (secrets, blast radius - CLAUDE.md).",
+              "Tout appel reseau, y compris pour resoudre une version de SDK non installee.",
+              "Logique de canal (acacia/basil/clover/dahlia/preview) : la comparaison reste sur les 10 premiers caracteres, decision US-7 inchangee.",
+              "Lire le lockfile ou package.json de la CIBLE pour deviner une version non installee : un range ('^13.0.0') n'est pas une version, et resoudre demanderait le reseau.",
+              "docs/proof/**, CI config, lockfiles."
+            ],
+            "risques": [
+              "Faux blocage : un repo dont le client passe apiVersion dans une forme que le finder US-7 ne voit pas, avec un vieux SDK installe, sera bloque a tort. Accepte : le garde a le bon sens d'erreur (bloquer > editer faux) et la sortie nomme la source pour qu'un humain tranche en 5 secondes.",
+              "Le stub node_modules commite dans la fixture peut surprendre (il est ignore par defaut). A commenter dans la fixture et dans le .gitignore.",
+              "Depend du merge de la PR #10. Si US-7 bouge en revue humaine (renommage du type, des raisons), rejouer ce cadrage sur les noms - la substance (D1, D3) ne bouge pas."
+            ]
+          }
+        }
+      }
+    },
+    {
+      "ts": "2026-09-04T22:02:50.721Z",
+      "type": "move",
+      "actor": "architecte",
+      "us": "US-9",
+      "note": "ready"
+    },
+    {
+      "ts": "2026-09-04T22:02:50.774Z",
+      "type": "refinement",
+      "actor": "architecte",
+      "us": "US-9",
+      "note": "US-9 cadree (relance). PREUVE (npm pack 18 versions, 2026-09-05): le fichier API_VERSION n'existe NULLE PART (ni tarball ni git, 404) - premisse du PO invalidee. Vraie source = fichier genere apiVersion.js (lib/ jusqu'a v11.17, cjs/+esm/ ensuite), et le seuil du pin implicite est le majeur >= 12 exactement (DEFAULT_API_VERSION=null en v11.18, =ApiVersion en v12.0.0, publies le meme jour). DECISION: lire les 2 fichiers du paquet installe (package.json = seuil, apiVersion.js = valeur exacte), ZERO table - la table du PO etait deja fausse (v12 -> 2022-11-15 pas 2023-04-06; v18 -> 2025-03-31.basil pas 2025-03-31). Nouveau module src/matcher/installed-sdk.ts (fichier frere, pas de sous-dossier: PR #10 ouverte), source 'installed-sdk-default', consultee sur no-client ET no-option. node_modules absent -> APPLIQUER + DIVULGUER avec 3 raisons distinctes (sdk-not-installed / sdk-predates-implicit-pin / sdk-version-unreadable): un 'on ne sait pas' ne doit jamais s'afficher comme un 'pas de pin'. READY, demarrage apres merge de la PR #10 (US-7)."
+    },
+    {
+      "ts": "2026-09-04T22:03:17.060Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-04T22:04:05.293Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-04T22:05:13.007Z",
+      "type": "decision",
+      "actor": "orchestrateur",
+      "us": "US-9",
+      "note": "Cadrage relance et abouti. Les 3 arbitrages sont tranches. ARBITRAGE 1 tranche SUR PREUVE (npm pack de 18 versions stripe 8.222.0->22.6.1): les DEUX options du PO etaient fausses. Le fichier API_VERSION nexiste pas (absent des 18 tarballs ET du depot git, 404 sur raw.githubusercontent). La vraie source est le fichier genere apiVersion.js (lib/ jusqua v11.17, puis cjs/+esm/ des v11.18 - la frontiere ne suit PAS le majeur). Et il ne suffit pas: DEFAULT_API_VERSION vaut null jusqua 11.18 et apiVersion.ApiVersion des 12.0.0, les deux publiees le meme jour a 22 min decart, donc le seuil est le MAJEUR jamais la date. package.json repond ce SDK pin-t-il (seuil booleen majeur>=12), apiVersion.js repond lequel (valeur LUE). Table hardcodee REJETEE: son mode de peremption EST le faux negatif muet que lUS existe pour fermer, et la table du PO etait deja fausse deux fois (v12 pointe 2022-11-15 pas 2023-04-06; v18 perd le canal .basil). ARBITRAGE 2: 6 prescriptions de conception du PO retirees et remplacees, ecart trace item par item dans la DoR (champ D2_ecart_po_vers_architecte). Correction de fond: AC5 elargi de no-client a no-client ET no-option, car no-option (client construit sans apiVersion) EST le cas cible - sen tenir a no-client ratait presque tous les repos concernes. ARBITRAGE 3: appliquer + divulguer, jamais bloquer jamais se taire. Trois inconnues restent distinctes entre elles et distinctes de pas de pin: sdk-not-installed, sdk-predates-implicit-pin, sdk-version-unreadable. La phrase de repli de pr.ts (no pinned apiVersion found in this repo) ne doit plus pouvoir sortir quand on na pas pu regarder: elle affirme un fait non verifie. AC11 en fait un TEST pas une intention. 12 AC, DoR complete. Le titre et le why de lUS ont ete corriges (une premisse fausse ne doit pas etre transmise au dev)."
+    },
+    {
+      "ts": "2026-09-04T22:05:20.028Z",
+      "type": "gate",
+      "actor": "orchestrateur",
+      "us": "US-9",
+      "note": "US-9 est READY mais NON TIREE volontairement: dependance dure sur US-7. src/matcher/api-version.ts nexiste que sur feature/US-7-api-version-gating (PR #10 OPEN, CI verte, MERGEABLE/CLEAN). Le dev doit brancher depuis main APRES le merge, sinon conflit garanti. Cest une porte HUMAINE (merge de #10 et #11), pas un blocage technique: WIP reste a 0, US-9 devient tirable sans changement detat des que #10 est mergee. Risque trace par larchitecte: si US-7 bouge en revue humaine (noms du type ou des raisons), rejouer le cadrage SUR LES NOMS uniquement - la substance (source de verite = apiVersion.js + seuil majeur>=12; regle appliquer+divulguer) ne bouge pas."
+    },
+    {
+      "ts": "2026-09-04T22:05:30.732Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
     }
   ]
 }

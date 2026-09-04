@@ -6,3 +6,4 @@
 - [Détection : la forme du change se lit dans l'URL du changelog](decision_detection_change_shape.md) — `/api/x/create` = matcher générique OK, `/api/x/object` = codemod manuel.
 - [Portée du formatage du fixer (US-8)](decision_fixer_format_scope.md) — plage AST, jamais le fichier ; ts-morph expose bien `Node#formatText` (le README US-6 dit le contraire, à tort).
 - [Garde version d'API (US-7)](decision_api_version_gating.md) — le sens de l'erreur diffère matcher vs garde ; comparer 10 caractères ; stripe-node ≥ v12 épingle implicitement.
+- [Pin implicite du SDK installé (US-9)](decision_implicit_sdk_pin.md) — le fichier `API_VERSION` n'existe pas ; lire `apiVersion.js` + seuil majeur ≥ 12, jamais une table.
