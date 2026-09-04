@@ -1,0 +1,9 @@
+{
+  "name": "implicit-pinned-stripe",
+  "version": "1.0.0",
+  "description": "Sample target repo with NO apiVersion anywhere in its code — and therefore pinned anyway, implicitly, by the stripe-node v13 it has installed (2023-08-16). The agnaistic/agnai shape from the US-6 proof, stripped of its explicit pin: this is the hole US-7's guard could not see and US-9 closes.",
+  "type": "commonjs",
+  "scripts": {
+    "test": "node --test"
+  }
+}
