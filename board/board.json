@@ -4887,6 +4887,24 @@
       "type": "gate",
       "actor": "dod",
       "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-04T23:45:35.953Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-04T23:48:38.155Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-09T09:49:01.159Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
     }
   ]
 }
