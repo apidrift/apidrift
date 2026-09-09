@@ -4917,6 +4917,24 @@
       "type": "gate",
       "actor": "dod",
       "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-09T09:59:00.220Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-09T10:02:01.218Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-09T10:08:38.564Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
     }
   ]
 }
