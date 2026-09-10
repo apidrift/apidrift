@@ -87,11 +87,36 @@ export function identifierImportedFromModule(id: Identifier, moduleName: string)
   return false;
 }
 
-/** `new Stripe(...)` where `Stripe` is imported from `moduleName`. */
+/**
+ * Does `id`'s own variable declaration trace back to `require('<moduleName>')`
+ * (`const Stripe = require('stripe')`)? Sibling of `identifierImportedFromModule`
+ * for the equally common CommonJS construction shape — `new Stripe(...)` where
+ * `Stripe` was never `import`ed. Does NOT cover the destructured shape
+ * (`const { Stripe } = require('stripe')`) — that stays a documented gap (see
+ * module doc).
+ */
+function identifierRequiredFromModule(id: Identifier, moduleName: string): boolean {
+  const symbol = id.getSymbol();
+  if (!symbol) return false;
+  for (const decl of symbol.getDeclarations()) {
+    if (!Node.isVariableDeclaration(decl)) continue;
+    const init = decl.getInitializer();
+    if (init && isRequireCall(init, moduleName)) return true;
+  }
+  return false;
+}
+
+/**
+ * `new Stripe(...)` where `Stripe` is bound to the vendor module, either via
+ * an ES import (`import Stripe from 'stripe'`) or a CommonJS require
+ * (`const Stripe = require('stripe')`) — both are ordinary, equally common
+ * ways real repos construct a vendor client.
+ */
 function isVendorConstructor(node: Node, moduleName: string): boolean {
   if (!Node.isNewExpression(node)) return false;
   const ctor = node.getExpression();
-  return Node.isIdentifier(ctor) && identifierImportedFromModule(ctor, moduleName);
+  if (!Node.isIdentifier(ctor)) return false;
+  return identifierImportedFromModule(ctor, moduleName) || identifierRequiredFromModule(ctor, moduleName);
 }
 
 /** Does this initializer expression resolve to the vendor module (factory call or constructor)? */

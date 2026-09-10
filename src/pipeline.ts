@@ -4,13 +4,14 @@ import path from 'node:path';
 import { codemods as defaultCodemods } from './changes/index.js';
 import { isPinnedBefore, oldestApiVersion } from './changes/api-version.js';
 import { findMatches, loadProject } from './matcher/index.js';
-import { resolvePinnedApiVersion, type PinnedApiVersion } from './matcher/api-version.js';
+import { resolvePinnedApiVersion, resolveAstClientOption, type PinnedApiVersion } from './matcher/api-version.js';
 import { applyFix } from './fixer/index.js';
 import { verify } from './verifier/index.js';
 import { buildPrBody } from './pr.js';
 import { LocalGitHost } from './githost/local.js';
 import type { GitHost } from './githost/types.js';
 import type { Llm } from './fixer/llm.js';
+import type { Project } from 'ts-morph';
 import type { Codemod, PipelineResult } from './types.js';
 
 export interface RunOptions {
@@ -77,6 +78,27 @@ function linkNodeModules(targetDir: string, workspace: string): void {
   }
 }
 
+/**
+ * Anti-silence guard for detection-fed changes (no `apply()`, US-2/genericSymbolCodemod):
+ * zero matches for `change.target.symbol` while the repo DOES construct
+ * `change.vendor`'s client somewhere is suspicious — it may mean the matcher's
+ * root resolution (src/matcher/symbol.ts) just doesn't recognize this repo's
+ * particular construction shape, not that the change is inapplicable. A
+ * hand-written codemod (has `apply()`) never gets this: 0 matches is its
+ * ordinary, silent, ship-as-is case — most repos simply don't use the
+ * deprecated pattern at all.
+ *
+ * Reuses `resolveAstClientOption` (US-7) purely for its `sawClient` signal —
+ * "is there a vendor client construction ANYWHERE in this project" — not for
+ * version resolution.
+ */
+function noMatchWarning(codemod: Codemod, project: Project): PipelineResult['warning'] {
+  if (typeof codemod.apply === 'function') return undefined;
+  const site = resolveAstClientOption(project, codemod.change.vendor);
+  const vendorUsagePresent = !(site.status === 'unresolved' && site.reason === 'no-client');
+  return vendorUsagePresent ? { reason: 'vendor-present-no-match' } : undefined;
+}
+
 async function runCodemod(
   codemod: Codemod,
   targetDir: string,
@@ -98,7 +120,11 @@ async function runCodemod(
 
   const project = loadProject(workspace);
   const matches = findMatches(project, codemod);
-  if (matches.length === 0) { cleanup(); return empty; }
+  if (matches.length === 0) {
+    const warning = noMatchWarning(codemod, project);
+    cleanup();
+    return warning ? { ...empty, warning } : empty;
+  }
 
   const relativize = (list: typeof matches) =>
     list.map((m) => ({ ...m, filePath: path.relative(workspace, m.filePath) }));

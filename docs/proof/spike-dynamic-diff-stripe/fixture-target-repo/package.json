@@ -1,0 +1,9 @@
+{
+  "name": "spike-target-repo",
+  "version": "1.0.0",
+  "description": "Disposable spike fixture: a repo genuinely on an older Stripe API version, hit by a REAL, currently-live Stripe breaking change (payment_method_types removal, 2026-08-26.preview). Not part of the apidrift product repo.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  }
+}

@@ -143,7 +143,7 @@ async function main() {
   }
 
   const results = await run(targetDir, { outputDir, mode: 'workspace', llm, codemods });
-  let opened = 0, skipped = 0, blocked = 0;
+  let opened = 0, skipped = 0, blocked = 0, warned = 0;
 
   for (const r of results) {
     if (!r.applied) {
@@ -153,6 +153,20 @@ async function main() {
       // found call sites and left them alone on purpose. No artifact is
       // written for this case either — a draft PR carrying a known-wrong fix
       // would just invite someone to merge it.
+      // Anti-silence guard: a detection-fed change (no hand-written apply())
+      // matched zero call sites in a repo that DOES construct this vendor's
+      // client somewhere. Never let that read as an ordinary "nothing to do" —
+      // it may mean the matcher just doesn't recognize this repo's
+      // construction shape, which is a real gap, not a clean bill of health.
+      if (r.warning?.reason === 'vendor-present-no-match') {
+        warned += 1;
+        console.log(`${c.amber}⚠${c.reset}  ${c.bold}${r.change.title}${c.reset}`);
+        console.log(`  ${c.amber}WARNING: change detected but no matching call site found for ${r.change.target.symbol}${c.reset}`);
+        console.log(`  ${c.dim}this repo DOES construct a ${r.change.vendor} client somewhere — the usage pattern may not be one the matcher recognizes.${c.reset}`);
+        console.log(`  ${c.dim}this is NOT a confirmed "not applicable" — verify manually before assuming there is nothing to fix.${c.reset}`);
+        console.log('');
+        continue;
+      }
       if (r.skipped?.reason === 'pinned-api-version') {
         blocked += 1;
         const s = r.skipped;
@@ -207,7 +221,10 @@ async function main() {
   const blockedNote = blocked > 0
     ? `, ${c.amber}${blocked} change${blocked === 1 ? '' : 's'} not applied (pinned API version)${c.reset}`
     : '';
-  console.log(`${c.bold}done${c.reset} — ${opened} pull request${opened === 1 ? '' : 's'} in ${c.bold}${outputDir}${c.reset}${blockedNote}`);
+  const warnedNote = warned > 0
+    ? `, ${c.amber}${warned} change${warned === 1 ? '' : 's'} detected but unmatched — see WARNING above${c.reset}`
+    : '';
+  console.log(`${c.bold}done${c.reset} — ${opened} pull request${opened === 1 ? '' : 's'} in ${c.bold}${outputDir}${c.reset}${blockedNote}${warnedNote}`);
   if (inference.policy === 'deterministic-only') {
     console.log(`${c.dim}tip: set ANTHROPIC_API_KEY and pass --ai to also fix changes without a codemod.${c.reset}`);
   }

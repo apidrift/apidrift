@@ -1,0 +1,24 @@
+From 1e306f7d7fccbc6e9367b07d681ca5509777ce5e Mon Sep 17 00:00:00 2001
+From: "apidrift[bot]" <bot@apidrift.dev>
+Date: Thu, 10 Sep 2026 17:15:20 +0200
+Subject: [PATCH] Removes support for specifying payment method types in
+ Payment Intents and Setup Intents
+
+---
+ src/checkout.js | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/src/checkout.js b/src/checkout.js
+index 7fe814f..24f1aec 100644
+--- a/src/checkout.js
++++ b/src/checkout.js
+@@ -10,7 +10,6 @@ export async function createPaymentIntent({ amountCents, currency }) {
+   const intent = await stripe.paymentIntents.create({
+     amount: amountCents,
+     currency,
+-    payment_method_types: ['card'],
+   });
+ 
+   return { id: intent.id, amount: intent.amount, currency: intent.currency };
+-- 
+2.39.5

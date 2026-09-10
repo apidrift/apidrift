@@ -1,0 +1,30 @@
+TAP version 13
+# Subtest: creates a payment intent for the requested amount and currency
+not ok 1 - creates a payment intent for the requested amount and currency
+  ---
+  duration_ms: 1.572043
+  location: '/tmp/apidrift-spike/target-repo/test/checkout.test.js:7:1'
+  failureType: 'testCodeFailure'
+  error: 'Stripe API error: payment_method_types_no_longer_supported'
+  code: 'payment_method_types_no_longer_supported'
+  stack: |-
+    rejectPaymentMethodTypes (file:///tmp/apidrift-spike/target-repo/node_modules/stripe/index.js:17:11)
+    Object.create (file:///tmp/apidrift-spike/target-repo/node_modules/stripe/index.js:29:9)
+    createPaymentIntent (file:///tmp/apidrift-spike/target-repo/src/checkout.js:10:46)
+    TestContext.<anonymous> (file:///tmp/apidrift-spike/target-repo/test/checkout.test.js:8:24)
+    Test.runInAsyncScope (node:async_hooks:206:9)
+    Test.run (node:internal/test_runner/test:796:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:526:18)
+    node:internal/test_runner/harness:255:12
+    node:internal/process/task_queues:140:7
+    AsyncResource.runInAsyncScope (node:async_hooks:206:9)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 72.269584

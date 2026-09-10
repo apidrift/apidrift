@@ -126,4 +126,17 @@ export interface PipelineResult {
    * Absent for changes with no `apiVersion` — those never reach the guard.
    */
   pinnedApiVersion?: PinnedApiVersion;
+  /**
+   * Anti-silence guard, set ONLY for a Change with no deterministic `apply()`
+   * (i.e. detection-fed, tier-2-only) that matched ZERO call sites in a repo
+   * that nonetheless DOES construct `change.vendor`'s client somewhere. "No
+   * matches" here may mean "the matcher doesn't recognize this repo's
+   * construction shape" rather than "not applicable" — that distinction must
+   * never collapse into an ordinary, silent 0-match skip. Never set for a
+   * hand-written codemod: 0 matches there is its ordinary, ship-as-is case
+   * (most repos don't use the deprecated pattern at all), not a gap to flag.
+   */
+  warning?: {
+    reason: 'vendor-present-no-match';
+  };
 }

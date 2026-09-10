@@ -6,6 +6,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { run } from '../src/pipeline.js';
 import { codemods as defaultCodemods } from '../src/changes/index.js';
+import { stripeChargesToIntents } from '../src/changes/stripe-charges-to-intents.js';
 import { detectChanges, type Fetcher } from '../src/detection/index.js';
 import { genericSymbolCodemod } from '../src/matcher/symbol.js';
 import type { Llm, LlmRequest, LlmResponse } from '../src/fixer/llm.js';
@@ -172,6 +173,123 @@ test('AC5: a forme #2 change is never among detectChanges().autoExecutable, so i
   assert.deepStrictEqual(result.autoExecutable, [], 'forme #2 must never be injectable into RunOptions.codemods');
   assert.strictEqual(result.all.length, 1);
   assert.strictEqual(result.all[0].classification, 'object');
+});
+
+// ── anti-silence guard (Phase-0 spike follow-up) ────────────────────────────
+// A detection-fed Change (no apply()) that matches zero call sites must never
+// read as an ordinary, silent "nothing to do" when the repo demonstrably DOES
+// construct the vendor's client — that's the exact shape of "the matcher just
+// doesn't recognize this repo's construction pattern" (see the destructured
+// require gap documented in tests/matcher-symbol.test.ts), which is a real gap
+// to flag, not a clean bill of health.
+
+test('anti-silence: a detected change with 0 matches WARNS when the repo constructs the vendor client via an unrecognized shape', async () => {
+  const change = genericSymbolCodemod({
+    id: 'test-stripe-subscriptions-retrieve',
+    vendor: 'stripe',
+    source: 'changelog',
+    kind: 'breaking',
+    title: 'test change',
+    target: { type: 'symbol', symbol: 'stripe.subscriptions.retrieve' },
+    migration: { op: 'removed', detail: 'irrelevant to this test' },
+    references: ['https://docs.stripe.com/changelog.md (consulted 2026-09-10)'],
+    confidence: 'low',
+  });
+
+  // Destructured require: a documented gap in the generic matcher's root
+  // resolution, but resolveAstClientOption (US-7, deliberately WIDE) still
+  // sees the construction — that gap between "the guard can see it" and "the
+  // matcher can act on it" is exactly what this warning exists to surface.
+  const repo = makeRepo(
+    `'use strict';
+const { Stripe } = require('stripe');
+const stripe = new Stripe(process.env.STRIPE_KEY);
+async function loadSub(id) {
+  return stripe.subscriptions.retrieve(id);
+}
+module.exports = { loadSub };
+`,
+    `'use strict';
+const { test } = require('node:test');
+test('placeholder — never executed, matches.length is 0', () => {});
+`,
+  );
+
+  const results = await run(repo, {
+    outputDir: fs.mkdtempSync(path.join(os.tmpdir(), 'apidrift-warn-out-')),
+    codemods: [change],
+  });
+
+  assert.strictEqual(results.length, 1);
+  assert.strictEqual(results[0].matches.length, 0, 'the destructured-require shape is a documented matcher gap');
+  assert.deepStrictEqual(results[0].warning, { reason: 'vendor-present-no-match' });
+
+  fs.rmSync(repo, { recursive: true, force: true });
+});
+
+test('anti-silence: no warning when there is genuinely no vendor client anywhere in the repo (the ordinary, ship-as-is case)', async () => {
+  const change = genericSymbolCodemod({
+    id: 'test-stripe-subscriptions-retrieve-absent',
+    vendor: 'stripe',
+    source: 'changelog',
+    kind: 'breaking',
+    title: 'test change',
+    target: { type: 'symbol', symbol: 'stripe.subscriptions.retrieve' },
+    migration: { op: 'removed', detail: 'irrelevant to this test' },
+    references: ['https://docs.stripe.com/changelog.md (consulted 2026-09-10)'],
+    confidence: 'low',
+  });
+
+  const repo = makeRepo(
+    `'use strict';
+function loadSub(id) { return { id }; } // no stripe usage at all
+module.exports = { loadSub };
+`,
+    `'use strict';
+const { test } = require('node:test');
+test('placeholder — never executed, matches.length is 0', () => {});
+`,
+  );
+
+  const results = await run(repo, {
+    outputDir: fs.mkdtempSync(path.join(os.tmpdir(), 'apidrift-nowarn-out-')),
+    codemods: [change],
+  });
+
+  assert.strictEqual(results[0].matches.length, 0);
+  assert.strictEqual(results[0].warning, undefined, 'no vendor client anywhere: an ordinary, silent "not applicable"');
+
+  fs.rmSync(repo, { recursive: true, force: true });
+});
+
+test('anti-silence: NEVER fires for a hand-written codemod (apply() present) — 0 matches stays its ordinary, silent case', async () => {
+  // stripeChargesToIntents matches `charges.create`; this repo's Stripe client
+  // is real and constructed, but only ever calls `paymentIntents.retrieve` —
+  // the overwhelmingly common case (most repos simply don't use the
+  // deprecated pattern) that must stay silent, exactly as before this change.
+  const repo = makeRepo(
+    `'use strict';
+const stripe = require('stripe')(process.env.STRIPE_KEY);
+async function loadIntent(id) {
+  return stripe.paymentIntents.retrieve(id);
+}
+module.exports = { loadIntent };
+`,
+    `'use strict';
+const { test } = require('node:test');
+test('placeholder — never executed, matches.length is 0', () => {});
+`,
+  );
+
+  const results = await run(repo, {
+    outputDir: fs.mkdtempSync(path.join(os.tmpdir(), 'apidrift-handwritten-out-')),
+    codemods: [stripeChargesToIntents],
+  });
+
+  assert.strictEqual(results[0].matches.length, 0);
+  assert.strictEqual(results[0].warning, undefined, 'a hand-written codemod never gets the anti-silence warning');
+
+  fs.rmSync(repo, { recursive: true, force: true });
 });
 
 test('AC7: non-regression — a run with no `codemods` option still uses exactly the hardcoded registry, unchanged by US-2', async () => {

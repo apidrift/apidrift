@@ -49,6 +49,23 @@ test('generic matcher: matches through a renamed binding (`stripeClient`, `clien
   fs.rmSync(repo, { recursive: true, force: true });
 });
 
+test('generic matcher: matches `new Stripe(...)` bound via CommonJS `const Stripe = require("stripe")`', () => {
+  const repo = makeRepo({
+    'src/billing.js': `
+      const Stripe = require('stripe');
+      const client = new Stripe(process.env.STRIPE_KEY);
+      async function loadSub(id) {
+        return client.subscriptions.retrieve(id);
+      }
+      module.exports = { loadSub };
+    `,
+  });
+  const project = loadProject(repo);
+  const find = createSymbolMatcher('stripe.subscriptions.retrieve', 'stripe');
+  assert.strictEqual(find(project).length, 1, 'require + new is an ordinary, common construction shape and must match');
+  fs.rmSync(repo, { recursive: true, force: true });
+});
+
 test('generic matcher: matches `new Stripe(...)` bound via a default import from the vendor module', () => {
   const repo = makeRepo({
     'src/billing.ts': `
@@ -150,6 +167,23 @@ test('SAFETY: `this.stripe` never assigned to the vendor module does not match',
   const project = loadProject(repo);
   const find = createSymbolMatcher('stripe.subscriptions.retrieve', 'stripe');
   assert.strictEqual(find(project).length, 0);
+  fs.rmSync(repo, { recursive: true, force: true });
+});
+
+test('KNOWN GAP: destructured `const { Stripe } = require("stripe")` does not match (documented, not silently regressed)', () => {
+  const repo = makeRepo({
+    'src/billing.js': `
+      const { Stripe } = require('stripe');
+      const client = new Stripe(process.env.STRIPE_KEY);
+      async function loadSub(id) {
+        return client.subscriptions.retrieve(id);
+      }
+      module.exports = { loadSub };
+    `,
+  });
+  const project = loadProject(repo);
+  const find = createSymbolMatcher('stripe.subscriptions.retrieve', 'stripe');
+  assert.strictEqual(find(project).length, 0, 'destructured require stays a documented gap, covered instead by the pipeline anti-silence warning');
   fs.rmSync(repo, { recursive: true, force: true });
 });
 
