@@ -27,3 +27,5 @@ worktrees/
 *.key
 id_rsa
 id_rsa.pub
+
+.claude/settings.local.json
