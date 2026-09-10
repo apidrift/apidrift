@@ -6,7 +6,7 @@ import { run } from './pipeline.js';
 import { resolveLlm } from './fixer/providers.js';
 import { resolveInference, describePolicy, type CliFlags } from './config.js';
 import { codemods as defaultCodemods } from './changes/index.js';
-import { detectChanges, type Fetcher } from './detection/index.js';
+import { detectChanges, httpFetcher } from './detection/index.js';
 import { genericSymbolCodemod } from './matcher/symbol.js';
 import { apiVersionNote } from './pr.js';
 import type { Change, Codemod } from './types.js';
@@ -84,13 +84,6 @@ function parse(argv: string[]) {
     release: getVal('--release'),
   } as const;
 }
-
-/** Real network fetch for --detect. Never called unless the user opts in. */
-const httpFetcher: Fetcher = async (url) => {
-  const res = await fetch(url, { headers: { 'Accept-Language': 'en-US' } });
-  if (!res.ok) throw new Error(`detection: GET ${url} -> HTTP ${res.status}`);
-  return res.text();
-};
 
 async function main() {
   const p = parse(process.argv);

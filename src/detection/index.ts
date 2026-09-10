@@ -23,6 +23,29 @@ export type Fetcher = (url: string) => Promise<string>;
 
 export const DEFAULT_CHANGELOG_INDEX_URL = 'https://docs.stripe.com/changelog.md';
 
+/**
+ * The one real network `Fetcher` this project ships — every caller that talks
+ * to the live changelog (`src/cli.ts`, and `VendorSource` via
+ * `stripe-source.ts`) goes through this, instead of each defining its own
+ * `fetch()` wrapper.
+ *
+ * `Accept-Language: en-US` is not cosmetic (US-12, P0 constat 3, verified
+ * live 2026-09-10): without it `docs.stripe.com` serves French, `## Changes`
+ * becomes `## Modifications`, `extractSection` returns `null`, and every
+ * detail page silently contributes ZERO changes — in HTTP 200, with no
+ * exception to catch. The index page still parses fine either way (the table
+ * header `Breaking`/`Non-breaking` is not translated), so nothing else in the
+ * pipeline notices. Centralizing the header here — rather than leaving each
+ * caller to remember it — is the fix: see
+ * `tests/vendor-source.test.ts` for the regression test that fails if this
+ * header is ever dropped.
+ */
+export const httpFetcher: Fetcher = async (url) => {
+  const res = await fetch(url, { headers: { 'Accept-Language': 'en-US' } });
+  if (!res.ok) throw new Error(`detection: GET ${url} -> HTTP ${res.status}`);
+  return res.text();
+};
+
 export interface DetectOptions {
   fetcher: Fetcher;
   /** The `<date>.<release>` heading to poll, e.g. "2026-08-26.preview". Required: this MVP targets one explicit release, it does not infer "what's new since last time" (out of scope). */
