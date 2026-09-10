@@ -1,6 +1,6 @@
 ---
 name: decision-walk-channel-line
-description: Le walk de plage doit filtrer par ligne de canal (.preview = ligne parallèle) ; la règle US-7 des 10 caractères ne se transpose PAS du garde au walk.
+description: Ligne stable = « tout ce qui ne finit pas par .preview », ordonné par date — jamais « même canal », jamais une liste ordonnée de canaux ; la règle US-7 des 10 caractères ne se transpose PAS du garde au walk.
 metadata:
   type: project
 ---
@@ -8,6 +8,22 @@ metadata:
 Un walk de releases Stripe doit exclure le canal `.preview` sauf si la borne
 basse est elle-même `.preview`. Toute autre release (acacia/basil/clover/dahlia
 ou heading sans canal) appartient à la ligne stable.
+
+**Les deux formulations FAUSSES, toutes deux rencontrées en vrai (2026-09-10) :**
+1. « même canal que la borne » (`channelOf(release) === channelOf(from)`) —
+   c'est ce qu'US-12 a livré. Depuis `2023-08-16` le walk s'arrête à
+   `2024-06-20` : 3 releases / 14 pages au lieu de 27 / 69, et rate les 25
+   changes forme #1 concentrés sur `2025-03-31.basil`. Effet pervers : il fait
+   « marcher » l'exclusion de preview par accident, donc elle disparaît en
+   silence dès qu'on corrige la continuité — d'où l'exigence d'une condition
+   nommée + test de mutation.
+2. « un modèle de ligne ordonnée de canaux » (legacy → acacia → basil →
+   clover → dahlia) — proposé en revue QA, REFUSÉ : c'est la table à péremption
+   silencieuse de [[decision-implicit-sdk-pin]], et elle est **inutile**.
+   Vérifié sur les 140 headings : la ligne stable est strictement monotone en
+   DATE (123 headings non-preview, 5 segments successifs sans entrelacement),
+   donc trier par `apiVersionDate()` produit la même séquence sans rien à
+   maintenir.
 
 **Why:** mesuré le 2026-09-10 sur le changelog live. Repo épinglé
 `2026-03-25.dahlia` (pin implicite de stripe-node v21, repo sain) : walk naïf à

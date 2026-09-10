@@ -6209,6 +6209,1489 @@
       "type": "gate",
       "actor": "dod",
       "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-10T17:20:48.181Z",
+      "type": "move",
+      "actor": "dev#1",
+      "us": "US-12",
+      "note": "ready>in_progress"
+    },
+    {
+      "ts": "2026-09-10T17:20:48.240Z",
+      "type": "delegate",
+      "actor": "orchestrateur",
+      "target": "dev#1",
+      "us": "US-12",
+      "payload": {
+        "us": "US-12",
+        "component": "detection",
+        "branche": "feature/US-12-vendor-source",
+        "allowed_paths": [
+          "src/detection/**",
+          "src/cli.ts",
+          "fixtures/stripe-changelog/**",
+          "tests/**"
+        ],
+        "interdits": [
+          "board/**",
+          "architecture/**",
+          "CLAUDE.md",
+          "docs/architecture.md",
+          "src/matcher/**",
+          "src/changes/index.ts",
+          "src/pipeline.ts",
+          "src/verifier/**",
+          "package-lock.json",
+          ".github/**"
+        ],
+        "note": "US-13 tenue en attente : dependance US-12, pas de parallelisation"
+      }
+    },
+    {
+      "ts": "2026-09-10T17:20:51.108Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-10T17:21:42.647Z",
+      "type": "decision",
+      "actor": "orchestrateur",
+      "us": "US-13",
+      "note": "US-13 NON parallelisee avec US-12 malgre la consigne de tirer les deux : dependance declaree US-13 -> US-12 et collision de fichiers (les deux ecrivent src/detection/vendor-source.ts, stripe-source.ts et stripe-changelog.ts). Deux worktrees concurrents sur ces fichiers = conflit garanti pour zero gain. US-13 reste ready, tiree des le merge d US-12 (meme schema que la condition d entree US-9 -> US-7)."
+    },
+    {
+      "ts": "2026-09-10T17:21:49.093Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-10T17:34:57.656Z",
+      "type": "report",
+      "actor": "dev#1",
+      "us": "US-12",
+      "payload": {
+        "status": "done",
+        "branche": "feature/US-12-vendor-source",
+        "commit": "2fda315",
+        "pr": "https://github.com/apidrift/apidrift/pull/13",
+        "dod": "vert (tsc --noEmit + npm test 174/174)",
+        "diff_board_archi": "vide",
+        "ecarts": [
+          {
+            "quoi": "changesSince() implemente un vrai walk multi-releases (filtrage par ligne de canal + agregation autoExecutable/reportOnly + gaps par release en echec) alors que le hors_scope de la DoR US-12 reserve la plage a US-13",
+            "justification": "la forme VendorDiff exigee par AC1/D1 (gaps, releases, to) nest testable quavec un walk reel ; un stub aurait rendu gaps non verifiable. Raffinement laisse a US-13 : la continuite inter-canaux (acacia>basil>clover>dahlia), ici correspondance stricte sur la chaine de canal"
+          },
+          {
+            "quoi": "origin/main en retard de 2 commits (78dbfe2, 0d538d9) sur le main local : la vue Files changed de la PR #13 affiche des fichiers deja mergees localement",
+            "justification": "le dev ne pousse pas main (board/ et architecture/ lui sont interdits). Controle correct fait contre le main local : diff board/archi vide"
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-09-10T17:34:57.710Z",
+      "type": "move",
+      "actor": "qa",
+      "us": "US-12",
+      "note": "in_progress>review"
+    },
+    {
+      "ts": "2026-09-10T17:34:57.763Z",
+      "type": "decision",
+      "actor": "orchestrateur",
+      "us": "US-13",
+      "note": "perimetre US-13 impacte par lecart 1 dUS-12 : le walk multi-releases est deja livre. US-13 a re-cadrer apres verdict QA, probablement reduite a la continuite inter-canaux + selectReleases pure + cap cout N=5 + report-only forme 2."
+    },
+    {
+      "ts": "2026-09-10T17:35:26.272Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-10T17:36:38.712Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-10T17:37:35.101Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-10T17:38:30.667Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-10T17:39:26.828Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-10T17:40:17.231Z",
+      "type": "report",
+      "actor": "qa",
+      "us": "US-12",
+      "payload": {
+        "verdict": "accepte",
+        "dod": "rejoue: tsc 0, 174/174",
+        "diff_board_archi": "vide (reverifie)",
+        "frontieres": "matcher, changes/index.ts, pipeline, verifier, CLAUDE.md, docs/architecture.md intouches ; assertions US-2 non modifiees",
+        "tests_de_mutation": [
+          {
+            "mutation": "retrait de Accept-Language: en-US",
+            "resultat": "not ok 3 - le test rougit"
+          },
+          {
+            "mutation": "gaps.push remplace par void err",
+            "resultat": "not ok 7 - le test rougit"
+          }
+        ],
+        "ac": "11/11 tenus ; bemol partiel sur la COUVERTURE de gaps, pas sa presence",
+        "ecarts_declares": [
+          {
+            "ref": "ecart 1 walk multi-releases",
+            "verdict": "acceptable_avec_reserve",
+            "motif": "justification tenue (gaps non testable sans walk reel, prouve par mutation) ; pas d empietement au-dela du declare ; hors_scope franchi donc re-cadrage US-13 obligatoire"
+          },
+          {
+            "ref": "ecart 2 origin/main en retard",
+            "verdict": "acceptable",
+            "motif": "branche basee sur 0d538d9, aucun instantane board/archi commite ; scenario US-3/US-8 impossible ici"
+          }
+        ],
+        "ecarts_non_declares": [
+          {
+            "quoi": "gaps ne couvre PAS la page HTTP 200 qui ne parse rien : detectChanges ne leve que si le fetcher leve. Mesure : page 2024-06-20 fetchee, contenu non parsable, resultat autoExecutable 0 / reportOnly 0 / gaps [] = le on-n-a-pas-su-lire rendu comme il-n-y-a-rien. Le commentaire de VendorDiffGap (vendor-source.ts:47) promet plus que le code ne tient",
+            "gravite": "non bloquant pour US-12 (le scenario francais est ferme au choke-point ; aucun appelant ne consomme changesSince) ; a porter en critere explicite dans US-13 avec correction du commentaire"
+          },
+          {
+            "quoi": "board/board.json modifie non commite dans le worktree (artefact connu du hook DoD)",
+            "gravite": "cosmetique, ne pas git add avant fusion"
+          }
+        ],
+        "us11": "traite correctement, pas recree : contrat de chemin absolu conserve deliberement et verrouille par test (vendor-source.test.ts:257-260)"
+      }
+    },
+    {
+      "ts": "2026-09-10T17:40:22.486Z",
+      "type": "human_gate",
+      "actor": "orchestrateur",
+      "us": "US-12",
+      "note": "porte acceptation de demo ouverte : QA accepte, DoD vert, 11/11 AC. En attente decision humaine sur push origin/main (2 commits) + merge PR #13. US-12 maintenue en review jusqu au merge (US-13/14/15/16 en dependent)."
+    },
+    {
+      "ts": "2026-09-10T17:40:22.544Z",
+      "type": "delegate",
+      "actor": "orchestrateur",
+      "target": "architecte",
+      "us": "US-13",
+      "payload": {
+        "objet": "re-cadrage US-13 apres ecart 1 dUS-12 (walk deja livre)",
+        "input": "rapport QA US-12 : 6 points restants mesures",
+        "non_bloquant": "ne depend pas du merge de la PR #13"
+      }
+    },
+    {
+      "ts": "2026-09-10T17:40:51.486Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-10T17:42:05.331Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-10T17:43:00.782Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-10T17:43:56.908Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-10T17:44:51.407Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-10T17:45:45.286Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-10T17:47:08.868Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-10T17:48:02.804Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-10T17:48:57.157Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-10T17:49:52.152Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-10T17:52:43.292Z",
+      "type": "update",
+      "actor": "architecte",
+      "us": "US-13",
+      "payload": {
+        "fields": [
+          "acceptance_criteria",
+          "definition_of_ready"
+        ],
+        "before": {
+          "acceptance_criteria": [
+            "AC1 - Le point d'entree accepte une borne basse (la version d'API resolue chez l'utilisateur, fournie par US-12) et rend les Change de toutes les releases Stripe de la MEME LIGNE DE CANAL strictement posterieures a cette borne, jusqu'a la plus recente publiee sur cette ligne. Regle de ligne de canal, vendor-verifiee 2026-09-10 : le canal '.preview' est une ligne PARALLELE, pas un successeur ; il n'est parcouru que si la borne basse est elle-meme '.preview'. Toute autre release (canal stable acacia/basil/clover/dahlia, ou heading sans canal) appartient a la ligne stable. Un test sur index markdown de fixture asserte l'ensemble EXACT des releases retenues pour une borne donnee, ET qu'aucune release '.preview' n'y figure pour une borne stable.",
+            "AC2 - Bornes explicitement testees, chacune avec sa propre phrase. (a) Borne egale a la derniere release de sa ligne : zero change, message 'a jour', jamais une erreur. (b) Borne posterieure a tout ce que publie le changelog : zero change, message explicite distinct de (a), jamais un crash ni un walk vide silencieux. (c) Borne dont apiVersionDate() rend null (valeur illisible : 'latest', chaine vide, date tronquee) : arret avec un message qui dit que la borne est illisible - distinct du cas 'borne non resolue' d'AC3. (d) Borne sur la ligne preview : le walk parcourt la ligne preview et elle seule.",
+            "AC3 - Borne basse non resolue (aucun pin lisible, raisons US-9) : pas de walk aveugle sur tout lhistorique. Le run sarrete avec un message qui dit ce qui manque et comment le fournir. Aucun token nest consomme sur une borne inconnue.",
+            "AC4 - Cap cout BYOT : au dela de N changements sur le point de consommer des tokens du fixer IA, le run s'arrete et exige une confirmation explicite. N vaut 5 par defaut. Le cap porte sur les changements qui ont reellement MATCHE du code dans le repo cible (ceux qui vont couter), pas sur les changements detectes : le spike a detecte 5 changes auto-executables sur UNE seule release dont un seul a atteint le modele, un cap sur les detectes se declencherait des la premiere release et serait desarme par reflexe. Le cap s'applique dans une passe de comptage EN LECTURE SEULE (loadProject + codemod.find sur la cible), en amont de run(), donc structurellement avant tout appel modele - applyFix() etant le seul appelant du Llm et vivant a l'interieur de run(). Test invariant : avec un Llm espion, un run au-dessus du cap consomme ZERO appel.",
+            "AC5 - Le cap est fail-closed et NON INTERACTIF, sans exception : il n'existe aucune invite, ni en TTY ni hors TTY. Au-dessus du seuil, le run liste les changements concernes (id, symbole, release d'origine, nombre de sites) puis sort en erreur explicite, et ne suppose jamais un oui. Deux echappatoires : --max-changes <n> (releve ou abaisse le seuil, entier > 0) et --yes (confirme sans invite). L'absence d'invite est une decision d'architecture assumee (voir D3 de la DoR) : un seul chemin de code, testable sans harnais TTY, et une confirmation qui laisse une trace dans l'historique shell ou le log de CI.",
+            "AC6 - Forme #2 report-only : les changements de forme reponse, deja detectes et exclus de autoExecutable par src/detection/stripe-changelog.ts, sont rapportes (avec leur release d'origine et l'URL de la page) sous un message disant detecte, a traiter manuellement, et ne produisent jamais de branche, de patch ni de PR. Un test asserte qu'un walk contenant une forme #2 la rapporte ET que le repertoire de sortie ne contient aucun artefact portant son id.",
+            "AC7 - Tracabilite et honnetete de couverture. (a) Les Change sont rendus dans l'ordre chronologique CROISSANT des releases et chacun porte la release dont il vient - deja porte par change.apiVersion, pose par buildDetectedChanges, rien a ajouter au modele. (b) Le walk rend en plus la liste des TROUS : toute page de detail fetchee en HTTP 200 mais non exploitable (pas de section '## Changes', pas de tableau '#### Node.js', pas de section '## Impact') est enumeree avec son URL et sa release. Une page defaillante n'interrompt JAMAIS le walk. Cas reel a couvrir en fixture, verifie live le 2026-09-10 : dahlia/2026-03-25/updates-available-checkout-session-ui-modes.md a un tableau Node.js complet mais AUCUNE section '## Impact', ce qui fait aujourd'hui THROW extractImpact et tuerait tout le walk.",
+            "AC7bis - Couverture de l'index : RELEASE_HEADING_RE (src/detection/stripe-changelog.ts) doit reconnaitre les headings SANS canal. Fait verifie le 2026-09-10 en executant parseChangelogIndex sur le changelog live : le regex actuel exige '.\\S+' apres la date et ne voit donc que 41 des 140 releases publiees (la plus ancienne 2024-09-30.acacia), rendant invisibles les 99 releases 2011-06-21 -> 2024-06-20 - dont 2023-08-16, qui est le pin implicite de stripe-node v13 et la valeur de fixtures/implicit-pinned-stripe. Un test sur fixture asserte qu'un heading '## 2023-08-16' (sans canal) est parse et walke.",
+            "AC8 - Stripe seulement. Aucun moteur generique multi-vendor, aucune ingestion dautre source, aucun scheduler ni cron interne : le trigger reste lutilisateur (CLI ou GitHub Action).",
+            "AC9 - Decoupage du livrable : la convention CLAUDE.md des quatre morceaux ne sapplique pas (aucun Change ajoute au registre). Equivalent attendu : le module de walk, son cablage sur US-12, des fixtures markdown couvrant plusieurs releases, et des tests.",
+            "AC10 - Zero reseau dans les tests : index et pages de detail servis depuis des fixtures markdown commitees, fetcher stub uniquement.",
+            "AC11 - Invariants inchanges et non redefinis : gate = suite de tests de lutilisateur (jamais de PR non draft sur suite rouge), tests en lecture seule pour le fixer IA, blast radius only (jamais de CI config, de secrets, de lockfiles).",
+            "AC12 - npx tsc --noEmit et npm test verts (scripts/dod.sh)."
+          ],
+          "definition_of_ready": {
+            "cadre_par": "architecte",
+            "date": "2026-09-10",
+            "verdict": "READY",
+            "principe_directeur": "C'est LE point que le spike a laisse ouvert (docs/proof/spike-dynamic-diff-stripe, section Caveat). Le cadrage l'a donc traite par la preuve et non par le raisonnement : fetch live du changelog + execution des fonctions REELLES du repo sur ces artefacts. La verification a contredit deux hypotheses heritees, l'une du PO et l'autre du spike lui-meme (voir P1). Regle qui gouverne tout le reste : un walk qui rend un ensemble vide doit toujours pouvoir dire POURQUOI - a jour, hors couverture, ou illisible sont trois phrases, pas une.",
+            "P1_preuve_terrain_2026_09_10": {
+              "methode": "Fetch live de https://docs.stripe.com/changelog.md (204832 octets) + 69 pages de detail Breaking reelles, puis execution de parseChangelogIndex / parseNodeJsChangesTable / buildDetectedChanges (les fonctions du repo, pas une reimplementation) via tsx sur ces artefacts.",
+              "P1a_LE_WALK_EST_FAISABLE": "OUI. L'index est une liste ordonnee complete et exploitable : 140 headings '## <date>[.<canal>]' dans un seul document, du 2011-06-21 au 2026-08-26, une seule requete, pas de pagination. Le caveat du spike est leve.",
+              "P1b_LA_CONTRADICTION_MAJEURE_le_canal_n_est_PAS_ignorable_dans_un_walk": {
+                "hypothese_heritee": "US-7 avait tranche 'comparer les 10 premiers caracteres, aucune logique de canal', limite documentee et assumee ('base de preuve : zero cas observe'). Le cadrage d'US-13 devait verifier que ca tient pour un walk. CA NE TIENT PAS.",
+                "pourquoi": "Le test d'anteriorite d'US-7 repond a 'dois-je BLOQUER ?' - ignorer le canal y produit au pire un blocage manquant, direction conservatrice. Le walk repond a 'que dois-je EDITER ?' - ignorer le canal y produit des editions, direction destructrice. Meme comparaison, sens de l'erreur oppose.",
+                "chiffre_qui_tranche": "Repo pin 2026-03-25.dahlia (= pin implicite de stripe-node v21, un repo parfaitement a jour). Walk NAIF a la regle US-7 (date seule) : 20 changements Breaking retenus, provenant de 2026-04-22.preview, 2026-05-27.preview, 2026-06-24.preview, 2026-07-29.preview et 2026-08-26.preview. Walk conscient du canal : 0. Vingt sur vingt sont des changements du canal preview, qu'un compte sur dahlia ne recevra jamais. Rapport signal/bruit = 0/20 : chaque PR produite serait fausse, sur un repo sain.",
+                "structure_verifiee": "41 headings a canal, 5 canaux distincts (dahlia, preview, clover, basil, acacia) + 99 headings sans canal. 17 dates portent 2 headings ; AUCUNE date ne porte plus d'un heading non-preview ; AUCUNE date n'est preview-seule. La regle 'exclure preview sauf si la borne est preview' rend donc exactement une release par date : un walk lineaire bien forme. Elle absorbe aussi la SUCCESSION de canaux (acacia -> basil -> clover -> dahlia est la ligne stable) sans table ni liste de canaux a maintenir - la seule chaine litterale du code est 'preview'.",
+                "ordre_du_document_non_fiable": "A ne pas exploiter : l'ordre des headings dans le fichier n'est pas coherent (2026-04-22.preview precede 2026-04-22.dahlia alors que toutes les autres dates ont le canal stable en premier). L'ordre chronologique se CALCULE sur apiVersionDate(), il ne se lit pas."
+              },
+              "P1c_LA_SECONDE_CONTRADICTION_le_parseur_ne_voit_que_29_pourcent_de_l_index": {
+                "fait": "parseChangelogIndex, execute sur le changelog du jour, rend 877 entrees sur 41 releases, la plus ancienne 2024-09-30.acacia. Cause : RELEASE_HEADING_RE (src/detection/stripe-changelog.ts ligne 55) exige un canal. Les 99 releases a heading date-seul (2011-06-21 -> 2024-06-20) sont invisibles.",
+                "pourquoi_c_est_bloquant_ici_et_pas_avant": "En US-2, l'appelant fournissait --release, forcement une release qu'il avait lue quelque part, donc recente et a canal. Un walk, lui, part du pin de l'utilisateur : 2023-08-16 (stripe-node v13, ET la valeur de fixtures/implicit-pinned-stripe) est un heading REEL et INVISIBLE. Le walk depuis ce pin sauterait 3 releases (14 lignes Breaking) sans rien dire.",
+                "correctif": "Canal optionnel : (?:\\.\\S+)?. Verifie : les sections sans canal ont la meme structure de tableau a 4 colonnes (2023-08-16, 2022-11-15, 2024-06-20) et leurs pages de detail le meme '## Changes'/'#### Node.js' (verifie sur 2020-08-27 et 2019-12-03, liens RELATIFS que extractApiPathSegments normalise deja). Une ligne, portee par AC7bis."
+              },
+              "P1d_LA_TROISIEME_CONTRADICTION_une_page_defaillante_tue_le_walk_entier": {
+                "fait_reproductible_aujourd_hui": "extractImpact (stripe-changelog.ts ligne 131) THROW si la page n'a pas de section '## Impact' non vide. La page LIVE https://docs.stripe.com/changelog/dahlia/2026-03-25/updates-available-checkout-session-ui-modes.md a bien '## What's new', '## Why is this a breaking change?' et un '## Changes' avec tableau Node.js complet, mais AUCUN '## Impact'. Verifie en executant buildDetectedChanges dessus : throw.",
+                "consequence": "detectChanges ne rattrape rien : un throw sur la page 37 sur 69 annule les 36 precedentes. Le throw etait le bon comportement pour UNE release explicite (US-2 : mieux vaut echouer que produire une migration.detail vide) ; il devient un mode de panne inacceptable a l'echelle d'un walk. Le correctif n'est PAS d'assouplir extractImpact - la garde reste - mais d'ISOLER l'echec par page et de le remonter comme un trou nomme (AC7b).",
+                "forme_recommandee": "Etendre DetectionResult d'un champ gaps additionnel (autoExecutable et all restent byte-compatibles, les tests d'US-2 ne bougent pas), et faire porter le try/catch par la boucle de pages de detectChanges."
+              },
+              "P1e_volumetrie_et_rendement_reels_du_walk": {
+                "mesure": "Walk depuis le pin 2023-08-16 (stripe-node v13), canal preview exclu, mesure avec le parseur du repo sur les 69 pages reelles :",
+                "chiffres": [
+                  "27 releases dans la plage, 69 pages de detail Breaking a fetcher (+ l'index de 200 Ko).",
+                  "35 pages sur 69 seulement ont un tableau '#### Node.js' exploitable. Les 34 autres sont en HTTP 200 et parfaitement valides cote vendor : elles n'ont simplement pas de section '## Changes' (elles ont '## Upgrade', une prose d'instructions generiques). Ce N'EST PAS une derive de format.",
+                  "35 lignes 'Removed' -> 28 Change forme #1 (auto-executables) + 24 forme #2 (report-only) + 1 page en throw.",
+                  "Concentration : 2025-03-31.basil (release inaugurale du canal basil) porte a elle seule 25 des 28 forme #1, sur 22 pages ; 2025-09-30.clover en porte 1 ; 2024-09-30.acacia en porte 2. Les 24 autres releases n'en portent aucune.",
+                  "Autre borne, pour calibrer : depuis 2025-03-31.basil (stripe-node v18), 17 releases et 29 pages. Depuis 2026-03-25.dahlia (v21), 5 releases et 0 page Breaking."
+                ],
+                "trois_consequences_de_design": [
+                  "28 changes forme #1 sur un seul walk realiste : le cap N=5 n'est pas theorique. Mais il porte sur les MATCHES (arbitrage PO 1), et le spike n'a eu qu'1 match sur 5 detectes - le cap ne doit donc pas etre relu comme 'il se declenchera toujours'.",
+                  "34 pages sur 69 sans tableau Node.js est le cas NORMAL. Faire de 'zero tableau exploitable' une erreur fatale (lecture litterale d'US-16 AC2) ferait echouer la quasi-totalite des runs. C'est pourquoi la fatalite est portee par l'INDEX seul, jamais par les pages (voir US-16 D6).",
+                  "69 requetes + 200 Ko par run, sans aucun Cache-Control ni ETag cote Stripe (en-tetes verifies) : le cache d'US-15 est structurel, pas cosmetique."
+                ]
+              }
+            },
+            "D2_le_walk_ALGORITHME_TRANCHE": {
+              "entree": "from = la version d'API resolue par US-12 (VERBATIM, ex. '2023-08-16' ou '2026-03-25.dahlia'), + un Fetcher.",
+              "etapes": [
+                "1. Fetcher l'index, parser les headings avec le canal OPTIONNEL (AC7bis) -> VendorRelease[] { name, date = apiVersionDate(name), channel = suffixe ou null }.",
+                "2. fromDate = apiVersionDate(from) (fonction EXISTANTE, src/changes/api-version.ts - ne pas reecrire une comparaison). null -> arret 'borne illisible' (AC2c).",
+                "3. ligne = from se termine par '.preview' ? 'preview' : 'stable'. candidats = releases dont (ligne === 'preview' ? channel === 'preview' : channel !== 'preview').",
+                "4. to = le candidat de date maximale. walked = candidats de date > fromDate, tries par date CROISSANTE (AC7a).",
+                "5. fromDate > date de `to` -> 'ta version est plus recente que tout ce que le vendor publie' (AC2b). fromDate === date de `to` ou walked vide -> 'a jour' (AC2a). Deux phrases distinctes.",
+                "6. fromDate < la plus ancienne date de l'index -> gap 'hors couverture de l'index' (fonction totale ; en pratique injoignable, l'index remonte a 2011-06-21).",
+                "7. Pour chaque release de walked : detectChanges({ fetcher, release }), chaque page isolee par try/catch -> gaps (AC7b). Concatener dans l'ordre."
+              ],
+              "ce_qui_est_pur_et_donc_testable_sans_reseau": "Les etapes 2 a 6 sont une fonction PURE sur VendorRelease[] : selectReleases(releases, from) -> { walked, to, skippedPreview, outOfCoverage, unreadableBound }. Fichier src/detection/walk.ts, zero I/O, zero ts-morph. C'est la ou vivent tous les tests de bornes d'AC1/AC2 - un tableau de chaines en entree, aucun markdown, aucun fetcher. Le reste (etapes 1 et 7) est de l'orchestration deja couverte par le pattern d'US-2.",
+              "ce_qu_on_NE_fait_PAS": [
+                "Aucune liste de canaux en dur autre que la chaine 'preview'. Un canal futur ('elderflower') tombe automatiquement dans la ligne stable, ce qui est le comportement voulu et ne perime pas. Ne PAS ecrire ['acacia','basil','clover','dahlia'] : ce serait la table a peremption silencieuse que la DoR d'US-9 a deja refusee une fois.",
+                "Aucun ordre alphabetique sur les noms de canaux (US-7 le dit deja : acacia<basil<clover<dahlia est une coincidence, pas un contrat).",
+                "Aucune exploitation de l'ordre des headings dans le document (verifie non fiable, P1b).",
+                "Aucune construction d'URL de page de detail : les liens sont suivis VERBATIM depuis l'index. Verifie a la dure pendant ce cadrage : deux URL 'evidentes' fabriquees a la main ont rendu HTTP 404. La forme d'URL n'est d'ailleurs pas stable (/changelog/<canal>/<date>/<slug>.md pour les releases a canal, /changelog/<date>/<slug>.md sans canal), et le canal de l'URL ne coincide meme pas toujours avec le canal du heading (les lignes de 2026-08-26.preview pointent des URL sous /changelog/dahlia/2026-08-26/)."
+              ],
+              "interaction_avec_le_garde_US_7_US_9": "Par construction, tout Change rendu par le walk a une apiVersion de date > pin, donc isPinnedBefore() est faux et le garde de src/pipeline.ts ne bloque jamais sur ce chemin. C'est la propriete VOULUE (des changes bloques seraient du bruit pur). Le garde NE DOIT PAS etre retire pour autant : il couvre encore le registre statique (chemin --deterministic-only) et il est le dernier filet si la borne du walk est fausse. Ne pas le toucher."
+            },
+            "D3_ou_s_applique_le_cap_TRANCHE": {
+              "emplacement": "Dans une passe de PLAN, en lecture seule, entre le walk et run() - jamais dans src/pipeline.ts. Concretement, cote appelant : project = loadProject(targetDir) une seule fois ; pour chaque candidat, findMatches(project, genericSymbolCodemod(change)) ; on compte ceux dont matches.length > 0 ; on decide ; puis on passe les survivants a RunOptions.codemods.",
+              "pourquoi_la": "(a) C'est structurellement avant tout appel modele : applyFix() est le seul appelant du Llm et il vit dans run(). (b) Ca respecte US-14 AC4 : aucune plomberie de pipeline nouvelle, le seam existant suffit. (c) Effet de bord benefique et non anecdotique : run() fait aujourd'hui une copie recursive complete du repo PAR codemod (makeWorkspace, pipeline.ts ligne 108). Avec 28 candidats, c'est 28 copies du repo de l'utilisateur pour, typiquement, 1 ou 2 matches. Filtrer en amont ramene ca a 1 ou 2.",
+              "LE_PIEGE_a_ne_pas_ouvrir": "Filtrer les non-matches en amont supprimerait le garde anti-silence PipelineResult.warning 'vendor-present-no-match' (commit 78dbfe2, exige actif par US-14 AC8) : il n'est emis QUE depuis pipeline.ts, sur un codemod a 0 match. Obligation : la passe de plan doit REPRODUIRE ce signal pour les candidats qu'elle ecarte. Moyen recommande, minimal : exporter noMatchWarning() (aujourd'hui privee, src/pipeline.ts ligne 95) et l'appeler dans la passe de plan avec le meme Project. Test invariant : un change detecte a 0 match, sur un repo qui construit bien un client Stripe, WARNE toujours apres la bascule.",
+              "cout_de_la_double_passe": "find() est execute deux fois (plan, puis pipeline). C'est du parsing AST, pas des tokens ni du reseau, sur un Project deja charge. Accepte : le prix d'un AST relu est sans commune mesure avec 26 copies de repo evitees et zero token gaspille.",
+              "seuil_et_flags": {
+                "N": "5 par defaut, sur les MATCHES (arbitrage PO 1, non rediscute).",
+                "--max-changes <n>": "entier > 0. Releve OU abaisse. Pas de valeur 'illimite' : un utilisateur qui veut tout passer ecrit un nombre, ce qui reste lisible dans un log de CI.",
+                "--yes": "confirme sans invite. Alias -y admis.",
+                "pas_d_invite_TTY": {
+                  "decision": "AUCUNE invite interactive, ni en TTY ni hors TTY. AC5 patche en consequence.",
+                  "motif": "Une invite est un second chemin de code (lecture stdin, detection de TTY, harnais de test dedie) pour une valeur marginale, et elle cree la classe de bug que le fail-closed existe pour eviter : un 'oui' reflexe non trace. Le comportement non interactif est un sur-ensemble strict en surete, et il est identique en local et en CI - une seule chose a documenter, une seule chose a tester.",
+                  "cout_assume": "Un utilisateur local au-dessus du seuil doit relancer avec --yes ou --max-changes. Une commande de plus. En echange, sa confirmation laisse une trace dans son historique shell ou dans le log du job."
+                }
+              },
+              "sortie_bloquee": "Liste des changements concernes (id, target.symbol, release d'origine, nombre de sites), puis code de sortie non nul. Test avec Llm espion : zero appel."
+            },
+            "D2b_borne_non_resolue_AC3": {
+              "regle": "Pas de walk aveugle. Mais 'pas de borne' n'est pas UNE situation : PinnedApiVersion en distingue six (UnresolvedPinReason, src/matcher/api-version.ts ligne 77), et la DoR d'US-9 (D3) a deja tranche qu'elles ne doivent pas etre fusionnees.",
+              "a_tester_separement": [
+                "'no-client' : aucun client Stripe construit. Le repo n'utilise peut-etre pas Stripe du tout - le dire, ne pas alarmer.",
+                "'no-option' + 'sdk-not-installed' : client construit sans apiVersion ET node_modules absent. ON N'A PAS PU REGARDER. Action : installer les dependances puis relancer, ou fournir la borne a la main.",
+                "'sdk-predates-implicit-pin' (stripe <= v11) : on A regarde, et le SDK ne pose AUCUN pin - la version effective est le defaut du COMPTE, cote dashboard, hors de portee de toute analyse statique. Ce n'est ni un pin ni une absence de pin. Phrase specifique obligatoire.",
+                "'non-literal' / 'sdk-version-unreadable' : on voit quelque chose qu'on ne sait pas lire. Signal d'hypothese cassee, a garder reperable en support."
+              ],
+              "l_echappatoire_doit_etre_nommee_dans_le_message": "AC3 exige 'un message qui dit ce qui manque ET COMMENT LE FOURNIR'. Le comment, c'est le flag qui remplace --release : --since <api-version>. Le message doit le nommer litteralement, avec un exemple. Un message qui dit 'borne manquante' sans dire par ou la fournir ne satisfait pas AC3.",
+              "invariant": "Zero token consomme sur une borne inconnue - le walk n'est meme pas lance. Testable avec un Llm espion ET un fetcher espion (zero fetch non plus : inutile de telecharger 200 Ko pour rien)."
+            },
+            "D2c_ecart_po_vers_architecte": {
+              "note": "Le PO a explicitement delegue deux points (ou s'applique le cap, nommage des flags + invite TTY) et sous-specifie le reste. Trois AC ont ete PATCHES et un AC a ete AJOUTE, parce que la verification terrain a montre que la formulation d'origine mandatait un comportement faux ou impossible. Detail item par item.",
+              "patche_AC1_ajout_de_la_ligne_de_canal": {
+                "avant": "'toutes les releases Stripe strictement posterieures a cette borne'.",
+                "apres": "'toutes les releases de la MEME LIGNE DE CANAL strictement posterieures'. Le canal preview n'est parcouru que depuis une borne preview.",
+                "motif": "Tel qu'ecrit, l'AC mandatait litteralement le comportement mesure a 20 faux positifs sur 20 pour un repo pin 2026-03-25.dahlia (P1b). Ce n'est pas une precision de confort : la formulation d'origine, implementee a la lettre, produit des PR fausses sur des repos sains.",
+                "cout": "Une chaine litterale de plus dans le code ('preview') et un cas de test supplementaire. Aucune table de canaux, donc aucune peremption."
+              },
+              "patche_AC2_ajout_de_deux_bornes": {
+                "ajout": "(c) borne illisible (apiVersionDate -> null), distincte de 'borne non resolue' d'AC3 ; (d) borne sur la ligne preview.",
+                "motif": "(c) : 'non resolue' (on n'a pas trouve de pin) et 'illisible' (on a trouve quelque chose qui n'est pas une version d'API) sont deux etats differents de PinnedApiVersion et deux remedes differents. Les fusionner reproduirait exactement la regression que la DoR d'US-9 a ferme. (d) : consequence directe du patch d'AC1, sans quoi la ligne preview serait du code non couvert."
+              },
+              "patche_AC4_localisation_du_cap": {
+                "ajout": "L'emplacement, explicitement delegue par le PO, est fixe : passe de comptage en lecture seule en amont de run(). Plus l'invariant testable 'Llm espion, zero appel'.",
+                "motif": "Delegation levee. L'invariant chiffre remplace l'intention 'avant tout appel modele' par un test."
+              },
+              "patche_AC5_pas_d_invite_TTY": {
+                "avant": "'l'existence d'une invite en mode TTY est un point ouvert pour l'architecte'.",
+                "apres": "Aucune invite, ni TTY ni non-TTY. Flags fixes : --max-changes <n> et --yes.",
+                "motif": "Voir D3. Un seul chemin de code, testable sans harnais TTY, comportement identique local/CI.",
+                "cout": "Une commande de plus pour l'utilisateur local au-dessus du seuil."
+              },
+              "ajoute_AC7bis_couverture_de_l_index": {
+                "motif": "Rien dans les AC du PO n'exigeait que le walk voie l'integralite de l'index - c'etait une hypothese tacite, et elle est FAUSSE sur le code actuel (41 releases sur 140, P1c). Sans cet AC, le dev peut livrer un walk conforme a tous les autres AC qui saute silencieusement 99 releases, dont celle de la propre fixture du repo.",
+                "cout": "Un caractere de regex et un cas de test."
+              },
+              "patche_AC6_et_AC7_precisions_de_tracabilite": {
+                "AC6": "Le rapport forme #2 doit porter la release d'origine et l'URL, et le test doit asserter l'ABSENCE d'artefact portant l'id (pas seulement l'absence de PR).",
+                "AC7": "Scinde en (a) ordre chronologique + release portee par le change, et (b) enumeration des trous, avec l'obligation qu'une page defaillante n'interrompe jamais le walk. Motif : P1d, un cas live et reproductible aujourd'hui."
+              },
+              "conserve_tel_quel": "AC3 (borne non resolue - precise dans la DoR, pas reecrit), AC8 (Stripe seulement), AC9 (equivalent 4 morceaux), AC10 (zero reseau), AC11 (invariants), AC12 (DoD)."
+            },
+            "decoupage_du_livrable": {
+              "module": "src/detection/walk.ts (selection PURE de releases) + extension de src/detection/index.ts (isolation des echecs par page, champ gaps) + extension de RELEASE_HEADING_RE dans stripe-changelog.ts.",
+              "cablage": "src/detection/stripe-source.ts (US-12) implemente changesSince() par-dessus walk.ts. La passe de plan + le cap cote appelant.",
+              "fixtures": "Un index markdown de fixture couvrant PLUSIEURS releases, incluant obligatoirement : au moins un heading SANS canal, une paire <date>.stable / <date>.preview, et un cas 'derniere release'. Plus des pages de detail de fixture dont UNE sans '## Impact' (copie reduite du cas live de 2026-03-25) et UNE sans '## Changes'. fixtures/stripe-changelog/ existe deja.",
+              "tests": "tests/walk.test.ts (bornes, pur) + extension de tests/detection.test.ts (gaps, isolation par page) + un test de cap avec Llm espion."
+            },
+            "hors_scope": [
+              "Le basculement du defaut CLI (--detect meurt, --release devient --since) : US-14. US-13 peut etre livree et testee sans, en passant par le flag existant ou par un appel direct dans les tests.",
+              "Le cache : US-15. Le walk fetche naivement ; c'est le decorateur de Fetcher d'US-15 qui l'optimisera sans qu'il le sache.",
+              "La taxonomie complete des messages d'echec fetch/parse : US-16. US-13 produit la DONNEE (gaps) ; US-16 produit les PHRASES.",
+              "Toute detection d'incrementalite entre deux polls (snapshot 'deja vu') : la borne est le pin, pas un etat persistant.",
+              "Tout scheduler / cron interne (AC8). Le trigger reste l'utilisateur.",
+              "Toute exploitation des lignes 'Non-breaking' : le walk garde le filtre entry.breaking existant.",
+              "Toute extension des enums de src/types.ts.",
+              "Tout second vendor, tout second langage."
+            ],
+            "risques": [
+              "RISQUE PRINCIPAL - la regle de canal est vendor-verifiee le 2026-09-10 sur 41 headings, pas contractuelle. Si Stripe ouvre un jour un second canal parallele (autre que 'preview'), il tomberait par defaut dans la ligne stable et serait walke a tort. Attenuation retenue : c'est un faux positif VISIBLE (la release apparait nommement dans le rapport et dans chaque PR via change.apiVersion), pas un silence. L'inverse - lister les canaux stables en dur - serait une peremption silencieuse, refusee.",
+              "Le rendement mesure (28 forme #1 pour 69 pages) vient d'UN walk sur UNE borne. Le spike disait deja 'un point de donnee, pas une revendication statistique' pour la qualite du diff ; le meme avertissement vaut ici pour le volume. Ne pas calibrer le cap sur ces 28.",
+              "La passe de plan touche au chemin du garde anti-silence (78dbfe2, tout juste livre). C'est le point de regression le plus probable de cette US - le test doit etre ecrit AVANT le filtrage, pas apres.",
+              "69 requetes HTTP par run sans cache : en developpant US-13 avant US-15, le dev va marteler docs.stripe.com a chaque essai manuel. A faire sur artefacts locaux (les tests, eux, sont deja hermetiques).",
+              "Interaction non testee a ce jour : un repo dont le pin est resolu par le SDK installe (US-9) et dont le walk produit des changes. La fixture fixtures/implicit-pinned-stripe (pin 2023-08-16) est le vehicule naturel - et c'est precisement la fixture que le regex actuel rend invisible (P1c)."
+            ],
+            "invariants_claude_md_non_negociables": [
+              "Le gate reste la suite de tests DE L'UTILISATEUR. Jamais de PR non-draft sur suite rouge. Un walk plus large ne relache rien : il augmente le nombre de changes, jamais la tolerance du verifier.",
+              "Stripe seulement (AC8). Pas de moteur generique multi-vendor, pas d'UI, pas de dashboard, pas de multi-langage, pas de scheduler interne.",
+              "Les tests du repo cible sont en lecture seule pour le fixer IA ; les garde-fous sont dans le code de l'outil, jamais dans le prompt.",
+              "Blast radius only : jamais de CI config, de secrets, de lockfiles.",
+              "AST, jamais regex, cote matcher : la passe de comptage passe par findMatches/genericSymbolCodemod, jamais par une recherche textuelle.",
+              "Zero reseau dans les tests (AC10) : index ET pages de detail servis depuis des fixtures markdown commitees, fetcher stub uniquement.",
+              "DoD = scripts/dod.sh (npx tsc --noEmit + npm test)."
+            ]
+          }
+        },
+        "after": {
+          "acceptance_criteria": [
+            "AC1 - CONTINUITE DE LA LIGNE STABLE (le coeur du reste a livrer). Le walk part du pin et atteint la DERNIERE release publiee sur sa ligne en TRAVERSANT les changements de canal. La ligne stable ne se definit PAS par 'meme canal que la borne' : elle se definit par 'tout ce qui ne finit pas par .preview', ordonne par apiVersionDate(). C'est exactement l'etape 3 de D2, deja tranchee le 2026-09-10 et NON implementee par US-12 (qui a livre une egalite stricte channelOf(release) === channelOf(from)). MESURE LE 2026-09-10 sur le changelog live : depuis la borne 2023-08-16 (pin de fixtures/implicit-pinned-stripe), l'egalite stricte rend 3 releases / 14 pages Breaking et s'arrete a to=2024-06-20 ; la continuite rend 27 releases / 69 pages et to=2026-08-26.dahlia. Les 24 releases manquees incluent 2025-03-31.basil (22 pages Breaking, qui porte a elle seule 25 des 28 changes forme #1), 2025-09-30.clover (18) et 2026-03-25.dahlia (11). Test : depuis une borne SANS canal, sur un index de fixture portant les transitions (sans canal) -> acacia -> basil, l'ensemble EXACT des releases retenues inclut les releases canalisees.",
+            "AC1bis - INTERDIT : toute liste ordonnee de canaux (['acacia','basil','clover','dahlia']) et tout modele de 'ligne ordonnee de canaux'. Ce serait la table a peremption silencieuse deja refusee en US-9 et en D2 (ce_qu_on_NE_fait_PAS). VERIFIE LE 2026-09-10 sur les 140 headings de l'index : la ligne stable est strictement monotone en DATE (123 headings non-preview, 5 segments successifs sans aucun entrelacement : sans canal -> acacia le 2024-09-30 -> basil le 2025-03-31 -> clover le 2025-09-30 -> dahlia le 2026-03-25) ; 17 dates portent 2 headings, mais AUCUNE ne porte plus d'un heading non-preview et AUCUNE n'est preview-seule. L'ordre chronologique par apiVersionDate() suffit donc : la succession des canaux en decoule, aucune table n'est a maintenir, et un canal futur tombe par defaut dans la ligne stable - comportement voulu. Un test doit echouer si une liste de noms de canaux apparait dans le code du walk (revue humaine a defaut de test automatisable).",
+            "AC2 - EXCLUSION EXPLICITE DE .preview. Aujourd'hui l'exclusion du canal preview est un EFFET DE BORD de l'egalite stricte de canal ; des que la continuite est introduite, elle disparait si elle n'est pas ecrite comme une condition NOMMEE. Exigence : une condition explicite sur le suffixe '.preview' (seule chaine litterale de canal autorisee dans tout le module), plus un test de MUTATION - supprimer cette condition doit faire ROUGIR un test, pas seulement changer un compte. Motif chiffre (2026-09-10) : depuis 2026-03-25.dahlia (repo sain, pin implicite de stripe-node v21), un walk sans la condition retient 20 changements Breaking, tous issus de releases .preview, signal/bruit 0/20. Reciproque testee : une borne .preview ne parcourt QUE la ligne preview.",
+            "AC3 - SEMANTIQUE DE `to` ET BORNES RESTANTES, une phrase par cas. `to` est TOUJOURS la derniere release publiee sur la ligne, lue dans l'index - jamais un repli sur `from` (le code livre fait `to = inRange.length > 0 ? dernier : from`, alors que l'interface d'US-12 documente deja le contraire : 'independent of whether every release up to it was readable'). Cas : (a) borne EGALE a la derniere release de la ligne -> 'a jour', zero change, zero gap (comportement livre par US-12 et a conserver, mais `to` doit venir de l'index) ; (b) borne POSTERIEURE a tout ce que publie l'index -> phrase DISTINCTE de (a), jamais un crash ni un walk vide silencieux ; (c) borne ILLISIBLE (apiVersionDate -> null : 'latest', chaine vide, date tronquee) -> arret avec une phrase disant que la BORNE est illisible, distincte de (d) ; aujourd'hui changesSince('latest') compare des chaines completes avec `release > from` et rend un resultat silencieusement faux ; (d) borne NON RESOLUE (les six raisons UnresolvedPinReason d'US-9, jamais fusionnees - voir D2b) -> pas de walk aveugle, ZERO fetch et ZERO token, message nommant l'echappatoire --since. Toutes les comparaisons de bornes passent par apiVersionDate() (src/changes/api-version.ts), jamais par une comparaison lexicographique de la chaine de release complete.",
+            "AC4 - ISOLATION PAR PAGE, PAS PAR RELEASE. Le try/catch livre par US-12 entoure detectChanges, donc une RELEASE entiere : une page qui throw fait perdre les changes de TOUTES les autres pages de sa release, tout en ne produisant qu'un seul trou au nom de la release. Cas live mesure le 2026-09-10 : 2026-03-25.dahlia porte 11 pages Breaking et contient updates-available-checkout-session-ui-modes.md, qui a un tableau Node.js complet et AUCUN '## Impact' -> extractImpact throw -> 10 pages perdues. Exigence : le try/catch descend dans la boucle de pages de detectChanges ; chaque trou porte l'URL DE LA PAGE en plus de la release et de la raison (VendorDiffGap gagne le champ url - son commentaire actuel, src/detection/vendor-source.ts:47, promet deja 'failed to fetch OR PARSE' sans que le code le tienne) ; les autres pages de la meme release rendent quand meme leurs changes. Test sur fixture : une release de 3 pages dont une throw rend les changes des 2 autres ET un gap portant l'URL de la troisieme. La garde d'extractImpact n'est PAS assouplie : c'est sa PORTEE qui change.",
+            "AC5 - 'ON N'A PAS SU LIRE' N'EST PAS 'IL N'Y A RIEN', SUR UNE PAGE HTTP 200. Ecart non declare, trouve par la QA : detectChanges ne leve que si le FETCHER leve ; une page recuperee avec succes dont buildDetectedChanges ne tire aucune ligne rend [] SANS gap - la page 2024-06-20 mesuree par la QA sort en autoExecutable:0, reportOnly:0, gaps:0. DISCRIMINANT, mesure le 2026-09-10 sur les 69 pages Breaking reelles du walk de reference : (i) 69/69 portent '## What's new' (apostrophe typographique U+2019) ; 36/69 portent '## Changes', les 33 autres n'en portent legitimement pas ; (ii) le vocabulaire de headings de niveau 2 est ferme et stable - What's new, Why is this a breaking change?, Impact, Changes, Upgrade, Related changes ; (iii) en francais (Accept-Language: fr, verifie sur 3 pages couvrant les deux formes) Changes->Modifications, What's new->Nouveautes, Upgrade->Mise a niveau, Related changes->Modifications associees/Changements connexes, MAIS '## Impact' est IDENTIQUE en francais - Impact ne peut donc PAS servir de sentinelle. REGLE : une page est reputee LUE si et seulement si elle porte au moins un heading du vocabulaire anglais TRADUISIBLE (What's new / Changes / Upgrade / Related changes), 'Impact' explicitement exclu. Sinon -> gap 'page illisible' portant son URL. Une page LUE sans '## Changes', ou avec '## Changes' sans '#### Node.js', ou dont aucune ligne n'est 'Removed', n'est PAS un gap : c'est le cas normal et majoritaire.",
+            "AC5bis - CALIBRAGE EXIGE EN TEST pour AC5, sur fixtures commitees : sur la fixture anglaise la regle rend ZERO gap de ce type ; sur la meme fixture traduite en francais elle en rend UN PAR PAGE (le scenario N==M de la sortie (3) d'US-16). NE PAS utiliser la presence de '#### Node.js' comme discriminant : 56/69 pages en portent un, mais sur les pages sans '## Changes' il vit sous '## Upgrade' et contient de la prose d'upgrade ('Upgrade your Node SDK to v19.1.0'), pas un tableau de parametres - le prendre pour signal produirait 20 faux gaps. DIRECTION D'ERREUR ASSUMEE : si Stripe renommait tout son vocabulaire de sections, TOUTES les pages deviendraient des gaps, donc sur-signalement BRUYANT et jamais un 'rien a faire' silencieux. C'est ce qui rend cette liste litterale acceptable la ou la table de versions d'US-9 etait refusee : celle-ci perime en criant, l'autre perimait en silence.",
+            "AC6 - N+1 SUR L'INDEX FERME ICI (arbitrage du 2026-09-10, voir D7 de la DoR - PAS renvoye a US-15). changesSince fait aujourd'hui 1 fetch de l'index dans releases(), puis 1 fetch de l'index PAR release dans detectChanges (src/detection/index.ts:73) : 28 fetchs d'un document de 204776 octets pour le walk de reference (27 releases). Exigence : l'index est fetche EXACTEMENT UNE FOIS par appel a changesSince(). Test avec un fetcher stub qui COMPTE ses appels par URL - invisible aujourd'hui parce que le stub des tests est une simple map. Contrainte de non-regression : la signature et le comportement de detectChanges pour un appel a une release unique (US-2, src/cli.ts --detect) ne changent pas ; l'index deja parse est passe en ENTREE OPTIONNELLE, les tests d'US-2 ne bougent pas.",
+            "AC7 - Cap cout BYOT : au dela de N changements sur le point de consommer des tokens du fixer IA, le run s'arrete et exige une confirmation explicite. N vaut 5 par defaut. Le cap porte sur les changements qui ont reellement MATCHE du code dans le repo cible (ceux qui vont couter), pas sur les changements detectes : le spike a detecte 5 changes auto-executables sur UNE seule release dont un seul a atteint le modele, un cap sur les detectes se declencherait des la premiere release et serait desarme par reflexe. Le cap s'applique dans une passe de comptage EN LECTURE SEULE (loadProject + codemod.find sur la cible), en amont de run(), donc structurellement avant tout appel modele - applyFix() etant le seul appelant du Llm et vivant a l'interieur de run(). Test invariant : avec un Llm espion, un run au-dessus du cap consomme ZERO appel. Voir D3, inchange.",
+            "AC8 - Le cap est fail-closed et NON INTERACTIF, sans exception : il n'existe aucune invite, ni en TTY ni hors TTY. Au-dessus du seuil, le run liste les changements concernes (id, symbole, release d'origine, nombre de sites) puis sort en erreur explicite, et ne suppose jamais un oui. Deux echappatoires : --max-changes <n> (releve ou abaisse le seuil, entier > 0) et --yes (confirme sans invite, alias -y). L'absence d'invite est une decision d'architecture assumee (D3) : un seul chemin de code, testable sans harnais TTY, et une confirmation qui laisse une trace dans l'historique shell ou le log de CI.",
+            "AC9 - Forme #2 report-only : la DONNEE existe deja (VendorDiff.reportOnly, livre et teste par US-12) mais rien ne la rend et rien ne garantit encore l'absence d'artefact. Exigence restante : les changements de forme reponse sont rapportes avec leur release d'origine et l'URL de leur page, et ne produisent JAMAIS de branche, de patch ni de PR. Un test asserte qu'un walk contenant une forme #2 la rapporte ET que le repertoire de sortie ne contient aucun artefact portant son id. La FORMULATION exacte du message reste le livrable d'US-16 (sortie (5)) ; US-13 livre la garantie et le contenu minimal.",
+            "AC10 - Tracabilite : l'ordre chronologique croissant et le portage de la release par change.apiVersion sont LIVRES ET TESTES par US-12 (tests/vendor-source.test.ts) - rien a refaire. Ce qui reste : les gaps sont rendus a l'appelant avec URL + release + raison, et leur COMPTE est disponible pour le resume ('N pages sur M illisibles', sortie (3) d'US-16). Une page defaillante n'interrompt jamais le walk ni sa release (AC4).",
+            "AC11 - Stripe seulement. Aucun moteur generique multi-vendor, aucune ingestion d'autre source, aucun scheduler ni cron interne : le trigger reste l'utilisateur (CLI ou GitHub Action).",
+            "AC12 - Decoupage du livrable : la convention CLAUDE.md des quatre morceaux ne s'applique pas (aucun Change ajoute au registre). Equivalent attendu : la selection de releases extraite en FONCTION PURE (AC1/AC2/AC3 doivent se tester sur un tableau de chaines, sans markdown ni fetcher - aujourd'hui elle est inline dans changesSince, donc non testable ainsi), l'isolation par page et le discriminant de lisibilite dans src/detection/index.ts, des fixtures markdown multi-releases dont une variante francaise, et des tests.",
+            "AC13 - Zero reseau dans les tests : index et pages de detail servis depuis des fixtures markdown commitees, fetcher stub uniquement. Le fetcher stub des tests de walk doit COMPTER ses appels (AC6).",
+            "AC14 - Invariants inchanges et non redefinis : gate = suite de tests de l'utilisateur (jamais de PR non draft sur suite rouge), tests en lecture seule pour le fixer IA, blast radius only (jamais de CI config, de secrets, de lockfiles), AST jamais regex cote matcher.",
+            "AC15 - npx tsc --noEmit et npm test verts (scripts/dod.sh)."
+          ],
+          "definition_of_ready": {
+            "cadre_par": "architecte",
+            "date": "2026-09-10 (cadrage initial) / 2026-09-10 (RE-CADRAGE apres livraison d'US-12)",
+            "verdict": "READY - le perimetre re-cadre est STRICTEMENT PLUS PETIT que celui deja juge ready : US-12 a absorbe la couverture de l'index, l'ordre chronologique et le squelette du walk. Tous les points restants sont tranches et adosses a une mesure du 2026-09-10 sur l'artefact reel.",
+            "RE_CADRAGE_2026_09_10_apres_US_12": {
+              "contexte": "US-12 (VendorSource) est implementee, DoD verte et acceptee QA sur la branche feature/US-12-vendor-source (commit 2fda315, base main 0d538d9), PR non mergee. Le dev y a implemente un walk multi-releases dans changesSince() alors que le hors_scope d'US-12 reservait la plage a US-13. Justification retenue par la QA et validee ici : la forme VendorDiff exigee par l'architecte (gaps, releases, to) n'etait pas testable avec un stub - `gaps` serait reste un champ present jamais renseigne. L'ecart est acceptable ; il deplace la frontiere, il ne la casse pas.",
+              "ce_qui_est_LIVRE_par_US_12_et_RETIRE_d_US_13": [
+                "AC7bis (couverture de l'index) : RELEASE_HEADING_RE accepte desormais le canal optionnel - src/detection/stripe-changelog.ts:65, /^##\\s+(\\d{4}-\\d{2}-\\d{2}(?:\\.\\S+)?)\\s*$/gm - avec un test dedie sur un heading '## 2023-08-16'. CADUC en tant qu'AC d'US-13.",
+                "AC7a (ordre chronologique croissant + release portee par change.apiVersion) : livre et asserte (tests/vendor-source.test.ts). CADUC.",
+                "AC2 cas (a) 'borne = derniere release de sa ligne -> zero change, zero gap, jamais une erreur' : livre et teste. Conserve seulement comme non-regression dans AC3(a), avec la correction de `to`.",
+                "La forme VendorDiff { from, to, releases, autoExecutable, reportOnly, gaps } et l'agregation autoExecutable/reportOnly sur plusieurs releases : livrees.",
+                "Le choke point Accept-Language: en-US, deplace de src/cli.ts vers src/detection/index.ts (httpFetcher) AVEC un test de regression : le rempart le plus fragile du lot est desormais couvert. Consequence sur US-16 (risque 3) et US-15 (vigilance du decorateur) : voir ces deux US."
+              ],
+              "ce_qui_reste_valable_TEL_QUEL": [
+                "P1_preuve_terrain_2026_09_10 : conserve integralement. Les faits P1a (index = liste ordonnee complete), P1b (regle de canal), P1e (volumetrie) restent vrais et sont re-mesures ci-dessous (P1f). P1c (regex de heading) est CORRIGE par US-12 : le fait reste vrai a la date ou il a ete constate, sa consequence est fermee. P1d (throw d'extractImpact) reste VRAI et OUVERT : US-12 a isole a la RELEASE, pas a la PAGE.",
+                "D2_le_walk_ALGORITHME_TRANCHE : conserve, et c'est le point le plus important du re-cadrage - voir D2_STATUT_APRES_US_12 ci-dessous.",
+                "D3_ou_s_applique_le_cap_TRANCHE : conserve integralement, rien de livre sur ce chemin.",
+                "D2b_borne_non_resolue_AC3 : conserve integralement (devient AC3(d)).",
+                "D2c_ecart_po_vers_architecte : conserve comme HISTORIQUE du cadrage initial. La numerotation d'AC qu'il cite est celle d'avant re-cadrage - voir correspondance_AC_avant_apres."
+              ],
+              "correspondance_AC_avant_apres": {
+                "AC1 (ligne de canal)": "-> AC1 + AC1bis + AC2, re-ecrits : la partie 'filtrage par canal' est livree, la partie CONTINUITE ne l'est pas.",
+                "AC2 (bornes a,b,c,d)": "-> AC3 ; (a) livre, (b)(c)(d) restants.",
+                "AC3 (borne non resolue)": "-> AC3(d), inchange sur le fond.",
+                "AC4 (cap)": "-> AC7, inchange.",
+                "AC5 (cap fail-closed non interactif)": "-> AC8, inchange.",
+                "AC6 (forme #2 report-only)": "-> AC9, reduit : la donnee est livree, la garantie et le rendu restent.",
+                "AC7 (a: ordre / b: trous)": "-> (a) CADUC, livre ; (b) -> AC4 + AC5 + AC5bis, considerablement precise.",
+                "AC7bis (couverture de l'index)": "-> CADUC, livre par US-12.",
+                "AC8 -> AC11, AC9 -> AC12, AC10 -> AC13, AC11 -> AC14, AC12 -> AC15": "inchanges sur le fond.",
+                "NOUVEAU AC5/AC5bis": "l'ecart NON DECLARE trouve par la QA (page HTTP 200 non parsable = zero gap) - l'invariant central du lot, jusqu'ici non couvert par aucun AC.",
+                "NOUVEAU AC6": "le N+1 sur l'index, tranche vers US-13 (D7)."
+              }
+            },
+            "D2_STATUT_APRES_US_12": {
+              "le_point_central_du_re_cadrage": "D2 etape 3 disait deja, mot pour mot : \"ligne = from se termine par '.preview' ? 'preview' : 'stable'. candidats = releases dont (ligne === 'preview' ? channel === 'preview' : channel !== 'preview')\". C'est EXACTEMENT la continuite manquante. US-12 a implemente autre chose : channelOf(release) === channelOf(from), une egalite stricte (undefined inclus). Le re-cadrage ne demande donc PAS un nouvel algorithme : il demande D2 etape 3 telle qu'elle etait deja ecrite.",
+              "REFUS_EXPLICITE_de_la_solution_proposee_en_revue": "La QA a suggere 'un modele de ligne ordonnee (legacy sans canal -> acacia -> basil -> clover -> dahlia)'. REFUSE. Ce serait la liste de canaux en dur que D2 (ce_qu_on_NE_fait_PAS) et la DoR d'US-9 ont deja refusee, et elle perimerait EN SILENCE au prochain canal ouvert par Stripe. La mesure du 2026-09-10 montre qu'elle est de surcroit inutile : la ligne stable est monotone en date, sans entrelacement, donc l'ordre par apiVersionDate() produit la meme sequence sans rien a maintenir. C'est le contenu d'AC1bis.",
+              "autres_ecarts_du_code_livre_par_rapport_a_D2": [
+                "Etape 2 non implementee : apiVersionDate(from) n'est jamais appelee ; les comparaisons sont lexicographiques sur la chaine complete (`release > from`). Fonctionne par accident tant que la date est un prefixe zero-padde, mais rend 'latest' et '' silencieusement faux (AC3c) et compare '.basil' a '' sur une date egale.",
+                "Etapes 5 et 6 non implementees : 'a jour' et 'plus recent que tout ce qui est publie' rendent le meme resultat ; `to` retombe sur `from` au lieu de la derniere release de l'index (AC3).",
+                "Etape 7 : le try/catch est autour de detectChanges (par RELEASE) et non autour de la page (AC4).",
+                "La fonction PURE selectReleases n'existe pas : la selection est inline dans changesSince, donc les tests de bornes doivent passer par un fetcher et du markdown. AC12 le corrige."
+              ]
+            },
+            "P1f_RE_MESURE_2026_09_10_sur_l_artefact_reel": {
+              "methode": "Re-fetch live de https://docs.stripe.com/changelog.md + des 69 pages de detail Breaking de la plage de reference, avec Accept-Language: en-US puis fr, et comptage des headings de niveau 2. Aucune reimplementation : la meme regle de heading que src/detection/stripe-changelog.ts.",
+              "index": "140 headings, 204776 octets, du 2011-06-21 au 2026-08-26. 2 headings ne portent AUCUNE ligne de tableau exploitable (2015-08-07, 2015-07-13) : une release sans ligne est LEGITIME, ce n'est pas un gap.",
+              "ligne_stable": "123 headings non-preview, 5 segments successifs et non entrelaces : sans canal (jusqu'au 2024-06-20) -> acacia (2024-09-30) -> basil (2025-03-31) -> clover (2025-09-30) -> dahlia (2026-03-25). 17 dates portent 2 headings ; 0 date porte plus d'un heading non-preview ; 0 date est preview-seule. Propriete inchangee depuis le cadrage initial.",
+              "cout_chiffre_de_l_egalite_stricte": "Depuis 2023-08-16 : egalite stricte = {2023-10-16, 2024-04-10, 2024-06-20} = 3 releases / 14 pages Breaking, to=2024-06-20 (identique a la mesure QA). Continuite = 27 releases / 69 pages, to=2026-08-26.dahlia. Pages Breaking par release dans la plage : 2023-10-16:2, 2024-04-10:3, 2024-06-20:9, 2024-09-30.acacia:4, 2025-03-31.basil:22, 2025-09-30.clover:18, 2026-03-25.dahlia:11, les 20 autres releases:0.",
+              "vocabulaire_de_headings_ferme": "Sur les 69 pages : 69/69 portent '## What's new' (U+2019) ; 67/69 portent '## Impact' ; 36/69 portent '## Changes' ; 56/69 portent '#### Node.js'. Onze combinaisons distinctes seulement, toutes tirees du meme vocabulaire de six : What's new, Why is this a breaking change?, Impact, Changes, Upgrade, Related changes.",
+              "le_piege_du_Node_js_sans_Changes": "56 pages portent '#### Node.js' mais 36 seulement portent '## Changes'. Verifie sur clover/2025-09-30/billing-mode-default-flexible.md : sur une page sans '## Changes', le '#### Node.js' vit sous '## Upgrade' et contient de la PROSE d'upgrade numerotee ('Upgrade your Node SDK to v19.1.0'), pas un tableau Parameter(s)|Change|Resources. Le parseur du repo a donc raison de scoper a '## Changes' : ce n'est PAS du signal manque. Corollaire : '#### Node.js present mais rien extrait' serait un discriminant FAUX (20 faux gaps).",
+              "traduction_verifiee": "Accept-Language: fr sur 3 pages couvrant les deux formes : Changes->Modifications, What's new->Nouveautes, Why is this a breaking change?->Pourquoi s'agit-il d'une modification majeure ?, Upgrade->Mise a niveau, Related changes->Modifications associees / Changements connexes. '## Impact' est IDENTIQUE en francais. Les sous-headings de SDK ('#### Node.js') et le corps des tableaux ('Removed') ne sont pas traduits. C'est ce qui fonde la sentinelle d'AC5 et l'exclusion d'Impact.",
+              "pages_sans_Impact": "2 sur 69, toutes deux sur 2026-03-25.dahlia : updates-available-checkout-session-ui-modes.md (a un '## Changes' avec table Node.js -> extractImpact THROW, cas P1d toujours vivant) et rename-init-embedded-checkout-to-create-embedded-checkout-page.md (n'a ni Changes ni Impact -> ne throw pas, car extractImpact est appele paresseusement, seulement quand il y a quelque chose a emettre). Verifie dans buildDetectedChanges (src/detection/stripe-changelog.ts:288)."
+            },
+            "D7_le_N_plus_1_sur_l_index_TRANCHE_US_13": {
+              "question": "changesSince fait releases() (1 fetch de l'index) puis detectChanges par release, et detectChanges refetche l'index a chaque fois (src/detection/index.ts:73). 28 fetchs de 204776 octets pour la plage de reference. Le dev l'a renvoye en commentaire vers US-15. US-13 ou US-15 ?",
+              "verdict": "US-13. Le N+1 est ferme ici, par AC6.",
+              "motifs": [
+                "Ce n'est pas un probleme de cache, c'est un probleme de composition du walk. Le walk a DEJA l'index parse en main (releases() vient de le faire) et le jette. La correction n'est pas 'ajouter un cache', c'est 'ne pas refetcher ce qu'on a deja parse' - un passage de parametre, pas un module.",
+                "Cache et N+1 sont deux problemes distincts : le cache adresse la MEME URL entre deux RUNS ; le N+1 adresse la meme URL 28 fois DANS un run. Un cache qui absorbe un N+1 intra-run est un cache qui fait le travail d'une correction de bug, et il le fait mal : 27 lectures disque + 27 re-parsings de 200 Ko subsistent.",
+                "US-15 est priorite 3 et ne depend que d'US-12 ; rien ne garantit qu'elle precede US-14. Or US-14 fait du walk le chemin PAR DEFAUT. Livrer le N+1 et basculer le defaut avant US-15, c'est 28 requetes d'index par run par defaut chez tout utilisateur, avec un risque de rate-limiting cote vendor qui sortirait en sortie (1) 'fetch KO' d'US-16 - une panne fabriquee par nous.",
+                "US-15 AC5 exige 'supprimer le repertoire de cache n'a aucun effet autre que de la latence'. Laisser le N+1 rend cette phrase vraie mais malhonnete : le facteur serait de 28 sur l'index. Fermer le N+1 dans US-13 garde le cache dans son role - de la latence, rien d'autre.",
+                "Cout : quelques lignes (entree optionnelle sur detectChanges), et le meme fichier et la meme boucle que l'isolation par page d'AC4. Les deux corrections tiennent dans un commit."
+              ],
+              "consequence_sur_US_15": "Aucune modification de ses AC. Une note datee est ajoutee a sa DoR : le N+1 intra-run est ferme par US-13, le cache est strictement inter-run, et US-15 ne doit jamais etre invoquee pour justifier un N+1.",
+              "invariant_a_poser_MAINTENANT": "Le test de comptage d'AC6 doit exister AVANT US-15 : une fois le cache branche, un N+1 redevient invisible (1 fetch reseau, 27 lectures de cache). Ecrire ce test apres le cache serait ecrire un test qui ne peut plus rougir."
+            },
+            "D3_ou_s_applique_le_cap_TRANCHE": {
+              "emplacement": "Dans une passe de PLAN, en lecture seule, entre le walk et run() - jamais dans src/pipeline.ts. Concretement, cote appelant : project = loadProject(targetDir) une seule fois ; pour chaque candidat, findMatches(project, genericSymbolCodemod(change)) ; on compte ceux dont matches.length > 0 ; on decide ; puis on passe les survivants a RunOptions.codemods.",
+              "pourquoi_la": "(a) C'est structurellement avant tout appel modele : applyFix() est le seul appelant du Llm et il vit dans run(). (b) Ca respecte US-14 AC4 : aucune plomberie de pipeline nouvelle, le seam existant suffit. (c) Effet de bord benefique et non anecdotique : run() fait aujourd'hui une copie recursive complete du repo PAR codemod (makeWorkspace, pipeline.ts ligne 108). Avec 28 candidats, c'est 28 copies du repo de l'utilisateur pour, typiquement, 1 ou 2 matches. Filtrer en amont ramene ca a 1 ou 2.",
+              "LE_PIEGE_a_ne_pas_ouvrir": "Filtrer les non-matches en amont supprimerait le garde anti-silence PipelineResult.warning 'vendor-present-no-match' (commit 78dbfe2, exige actif par US-14 AC8) : il n'est emis QUE depuis pipeline.ts, sur un codemod a 0 match. Obligation : la passe de plan doit REPRODUIRE ce signal pour les candidats qu'elle ecarte. Moyen recommande, minimal : exporter noMatchWarning() (aujourd'hui privee, src/pipeline.ts ligne 95) et l'appeler dans la passe de plan avec le meme Project. Test invariant : un change detecte a 0 match, sur un repo qui construit bien un client Stripe, WARNE toujours apres la bascule.",
+              "cout_de_la_double_passe": "find() est execute deux fois (plan, puis pipeline). C'est du parsing AST, pas des tokens ni du reseau, sur un Project deja charge. Accepte : le prix d'un AST relu est sans commune mesure avec 26 copies de repo evitees et zero token gaspille.",
+              "seuil_et_flags": {
+                "N": "5 par defaut, sur les MATCHES (arbitrage PO 1, non rediscute).",
+                "--max-changes <n>": "entier > 0. Releve OU abaisse. Pas de valeur 'illimite' : un utilisateur qui veut tout passer ecrit un nombre, ce qui reste lisible dans un log de CI.",
+                "--yes": "confirme sans invite. Alias -y admis.",
+                "pas_d_invite_TTY": {
+                  "decision": "AUCUNE invite interactive, ni en TTY ni hors TTY. AC8 (ex-AC5) patche en consequence.",
+                  "motif": "Une invite est un second chemin de code (lecture stdin, detection de TTY, harnais de test dedie) pour une valeur marginale, et elle cree la classe de bug que le fail-closed existe pour eviter : un 'oui' reflexe non trace. Le comportement non interactif est un sur-ensemble strict en surete, et il est identique en local et en CI - une seule chose a documenter, une seule chose a tester.",
+                  "cout_assume": "Un utilisateur local au-dessus du seuil doit relancer avec --yes ou --max-changes. Une commande de plus. En echange, sa confirmation laisse une trace dans son historique shell ou dans le log du job."
+                }
+              },
+              "sortie_bloquee": "Liste des changements concernes (id, target.symbol, release d'origine, nombre de sites), puis code de sortie non nul. Test avec Llm espion : zero appel."
+            },
+            "D2b_borne_non_resolue_AC3d": {
+              "regle": "Pas de walk aveugle. Mais 'pas de borne' n'est pas UNE situation : PinnedApiVersion en distingue six (UnresolvedPinReason, src/matcher/api-version.ts ligne 77), et la DoR d'US-9 (D3) a deja tranche qu'elles ne doivent pas etre fusionnees.",
+              "a_tester_separement": [
+                "'no-client' : aucun client Stripe construit. Le repo n'utilise peut-etre pas Stripe du tout - le dire, ne pas alarmer.",
+                "'no-option' + 'sdk-not-installed' : client construit sans apiVersion ET node_modules absent. ON N'A PAS PU REGARDER. Action : installer les dependances puis relancer, ou fournir la borne a la main.",
+                "'sdk-predates-implicit-pin' (stripe <= v11) : on A regarde, et le SDK ne pose AUCUN pin - la version effective est le defaut du COMPTE, cote dashboard, hors de portee de toute analyse statique. Ce n'est ni un pin ni une absence de pin. Phrase specifique obligatoire.",
+                "'non-literal' / 'sdk-version-unreadable' : on voit quelque chose qu'on ne sait pas lire. Signal d'hypothese cassee, a garder reperable en support."
+              ],
+              "l_echappatoire_doit_etre_nommee_dans_le_message": "AC3(d) exige 'un message qui dit ce qui manque ET COMMENT LE FOURNIR'. Le comment, c'est le flag qui remplace --release : --since <api-version>. Le message doit le nommer litteralement, avec un exemple. Un message qui dit 'borne manquante' sans dire par ou la fournir ne satisfait pas l'AC.",
+              "invariant": "Zero token consomme sur une borne inconnue - le walk n'est meme pas lance. Testable avec un Llm espion ET un fetcher espion (zero fetch non plus : inutile de telecharger 200 Ko pour rien). Note : resolveCurrentApiVersion est deja livre et teste par US-12 sur les trois etats principaux ; ce qui reste ici est le COMPORTEMENT de l'appelant face a un etat non resolu.",
+              "statut_apres_US_12": "resolveCurrentApiVersion (delegation pure a resolvePinnedApiVersion) est livre et teste, y compris le cas 'sdk-not-installed'. Rien de la resolution ne reste a faire ; tout ce qui reste est cote appelant."
+            },
+            "P1_preuve_terrain_2026_09_10": {
+              "statut": "CONSERVE. Voir RE_CADRAGE pour ce qui est desormais ferme (P1c) et ce qui reste ouvert (P1d).",
+              "methode": "Fetch live de https://docs.stripe.com/changelog.md (204832 octets) + 69 pages de detail Breaking reelles, puis execution de parseChangelogIndex / parseNodeJsChangesTable / buildDetectedChanges (les fonctions du repo, pas une reimplementation) via tsx sur ces artefacts.",
+              "P1a_LE_WALK_EST_FAISABLE": "OUI. L'index est une liste ordonnee complete et exploitable : 140 headings '## <date>[.<canal>]' dans un seul document, du 2011-06-21 au 2026-08-26, une seule requete, pas de pagination. Le caveat du spike est leve. RE-VERIFIE le 2026-09-10 (P1f).",
+              "P1b_LA_CONTRADICTION_MAJEURE_le_canal_n_est_PAS_ignorable_dans_un_walk": {
+                "hypothese_heritee": "US-7 avait tranche 'comparer les 10 premiers caracteres, aucune logique de canal', limite documentee et assumee. Le cadrage d'US-13 devait verifier que ca tient pour un walk. CA NE TIENT PAS.",
+                "pourquoi": "Le test d'anteriorite d'US-7 repond a 'dois-je BLOQUER ?' - ignorer le canal y produit au pire un blocage manquant, direction conservatrice. Le walk repond a 'que dois-je EDITER ?' - ignorer le canal y produit des editions, direction destructrice. Meme comparaison, sens de l'erreur oppose.",
+                "chiffre_qui_tranche": "Repo pin 2026-03-25.dahlia (= pin implicite de stripe-node v21, un repo parfaitement a jour). Walk NAIF a la regle US-7 (date seule) : 20 changements Breaking retenus, tous issus de releases .preview. Walk conscient du canal : 0. Rapport signal/bruit 0/20.",
+                "statut_apres_US_12": "La moitie 'exclure preview' est obtenue AUJOURD'HUI par accident (egalite stricte de canal) et disparaitra des qu'on introduit la continuite : d'ou AC2 et son test de mutation. La moitie 'traverser les canaux stables' n'est PAS implementee : d'ou AC1.",
+                "ordre_du_document_non_fiable": "A ne pas exploiter : l'ordre des headings dans le fichier n'est pas coherent (2026-04-22.preview precede 2026-04-22.dahlia alors que toutes les autres dates ont le canal stable en premier). L'ordre chronologique se CALCULE sur apiVersionDate(), il ne se lit pas."
+              },
+              "P1c_le_parseur_ne_voyait_que_29_pourcent_de_l_index": "FERME par US-12 (RELEASE_HEADING_RE a canal optionnel + test). Conserve comme trace du constat.",
+              "P1d_une_page_defaillante_tue_le_walk_entier": {
+                "statut": "PARTIELLEMENT ferme. US-12 a isole a la RELEASE (try/catch autour de detectChanges) : le walk survit, mais la release entiere est perdue. Reste a faire : isolation a la PAGE (AC4).",
+                "fait_reproductible_aujourd_hui": "extractImpact (stripe-changelog.ts ligne 141) THROW si la page n'a pas de section '## Impact' non vide. La page LIVE https://docs.stripe.com/changelog/dahlia/2026-03-25/updates-available-checkout-session-ui-modes.md est dans ce cas. Re-verifie le 2026-09-10. Elle appartient a une release de 11 pages Breaking : l'isolation par release en perd 10.",
+                "correctif": "Ne PAS assouplir extractImpact - la garde reste. ISOLER l'echec par page et le remonter comme un trou nomme portant l'URL."
+              },
+              "P1e_volumetrie_et_rendement_reels_du_walk": {
+                "mesure": "Walk depuis le pin 2023-08-16 (stripe-node v13), canal preview exclu, avec le parseur du repo sur les 69 pages reelles :",
+                "chiffres": [
+                  "27 releases dans la plage, 69 pages de detail Breaking a fetcher (+ l'index de 200 Ko).",
+                  "35 pages sur 69 seulement ont un tableau '#### Node.js' exploitable sous '## Changes'. Les autres sont en HTTP 200 et parfaitement valides cote vendor. Ce N'EST PAS une derive de format. (Re-mesure 2026-09-10 : 36 pages portent '## Changes'.)",
+                  "35 lignes 'Removed' -> 28 Change forme #1 (auto-executables) + 24 forme #2 (report-only) + 1 page en throw.",
+                  "Concentration : 2025-03-31.basil porte a elle seule 25 des 28 forme #1 ; 2025-09-30.clover en porte 1 ; 2024-09-30.acacia en porte 2. Les 24 autres releases n'en portent aucune.",
+                  "Autre borne, pour calibrer : depuis 2025-03-31.basil (stripe-node v18), 17 releases et 29 pages. Depuis 2026-03-25.dahlia (v21), 5 releases et 0 page Breaking."
+                ],
+                "consequence_renforcee_par_le_re_cadrage": "La concentration sur 2025-03-31.basil est ce qui rend AC1 critique : sans la continuite inter-canaux, un repo epingle avant 2024-09-30 ne voit AUCUN des 25 changes forme #1 de basil. Le walk livre n'est pas 'un peu incomplet', il rate l'essentiel du signal."
+              }
+            },
+            "D2c_ecart_po_vers_architecte_HISTORIQUE": {
+              "note": "Trace du cadrage initial du 2026-09-10, AVANT re-cadrage. La numerotation d'AC citee ici est l'ancienne - voir correspondance_AC_avant_apres. Conserve parce qu'il documente pourquoi trois AC du PO ont ete patches et un ajoute.",
+              "patche_AC1_ajout_de_la_ligne_de_canal": "'toutes les releases strictement posterieures' -> 'de la MEME LIGNE DE CANAL'. Motif : la formulation d'origine, implementee a la lettre, produit des PR fausses sur des repos sains (20/20).",
+              "patche_AC2_ajout_de_deux_bornes": "(c) borne illisible, distincte de 'borne non resolue' ; (d) borne preview. Motif : deux etats differents de PinnedApiVersion, deux remedes differents.",
+              "patche_AC4_localisation_du_cap": "Emplacement fixe (passe de comptage en lecture seule) + invariant 'Llm espion, zero appel'.",
+              "patche_AC5_pas_d_invite_TTY": "Aucune invite, ni TTY ni non-TTY. Flags --max-changes <n> et --yes.",
+              "ajoute_AC7bis_couverture_de_l_index": "Motif : rien dans les AC du PO n'exigeait que le walk voie l'integralite de l'index, et c'etait faux sur le code. LIVRE par US-12 depuis.",
+              "patche_AC6_et_AC7_precisions_de_tracabilite": "Rapport forme #2 avec release + URL et absence d'artefact ; scission ordre / trous."
+            },
+            "decoupage_du_livrable": {
+              "deux_moities_independantes": "Le reste d'US-13 se livre en deux commits qui ne se touchent pas : (A) le walk et les trous, entierement dans src/detection/ (AC1-AC6, AC10) ; (B) le cap cout et la garantie forme #2, entierement cote appelant (AC7-AC9). Si le PO ou l'humain veut scinder US-13 plus tard, la frontiere est deja la et ne coute rien. Recommandation de l'architecte : ne PAS scinder - le perimetre re-cadre est deja plus petit que celui juge ready le 2026-09-10.",
+              "module_A": "Extraire la selection de releases de changesSince vers une fonction PURE (src/detection/walk.ts, selectReleases(releases, from) -> { walked, to, skippedPreview, unreadableBound }) : c'est la que vivent les tests d'AC1/AC2/AC3, sur un tableau de chaines, sans markdown ni fetcher. Plus, dans src/detection/index.ts : try/catch par PAGE, discriminant de lisibilite (AC5), entree optionnelle d'index pre-parse (AC6). Plus le champ url sur VendorDiffGap (src/detection/vendor-source.ts).",
+              "module_B": "Passe de plan en lecture seule + export de noMatchWarning() (src/pipeline.ts ligne 95) + flags --max-changes / --yes. Aucune modification de la boucle de run().",
+              "fixtures": "fixtures/stripe-changelog/index-walk-excerpt.md existe (livre par US-12) mais ne porte qu'un seul canal (acacia + une ligne preview) : il doit etre ETENDU ou double par un index de fixture portant les TRANSITIONS de canal (un heading sans canal, puis .acacia, puis .basil) et un cas 'derniere release'. Plus des pages de detail de fixture : une sans '## Impact' (copie reduite du cas live 2026-03-25), une sans '## Changes' mais avec '## Upgrade' et un '#### Node.js' de prose (le piege des 20 faux gaps), et une VARIANTE FRANCAISE d'une page valide (le calibrage d'AC5bis).",
+              "tests": "tests/walk.test.ts (bornes, pur) + extension de tests/vendor-source.test.ts et tests/detection.test.ts (isolation par page, gaps avec URL, discriminant de lisibilite, comptage de fetchs) + un test de cap avec Llm espion."
+            },
+            "hors_scope": [
+              "Le basculement du defaut CLI (--detect meurt, --release devient --since) : US-14. US-13 peut etre livree et testee sans, en passant par le flag existant ou par un appel direct dans les tests.",
+              "Le cache : US-15. Le walk fetche chaque URL UNE fois par run (AC6) ; c'est le decorateur de Fetcher d'US-15 qui evitera de refetcher d'un run a l'autre. Ces deux problemes sont distincts, voir D7.",
+              "La taxonomie complete des messages d'echec fetch/parse et leurs cinq phrases : US-16. US-13 produit la DONNEE (gaps avec URL, release, raison, et leur compte) ; US-16 produit les PHRASES. Frontiere inchangee.",
+              "Toute modification de RELEASE_HEADING_RE : livree par US-12, ne pas y retoucher.",
+              "Tout assouplissement de la garde extractImpact : seule sa PORTEE change.",
+              "Toute detection d'incrementalite entre deux polls (snapshot 'deja vu') : la borne est le pin, pas un etat persistant.",
+              "Tout scheduler / cron interne (AC11). Le trigger reste l'utilisateur.",
+              "Toute exploitation des lignes 'Non-breaking' : le walk garde le filtre entry.breaking existant.",
+              "Toute extension des enums de src/types.ts.",
+              "Tout second vendor, tout second langage."
+            ],
+            "risques": [
+              "RISQUE PRINCIPAL DU RE-CADRAGE - l'exclusion de preview est aujourd'hui un effet de bord. Le dev qui introduit la continuite peut la faire disparaitre sans qu'aucun test existant ne rougisse (l'index de fixture d'US-12 ne porte qu'un canal stable). Parade : etendre la fixture AVANT de toucher au filtre, et le test de mutation exige par AC2.",
+              "SECOND RISQUE - la sentinelle de lisibilite d'AC5 est une liste litterale de headings anglais. Elle perime si Stripe renomme ses sections. Attenuation retenue et assumee : elle perime en CRIANT (toutes les pages deviennent des gaps, sortie (3) d'US-16 avec N==M) et jamais en silence. C'est la difference exacte avec la table de versions refusee en US-9. A relire si le chiffre N==M devient frequent.",
+              "La regle de canal est vendor-verifiee le 2026-09-10 sur 140 headings, pas contractuelle. Si Stripe ouvrait un second canal parallele autre que 'preview', il tomberait par defaut dans la ligne stable et serait walke a tort. Attenuation : c'est un faux positif VISIBLE (la release apparait nommement dans le rapport et dans chaque PR via change.apiVersion), pas un silence.",
+              "La passe de plan touche au chemin du garde anti-silence (78dbfe2). C'est le point de regression le plus probable du module B - le test doit etre ecrit AVANT le filtrage, pas apres.",
+              "Le test de comptage de fetchs (AC6) doit exister AVANT US-15 : une fois le cache branche, un N+1 redevient invisible et le test ne peut plus rougir.",
+              "69 requetes HTTP par run : a developper sur artefacts locaux, pas en martelant docs.stripe.com. Les tests, eux, sont deja hermetiques.",
+              "Ne pas calibrer le cap N=5 sur les 28 forme #1 mesures : c'est UN walk sur UNE borne."
+            ],
+            "invariants_claude_md_non_negociables": [
+              "Le gate reste la suite de tests DE L'UTILISATEUR. Jamais de PR non-draft sur suite rouge. Un walk plus large ne relache rien : il augmente le nombre de changes, jamais la tolerance du verifier.",
+              "Stripe seulement (AC11). Pas de moteur generique multi-vendor, pas d'UI, pas de dashboard, pas de multi-langage, pas de scheduler interne.",
+              "Les tests du repo cible sont en lecture seule pour le fixer IA ; les garde-fous sont dans le code de l'outil, jamais dans le prompt.",
+              "Blast radius only : jamais de CI config, de secrets, de lockfiles.",
+              "AST, jamais regex, cote matcher : la passe de comptage passe par findMatches/genericSymbolCodemod, jamais par une recherche textuelle. (Le parsing du changelog reste du texte : ce n'est pas du code utilisateur.)",
+              "Zero reseau dans les tests (AC13) : index ET pages de detail servis depuis des fixtures markdown commitees, fetcher stub uniquement.",
+              "DoD = scripts/dod.sh (npx tsc --noEmit + npm test)."
+            ]
+          }
+        }
+      },
+      "note": "re-cadrage apres livraison US-12 : AC7a/AC7bis/AC2a caducs (livres), continuite inter-canaux + exclusion explicite preview + semantique de to + isolation par page + page HTTP200 illisible + N+1 index ajoutes"
+    },
+    {
+      "ts": "2026-09-10T17:53:12.421Z",
+      "type": "update",
+      "actor": "architecte",
+      "us": "US-15",
+      "payload": {
+        "fields": [
+          "definition_of_ready"
+        ],
+        "before": {
+          "definition_of_ready": {
+            "cadre_par": "architecte",
+            "date": "2026-09-10",
+            "verdict": "READY",
+            "principe_directeur": "Le risque nomme par le PO n'est pas technique, il est de derive : 'qu'un cache persiste finisse par etre lu, versionne et entretenu comme une bibliotheque de fixes'. Toutes les decisions ci-dessous sont choisies pour rendre cette derive STRUCTURELLEMENT impossible, pas pour la decourager par la documentation : emplacement en tmpdir (personne ne versionne un tmpdir), contenu brut et non derive, et inaccessible sous --offline (donc jamais porteur de correction, seulement de latence).",
+            "P3_pourquoi_le_cache_est_structurel_et_pas_cosmetique_2026_09_10": {
+              "volumetrie_mesuree": "Walk depuis le pin 2023-08-16 (= stripe-node v13 = fixtures/implicit-pinned-stripe), canal preview exclu : l'index (204832 octets) + 69 pages de detail Breaking. Depuis 2025-03-31.basil (stripe-node v18) : index + 29 pages. Ces chiffres sortent de l'execution du parseur du repo sur le changelog live du 2026-09-10.",
+              "absence_de_cache_http_verifiee": "En-tetes de https://docs.stripe.com/changelog.md : content-type text/markdown, vary: Accept, x-content-age: 0. AUCUN Cache-Control, AUCUN ETag, AUCUN Last-Modified. Aucune revalidation conditionnelle n'est possible : un TTL local est le seul levier. Ce n'est pas une preference, c'est ce que le vendor rend possible.",
+              "consequence": "Sans cache, un cron horaire refetche 200 Ko + jusqu'a 69 pages a chaque passe, pour un contenu qui bouge une fois par mois (verifie : les releases Stripe sont mensuelles). Un TTL d'une heure absorbe l'essentiel."
+            },
+            "D5_emplacement_et_forme_TRANCHES": {
+              "emplacement": {
+                "decision": "path.join(os.tmpdir(), 'apidrift-changelog-cache') par defaut, surchargeable par un parametre du module (les tests passent un repertoire temporaire jetable).",
+                "pourquoi_pas_dans_le_repo_cible": "REFUSE net. APIdrift ecrirait des fichiers dans le repo de l'utilisateur : ils apparaitraient dans son git status, ne seraient couverts par aucun .gitignore qui nous appartienne, et pourraient etre committes par accident. C'est une violation directe de 'blast radius only' (CLAUDE.md), au meme titre que toucher a une CI config.",
+                "pourquoi_pas_dans_le_repo_APIdrift": "Le cache ne concerne pas le repo depuis lequel on lance la commande. L'y mettre le rendrait visible, donc versionnable, donc candidat a devenir une bibliotheque - le risque exact que l'US existe pour fermer.",
+                "pourquoi_pas_XDG_cache_home": "~/.cache/apidrift/ survit aux reboots et serait plus 'propre' pour un usage local repete. Refuse quand meme : la persistance est precisement la propriete indesirable ici. Le gain reel serait nul sur le cas cron (les runners de GitHub Action sont neufs a chaque job) et l'inconvenient - un repertoire durable, inspectable, que quelqu'un finira par vouloir 'gerer' - est celui qu'on cherche a eviter. Cout assume : un utilisateur local qui reboote refetche.",
+                "cout_assume": "Sur certains systemes tmpdir est purge agressivement. Consequence maximale : une latence, jamais un resultat different (AC5)."
+              },
+              "forme": {
+                "cle": "sha256 hex de l'URL. Deux fichiers par entree : <cle>.md (le corps BRUT, byte-identique) et <cle>.meta.json ({ url, fetchedAt }).",
+                "pourquoi_deux_fichiers_et_pas_une_enveloppe": "AC1 exige du markdown BRUT. Une enveloppe JSON encapsulant le corps le rendrait non brut, non lisible au `cat`, et melangerait donnee et metadonnee. Le sidecar donne en prime une cible propre et exhaustive au test d'AC7 : on asserte le contenu de .meta.json (deux champs, une URL du domaine public, une date) et l'egalite byte a byte du .md avec la reponse du stub.",
+                "pourquoi_pas_le_mtime_comme_horloge": "AC2 exige une horloge injectable. Se reposer sur le mtime du fichier obligerait les tests a manipuler des mtime pour simuler l'expiration : plus fragile, dependant du systeme de fichiers, et non injectable. fetchedAt dans le sidecar + now() injecte est testable partout."
+              },
+              "seam": {
+                "decision": "Un DECORATEUR de Fetcher : cachingFetcher(inner: Fetcher, { dir, ttlMs, now }): Fetcher. Rien d'autre ne bouge.",
+                "pourquoi": "Le type Fetcher (src/detection/index.ts ligne 22) est deja le seul point d'acces reseau, deja injectable, deja consomme partout par injection. Un decorateur satisfait AC9 ('cablage derriere le Fetcher injectable') a la lettre : ni detectChanges, ni le walk, ni VendorSource n'ont a savoir que le cache existe. Corollaire d'AC5 gratuit : la meme entree avec ou sans cache produit les memes Change, puisque le code en aval est litteralement le meme.",
+                "point_de_vigilance_langue": "Le decorateur ne doit PAS refabriquer une requete HTTP : il delegue au fetcher interieur. Si le dev est tente d'y appeler fetch() directement, il perdrait l'en-tete Accept-Language: en-US et rouvrirait le faux negatif silencieux documente en US-16 (P2 fait 1 : '## Changes' devient '## Modifications' en francais, zero change detecte, HTTP 200 partout). La cle de cache est l'URL SEULE, ce qui n'est correct QUE parce qu'il existe un seul fetcher et qu'il fixe la langue - ne pas relacher l'un sans revoir l'autre."
+              },
+              "corruption_AC6": {
+                "cas_traites_comme_absence": "sidecar manquant / JSON invalide / champ fetchedAt absent ou non numerique / fichier .md manquant / lecture qui leve.",
+                "regle": "Traite comme une absence -> refetch. Le refetch obeit alors au fail-loud d'US-16. Jamais servi tel quel, jamais fatal.",
+                "ce_qui_n_est_PAS_verifie": "Aucune somme de controle du corps. Un corps tronque mais non vide sera servi ; il echouera au parse en aval et sortira comme un gap d'US-13/US-16 AC2bis. Limite assumee : verifier l'integrite ici dupliquerait la validation qui existe deja en aval, et un TTL d'une heure borne les degats."
+              }
+            },
+            "D5c_relation_avec_offline_US_16": {
+              "rappel": "Tranche en US-16 (D5b) : sous --offline, le run fail-close INCONDITIONNELLEMENT, cache frais ou non, et le cache n'est PAS consulte.",
+              "ce_que_ca_impose_ici": "AC5 porte l'invariant testable ('espion de lecture cache = zero appel sous --offline'). Il est place ici parce que c'est une propriete du cache, meme si la decision appartient a US-16.",
+              "pourquoi_c_est_la_bonne_place_architecturalement": "Un cache dont on peut prouver qu'il n'est jamais lu hors ligne ne peut pas devenir une source de verite. La propriete anti-derive et la propriete de test sont la meme propriete."
+            },
+            "D5d_ecart_po_vers_architecte": {
+              "note": "Quatre AC patches, aucun retire. Le PO avait raison sur tout le fond ; deux points etaient sous-specifies au point d'etre tranchables par defaut dans le mauvais sens.",
+              "patche_AC1_sidecar": {
+                "avant": "'Seul le markdown fetche est mis en cache, sous forme BRUTE' - sans dire ou vit l'horodatage du TTL.",
+                "apres": "Sidecar <cle>.meta.json separe, corps byte-identique.",
+                "motif": "Non tranche, le dev aurait raisonnablement ecrit une enveloppe JSON { fetchedAt, body }, ce qui contredit 'brut' et complique le test d'AC7.",
+                "cout": "Deux fichiers par entree au lieu d'un."
+              },
+              "patche_AC2_configurable_comment": {
+                "avant": "'TTL court, une heure par defaut, configurable' - sans dire par quel canal.",
+                "apres": "Parametre du module uniquement. Pas de flag CLI, pas de variable d'environnement, pas d'entree apidrift.json.",
+                "motif": "'Configurable' laisse ouvert aurait produit un flag ou une variable d'environnement, donc une surface publique a documenter et a maintenir pour un reglage dont aucun utilisateur n'a exprime le besoin. AC5 donne deja l'echappatoire humaine : supprimer le repertoire.",
+                "cout": "Un utilisateur ne peut pas allonger le TTL sans modifier du code. Assume."
+              },
+              "patche_AC3_emplacement": {
+                "avant": "'Le cache est gitignore [...] une entree est ajoutee au .gitignore racine' - ce qui suppose implicitement un cache dans une arborescence git, sans dire laquelle.",
+                "apres": "Emplacement en os.tmpdir() comme garantie PRIMAIRE ; l'entree .gitignore est conservee en garantie secondaire.",
+                "motif": "Lu a la lettre, l'AC pouvait conduire a un cache dans le repo CIBLE - une violation de blast radius (des fichiers apparaissant dans le git status de l'utilisateur, non couverts par un .gitignore qui nous appartienne). L'AC d'origine n'etait pas faux, il etait ambigu sur le seul point qui compte.",
+                "cout": "L'entree .gitignore devient largement symbolique. Conservee quand meme : elle coute une ligne et protege d'un futur changement de defaut."
+              },
+              "patche_AC5_ajout_de_l_invariant_offline": {
+                "motif": "Consequence de D5b (US-16). Place ici parce que c'est une propriete du cache et que le test s'ecrit sur le module de cache.",
+                "cout": "Aucun."
+              },
+              "conserve_tel_quel": "AC4 (documentation impossible a rater), AC6 (corruption non fatale), AC7 (zero contenu du repo utilisateur), AC8 (Stripe seulement), AC9 (equivalent 4 morceaux), AC10 (zero reseau), AC11 (invariants), AC12 (DoD).",
+              "precision_sur_AC4": "'Impossible a rater' est une intention, pas un test. Rendu concret : un fichier README.md dans le repertoire de cache, ecrit a la creation du repertoire, qui dit en une phrase que c'est un cache ephemere de la spec publique du vendor, que ce n'est PAS une bibliotheque de fixes, et que le supprimer ne fait rien perdre. Un test asserte sa presence. C'est le meme dispositif que la fixture d'US-9, qui embarque un README expliquant son stub node_modules commite."
+            },
+            "decoupage_du_livrable": {
+              "module": "src/detection/cache.ts - cachingFetcher(inner, { dir, ttlMs, now }) : Fetcher. Zero dependance a ts-morph, zero dependance au reste de la detection.",
+              "cablage": "src/cli.ts enveloppe httpFetcher dans cachingFetcher avant de le passer a VendorSource. Un seul point de cablage.",
+              "fixture_stub": "Fetcher stub comptant ses appels + repertoire temporaire jetable + horloge injectee. Aucun markdown volumineux n'a besoin d'etre commite pour cette US.",
+              "tests": "tests/cache.test.ts : frais = 0 appel ; expire = refetch ; corrompu (5 formes) = traite comme absent ; contenu ecrit (AC7) ; memes Change avec et sans cache (AC5) ; zero lecture sous --offline ; presence du README.",
+              "documentation": "La ligne de doc va dans le README du repertoire de cache + l'aide CLI. PAS dans CLAUDE.md ni docs/architecture.md, qui sont le livrable d'US-14."
+            },
+            "hors_scope": [
+              "Tout cache multi-vendor, tout store partage, tout service de cache (AC8).",
+              "Toute mise en cache d'un artefact DERIVE (Change, codemod, resultat de walk, plan) : seul le markdown brut recu est cache. C'est la ligne rouge de l'US.",
+              "Toute eviction par taille, tout LRU, tout compactage : le TTL et la suppression manuelle suffisent.",
+              "Toute revalidation conditionnelle HTTP (ETag / If-Modified-Since) : le vendor n'en fournit pas (P3).",
+              "Toute somme de controle du corps (voir D5, corruption).",
+              "Tout flag CLI ou variable d'environnement de reglage du TTL.",
+              "docs/architecture.md et CLAUDE.md : livrable d'US-14."
+            ],
+            "risques": [
+              "Derive du contenu du cache : la premiere fois qu'un run sera lent, quelqu'un proposera d'y mettre les Change deja calcules. C'est la fin de l'US. AC1 et le README du repertoire sont les gardes ; le reviewer doit refuser tout PR qui ecrit autre chose que du markdown recu.",
+              "tmpdir purge : un utilisateur peut voir des runs alternativement rapides et lents sans comprendre pourquoi. Acceptable (latence seule), a mentionner dans le README du cache.",
+              "Le decorateur est le second endroit du code qui touche a une URL vendor. S'il refabrique une requete au lieu de deleguer, il perd Accept-Language: en-US et rouvre le faux negatif silencieux d'US-16 P2. Point de revue explicite.",
+              "US-15 est priorite 3 et depend d'US-12 seulement, mais son interet ne se manifeste qu'apres US-13 (le walk) : la livrer avant rendrait ses benefices invisibles et son test AC5 ('memes Change avec et sans cache') trivial. Ordre de livraison recommande : apres US-13."
+            ],
+            "invariants_claude_md_non_negociables": [
+              "Blast radius only - c'est l'invariant CENTRAL de cette US : jamais un octet ecrit dans le repo de l'utilisateur. Ni CI config, ni secrets, ni lockfiles, ni cache.",
+              "Le gate reste la suite de tests DE L'UTILISATEUR ; jamais de PR non-draft sur suite rouge. Le cache ne touche pas au verifier.",
+              "Stripe seulement (AC8). Pas d'UI, pas de dashboard, pas de multi-langage, pas de second vendor.",
+              "Les tests du repo cible sont en lecture seule pour le fixer IA ; garde-fous dans le code, jamais dans le prompt.",
+              "AST, jamais regex, cote matcher (sans objet ici : le cache ne lit aucun code).",
+              "Zero reseau dans les tests (AC10) : fetcher stub, repertoire temporaire, horloge injectee.",
+              "DoD = scripts/dod.sh (npx tsc --noEmit + npm test)."
+            ]
+          }
+        },
+        "after": {
+          "definition_of_ready": {
+            "cadre_par": "architecte",
+            "date": "2026-09-10 (cadrage initial) / 2026-09-10 (note de re-cadrage apres US-12)",
+            "verdict": "READY",
+            "principe_directeur": "Le risque nomme par le PO n'est pas technique, il est de derive : 'qu'un cache persiste finisse par etre lu, versionne et entretenu comme une bibliotheque de fixes'. Toutes les decisions ci-dessous sont choisies pour rendre cette derive STRUCTURELLEMENT impossible, pas pour la decourager par la documentation : emplacement en tmpdir (personne ne versionne un tmpdir), contenu brut et non derive, et inaccessible sous --offline (donc jamais porteur de correction, seulement de latence).",
+            "P3_pourquoi_le_cache_est_structurel_et_pas_cosmetique_2026_09_10": {
+              "volumetrie_mesuree": "Walk depuis le pin 2023-08-16 (= stripe-node v13 = fixtures/implicit-pinned-stripe), canal preview exclu : l'index (204832 octets) + 69 pages de detail Breaking. Depuis 2025-03-31.basil (stripe-node v18) : index + 29 pages. Ces chiffres sortent de l'execution du parseur du repo sur le changelog live du 2026-09-10.",
+              "absence_de_cache_http_verifiee": "En-tetes de https://docs.stripe.com/changelog.md : content-type text/markdown, vary: Accept, x-content-age: 0. AUCUN Cache-Control, AUCUN ETag, AUCUN Last-Modified. Aucune revalidation conditionnelle n'est possible : un TTL local est le seul levier. Ce n'est pas une preference, c'est ce que le vendor rend possible.",
+              "consequence": "Sans cache, un cron horaire refetche 200 Ko + jusqu'a 69 pages a chaque passe, pour un contenu qui bouge une fois par mois (verifie : les releases Stripe sont mensuelles). Un TTL d'une heure absorbe l'essentiel."
+            },
+            "D5_emplacement_et_forme_TRANCHES": {
+              "emplacement": {
+                "decision": "path.join(os.tmpdir(), 'apidrift-changelog-cache') par defaut, surchargeable par un parametre du module (les tests passent un repertoire temporaire jetable).",
+                "pourquoi_pas_dans_le_repo_cible": "REFUSE net. APIdrift ecrirait des fichiers dans le repo de l'utilisateur : ils apparaitraient dans son git status, ne seraient couverts par aucun .gitignore qui nous appartienne, et pourraient etre committes par accident. C'est une violation directe de 'blast radius only' (CLAUDE.md), au meme titre que toucher a une CI config.",
+                "pourquoi_pas_dans_le_repo_APIdrift": "Le cache ne concerne pas le repo depuis lequel on lance la commande. L'y mettre le rendrait visible, donc versionnable, donc candidat a devenir une bibliotheque - le risque exact que l'US existe pour fermer.",
+                "pourquoi_pas_XDG_cache_home": "~/.cache/apidrift/ survit aux reboots et serait plus 'propre' pour un usage local repete. Refuse quand meme : la persistance est precisement la propriete indesirable ici. Le gain reel serait nul sur le cas cron (les runners de GitHub Action sont neufs a chaque job) et l'inconvenient - un repertoire durable, inspectable, que quelqu'un finira par vouloir 'gerer' - est celui qu'on cherche a eviter. Cout assume : un utilisateur local qui reboote refetche.",
+                "cout_assume": "Sur certains systemes tmpdir est purge agressivement. Consequence maximale : une latence, jamais un resultat different (AC5)."
+              },
+              "forme": {
+                "cle": "sha256 hex de l'URL. Deux fichiers par entree : <cle>.md (le corps BRUT, byte-identique) et <cle>.meta.json ({ url, fetchedAt }).",
+                "pourquoi_deux_fichiers_et_pas_une_enveloppe": "AC1 exige du markdown BRUT. Une enveloppe JSON encapsulant le corps le rendrait non brut, non lisible au `cat`, et melangerait donnee et metadonnee. Le sidecar donne en prime une cible propre et exhaustive au test d'AC7 : on asserte le contenu de .meta.json (deux champs, une URL du domaine public, une date) et l'egalite byte a byte du .md avec la reponse du stub.",
+                "pourquoi_pas_le_mtime_comme_horloge": "AC2 exige une horloge injectable. Se reposer sur le mtime du fichier obligerait les tests a manipuler des mtime pour simuler l'expiration : plus fragile, dependant du systeme de fichiers, et non injectable. fetchedAt dans le sidecar + now() injecte est testable partout."
+              },
+              "seam": {
+                "decision": "Un DECORATEUR de Fetcher : cachingFetcher(inner: Fetcher, { dir, ttlMs, now }): Fetcher. Rien d'autre ne bouge.",
+                "pourquoi": "Le type Fetcher (src/detection/index.ts ligne 22) est deja le seul point d'acces reseau, deja injectable, deja consomme partout par injection. Un decorateur satisfait AC9 ('cablage derriere le Fetcher injectable') a la lettre : ni detectChanges, ni le walk, ni VendorSource n'ont a savoir que le cache existe. Corollaire d'AC5 gratuit : la meme entree avec ou sans cache produit les memes Change, puisque le code en aval est litteralement le meme.",
+                "point_de_vigilance_langue": "Le decorateur ne doit PAS refabriquer une requete HTTP : il delegue au fetcher interieur. Si le dev est tente d'y appeler fetch() directement, il perdrait l'en-tete Accept-Language: en-US et rouvrirait le faux negatif silencieux documente en US-16 (P2 fait 1 : '## Changes' devient '## Modifications' en francais, zero change detecte, HTTP 200 partout). La cle de cache est l'URL SEULE, ce qui n'est correct QUE parce qu'il existe un seul fetcher et qu'il fixe la langue - ne pas relacher l'un sans revoir l'autre."
+              },
+              "corruption_AC6": {
+                "cas_traites_comme_absence": "sidecar manquant / JSON invalide / champ fetchedAt absent ou non numerique / fichier .md manquant / lecture qui leve.",
+                "regle": "Traite comme une absence -> refetch. Le refetch obeit alors au fail-loud d'US-16. Jamais servi tel quel, jamais fatal.",
+                "ce_qui_n_est_PAS_verifie": "Aucune somme de controle du corps. Un corps tronque mais non vide sera servi ; il echouera au parse en aval et sortira comme un gap d'US-13/US-16 AC2bis. Limite assumee : verifier l'integrite ici dupliquerait la validation qui existe deja en aval, et un TTL d'une heure borne les degats."
+              }
+            },
+            "D5c_relation_avec_offline_US_16": {
+              "rappel": "Tranche en US-16 (D5b) : sous --offline, le run fail-close INCONDITIONNELLEMENT, cache frais ou non, et le cache n'est PAS consulte.",
+              "ce_que_ca_impose_ici": "AC5 porte l'invariant testable ('espion de lecture cache = zero appel sous --offline'). Il est place ici parce que c'est une propriete du cache, meme si la decision appartient a US-16.",
+              "pourquoi_c_est_la_bonne_place_architecturalement": "Un cache dont on peut prouver qu'il n'est jamais lu hors ligne ne peut pas devenir une source de verite. La propriete anti-derive et la propriete de test sont la meme propriete."
+            },
+            "D5d_ecart_po_vers_architecte": {
+              "note": "Quatre AC patches, aucun retire. Le PO avait raison sur tout le fond ; deux points etaient sous-specifies au point d'etre tranchables par defaut dans le mauvais sens.",
+              "patche_AC1_sidecar": {
+                "avant": "'Seul le markdown fetche est mis en cache, sous forme BRUTE' - sans dire ou vit l'horodatage du TTL.",
+                "apres": "Sidecar <cle>.meta.json separe, corps byte-identique.",
+                "motif": "Non tranche, le dev aurait raisonnablement ecrit une enveloppe JSON { fetchedAt, body }, ce qui contredit 'brut' et complique le test d'AC7.",
+                "cout": "Deux fichiers par entree au lieu d'un."
+              },
+              "patche_AC2_configurable_comment": {
+                "avant": "'TTL court, une heure par defaut, configurable' - sans dire par quel canal.",
+                "apres": "Parametre du module uniquement. Pas de flag CLI, pas de variable d'environnement, pas d'entree apidrift.json.",
+                "motif": "'Configurable' laisse ouvert aurait produit un flag ou une variable d'environnement, donc une surface publique a documenter et a maintenir pour un reglage dont aucun utilisateur n'a exprime le besoin. AC5 donne deja l'echappatoire humaine : supprimer le repertoire.",
+                "cout": "Un utilisateur ne peut pas allonger le TTL sans modifier du code. Assume."
+              },
+              "patche_AC3_emplacement": {
+                "avant": "'Le cache est gitignore [...] une entree est ajoutee au .gitignore racine' - ce qui suppose implicitement un cache dans une arborescence git, sans dire laquelle.",
+                "apres": "Emplacement en os.tmpdir() comme garantie PRIMAIRE ; l'entree .gitignore est conservee en garantie secondaire.",
+                "motif": "Lu a la lettre, l'AC pouvait conduire a un cache dans le repo CIBLE - une violation de blast radius (des fichiers apparaissant dans le git status de l'utilisateur, non couverts par un .gitignore qui nous appartienne). L'AC d'origine n'etait pas faux, il etait ambigu sur le seul point qui compte.",
+                "cout": "L'entree .gitignore devient largement symbolique. Conservee quand meme : elle coute une ligne et protege d'un futur changement de defaut."
+              },
+              "patche_AC5_ajout_de_l_invariant_offline": {
+                "motif": "Consequence de D5b (US-16). Place ici parce que c'est une propriete du cache et que le test s'ecrit sur le module de cache.",
+                "cout": "Aucun."
+              },
+              "conserve_tel_quel": "AC4 (documentation impossible a rater), AC6 (corruption non fatale), AC7 (zero contenu du repo utilisateur), AC8 (Stripe seulement), AC9 (equivalent 4 morceaux), AC10 (zero reseau), AC11 (invariants), AC12 (DoD).",
+              "precision_sur_AC4": "'Impossible a rater' est une intention, pas un test. Rendu concret : un fichier README.md dans le repertoire de cache, ecrit a la creation du repertoire, qui dit en une phrase que c'est un cache ephemere de la spec publique du vendor, que ce n'est PAS une bibliotheque de fixes, et que le supprimer ne fait rien perdre. Un test asserte sa presence. C'est le meme dispositif que la fixture d'US-9, qui embarque un README expliquant son stub node_modules commite."
+            },
+            "decoupage_du_livrable": {
+              "module": "src/detection/cache.ts - cachingFetcher(inner, { dir, ttlMs, now }) : Fetcher. Zero dependance a ts-morph, zero dependance au reste de la detection.",
+              "cablage": "src/cli.ts enveloppe httpFetcher dans cachingFetcher avant de le passer a VendorSource. Un seul point de cablage.",
+              "fixture_stub": "Fetcher stub comptant ses appels + repertoire temporaire jetable + horloge injectee. Aucun markdown volumineux n'a besoin d'etre commite pour cette US.",
+              "tests": "tests/cache.test.ts : frais = 0 appel ; expire = refetch ; corrompu (5 formes) = traite comme absent ; contenu ecrit (AC7) ; memes Change avec et sans cache (AC5) ; zero lecture sous --offline ; presence du README.",
+              "documentation": "La ligne de doc va dans le README du repertoire de cache + l'aide CLI. PAS dans CLAUDE.md ni docs/architecture.md, qui sont le livrable d'US-14."
+            },
+            "hors_scope": [
+              "Tout cache multi-vendor, tout store partage, tout service de cache (AC8).",
+              "Toute mise en cache d'un artefact DERIVE (Change, codemod, resultat de walk, plan) : seul le markdown brut recu est cache. C'est la ligne rouge de l'US.",
+              "Toute eviction par taille, tout LRU, tout compactage : le TTL et la suppression manuelle suffisent.",
+              "Toute revalidation conditionnelle HTTP (ETag / If-Modified-Since) : le vendor n'en fournit pas (P3).",
+              "Toute somme de controle du corps (voir D5, corruption).",
+              "Tout flag CLI ou variable d'environnement de reglage du TTL.",
+              "docs/architecture.md et CLAUDE.md : livrable d'US-14."
+            ],
+            "risques": [
+              "Derive du contenu du cache : la premiere fois qu'un run sera lent, quelqu'un proposera d'y mettre les Change deja calcules. C'est la fin de l'US. AC1 et le README du repertoire sont les gardes ; le reviewer doit refuser tout PR qui ecrit autre chose que du markdown recu.",
+              "tmpdir purge : un utilisateur peut voir des runs alternativement rapides et lents sans comprendre pourquoi. Acceptable (latence seule), a mentionner dans le README du cache.",
+              "Le decorateur est le second endroit du code qui touche a une URL vendor. S'il refabrique une requete au lieu de deleguer, il perd Accept-Language: en-US et rouvre le faux negatif silencieux d'US-16 P2. Point de revue explicite.",
+              "US-15 est priorite 3 et depend d'US-12 seulement, mais son interet ne se manifeste qu'apres US-13 (le walk) : la livrer avant rendrait ses benefices invisibles et son test AC5 ('memes Change avec et sans cache') trivial. Ordre de livraison recommande : apres US-13."
+            ],
+            "invariants_claude_md_non_negociables": [
+              "Blast radius only - c'est l'invariant CENTRAL de cette US : jamais un octet ecrit dans le repo de l'utilisateur. Ni CI config, ni secrets, ni lockfiles, ni cache.",
+              "Le gate reste la suite de tests DE L'UTILISATEUR ; jamais de PR non-draft sur suite rouge. Le cache ne touche pas au verifier.",
+              "Stripe seulement (AC8). Pas d'UI, pas de dashboard, pas de multi-langage, pas de second vendor.",
+              "Les tests du repo cible sont en lecture seule pour le fixer IA ; garde-fous dans le code, jamais dans le prompt.",
+              "AST, jamais regex, cote matcher (sans objet ici : le cache ne lit aucun code).",
+              "Zero reseau dans les tests (AC10) : fetcher stub, repertoire temporaire, horloge injectee.",
+              "DoD = scripts/dod.sh (npx tsc --noEmit + npm test)."
+            ],
+            "NOTE_RE_CADRAGE_2026_09_10_apres_US_12": {
+              "aucun_AC_modifie": "Les 12 AC d US-15 restent valables mot pour mot. Trois faits ont change autour d elle.",
+              "1_le_N_plus_1_intra_run_est_TRANCHE_VERS_US_13": "changesSince (livre par US-12) appelait releases() puis detectChanges par release, et detectChanges refetche l index a chaque fois (src/detection/index.ts:73) : 28 fetchs de 204776 octets pour la plage de reference. Le dev l avait renvoye en commentaire vers US-15. ARBITRAGE ARCHITECTE : c est US-13 (son AC6). Motif : cache et N+1 sont deux problemes distincts - le cache adresse la meme URL entre deux RUNS, le N+1 la meme URL 28 fois DANS un run. Un cache qui absorbe un N+1 intra-run fait le travail d une correction de bug, et il le fait mal (27 lectures disque + 27 re-parsings de 200 Ko subsistent). CONSEQUENCE POUR US-15 : ne jamais invoquer le cache pour justifier un fetch redondant intra-run, et ne pas ecrire de test qui suppose plusieurs fetchs du meme index dans un seul walk.",
+              "2_le_test_de_comptage_de_fetchs_doit_preceder_le_cache": "US-13 AC6 pose un test qui compte les appels du fetcher par URL. Il doit exister AVANT US-15 : une fois cachingFetcher branche, un N+1 redevient invisible (1 fetch reseau, 27 lectures de cache) et le test ne peut plus rougir. Si US-15 etait livree avant US-13, ce test devrait etre pose sur le fetcher INTERIEUR, jamais sur le decore.",
+              "3_le_risque_Accept_Language_est_desormais_couvert_en_amont": "Le risque 3 de cette DoR (le decorateur qui refabriquerait une requete HTTP et perdrait Accept-Language: en-US) reste VRAI mais sa detection s ameliore : US-12 a deplace httpFetcher de src/cli.ts vers src/detection/index.ts et l a couvert par un test de regression (tests/vendor-source.test.ts) qui rougit si l en-tete disparait. Ce test porte sur httpFetcher lui-meme, PAS sur le decorateur - la vigilance de D5.seam reste entiere : cachingFetcher DELEGUE, il ne fetche pas.",
+              "4_ordre_de_livraison_confirme": "Apres US-13 (deja dans les risques). Renforce : avant US-13, l invariant AC5 (memes Change avec et sans cache) se testerait sur un walk incomplet."
+            }
+          }
+        }
+      },
+      "note": "note de re-cadrage : N+1 intra-run sur l index tranche vers US-13 (AC6), aucun AC d US-15 modifie"
+    },
+    {
+      "ts": "2026-09-10T17:53:16.465Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-10T17:53:50.554Z",
+      "type": "update",
+      "actor": "architecte",
+      "us": "US-16",
+      "payload": {
+        "fields": [
+          "definition_of_ready",
+          "dependencies"
+        ],
+        "before": {
+          "definition_of_ready": {
+            "cadre_par": "architecte",
+            "date": "2026-09-10",
+            "verdict": "READY",
+            "principe_directeur": "US-9 a etabli la regle sur le pin : 'on n'a pas pu regarder' et 'on a regarde, il n'y a rien' sont deux phrases differentes, et c'est un TEST, pas une intention (DoR US-9, D3_node_modules_absent_LE_POINT_DUR). US-16 applique la meme discipline a la source de detection. La difference avec US-9 : le pin avait trois inconnues, le changelog en a cinq - et la verification terrain du 2026-09-10 a montre que deux d'entre elles sont le cas NORMAL, pas l'exception.",
+            "P2_preuve_terrain_2026_09_10": {
+              "methode": "Fetch live de docs.stripe.com + execution des fonctions REELLES du repo (parseChangelogIndex, parseNodeJsChangesTable, buildDetectedChanges) sur 69 pages de detail Breaking reelles.",
+              "fait_1_le_mode_de_panne_SILENCIEUX_existe_deja_et_il_est_atteignable_en_HTTP_200": {
+                "scenario": "Sans l'en-tete Accept-Language, docs.stripe.com sert du francais. L'index parse quand meme (140 headings, la colonne 'Breaking'/'Non-breaking' n'est PAS traduite - donc aucun signal d'alerte). Mais sur les pages de detail, '## Changes' devient '## Modifications' (verifie sur basil/2025-03-31/deprecate-subscription-current-period-start-and-end.md). extractSection(md,'Changes',2) rend null -> parseNodeJsChangesTable rend [] -> ZERO change, sur CHAQUE page.",
+                "resultat": "69 pages fetchees avec succes, index parse, 0 change, rapporte 'ton repo est a jour'. Aucune exception, aucun code d'erreur, aucun HTTP non-200. Le faux negatif parfait.",
+                "unique_rempart_actuel": "La ligne 90 de src/cli.ts : headers: { 'Accept-Language': 'en-US' }. Une ligne, hors de src/detection/, non testee, qu'un second fetcher (cache US-15, runner, service) peut perdre sans que rien ne rougisse. Aggravant : la reponse porte 'vary: Accept' mais PAS 'vary: Accept-Language', donc un proxy peut legitimement servir la mauvaise langue.",
+                "consequence_pour_US_16": "C'est le scenario que la taxonomie doit rendre BRUYANT. Avec les gaps d'US-13 AC7b et la sortie (3) d'AC3, il se lit 'on n'a pas su lire 69 pages sur 69' au lieu de 'a jour'. C'est la raison d'etre d'AC2bis, et la raison pour laquelle le message de la sortie (3) doit suggerer la negociation de langue / un proxy parmi les causes probables."
+              },
+              "fait_2_la_lecture_litterale_d_AC2_aurait_casse_tous_les_runs": {
+                "mesure": "Sur les 69 pages Breaking d'un walk depuis le pin 2023-08-16 : 35 seulement ont un tableau '#### Node.js' exploitable. Les 34 autres sont en HTTP 200, parfaitement valides cote vendor, et n'ont simplement pas de section '## Changes' (elles ont '## Upgrade', une prose d'instructions generiques : 'View your current API version in Workbench', etc.).",
+                "verdict": "'zero tableau exploitable' n'est PAS un signal de derive de format : c'est le cas majoritaire. En faire une erreur fatale (lecture litterale d'AC2) ferait echouer 100% des runs realistes. D'ou la scission AC2 (index, fatal) / AC2bis (page, jamais fatal).",
+                "pourquoi_pas_un_seuil": "Un ratio ('fatal si plus de 80% des pages echouent') a ete envisage et REFUSE : c'est une heuristique qui misfire dans les deux sens et qu'aucun test ne peut ancrer sur une valeur juste. La regle retenue est binaire et sans reglage : l'index est un artefact unique dont on depend integralement, donc son illisibilite est fatale ; la variance page a page est empiriquement normale, donc elle est comptee et listee, jamais fatale. Cout assume : une refonte totale du format des pages de detail chez Stripe degraderait en '0 change + 69 pages listees comme illisibles' plutot qu'en erreur - c'est bruyant et chiffre, donc conforme au principe, meme si le code de sortie reste 0."
+              },
+              "fait_3_un_throw_vivant_dans_le_code_aujourd_hui": "extractImpact (src/detection/stripe-changelog.ts ligne 131) throw si la page n'a pas de '## Impact' non vide. La page LIVE dahlia/2026-03-25/updates-available-checkout-session-ui-modes.md a un tableau Node.js complet et AUCUN '## Impact'. La garde est BONNE (une migration.detail vide sortirait en 'Migration: undefined' dans le prompt de l'agent et dans le corps de PR) et ne doit pas etre assouplie ; c'est sa PORTEE qui doit changer : l'echec est isole a la page (AC2bis), il ne remonte pas.",
+              "fait_4_pas_de_cache_http": "En-tetes de https://docs.stripe.com/changelog.md verifies : aucun Cache-Control, aucun ETag, aucun Last-Modified, seulement 'vary: Accept' et 'x-content-age: 0'. Aucune revalidation conditionnelle possible - ce qui ferme la porte a toute idee de 'fetch leger sous --offline'."
+            },
+            "D6_taxonomie_des_messages_TRANCHEE": {
+              "regle_de_construction": "Chaque sortie repond a DEUX questions dans l'ordre : (1) qu'est-ce qu'on a REELLEMENT etabli ? (2) que peut faire l'humain maintenant ? Une phrase qui ne repond pas aux deux n'est pas conforme a AC7. Aucune ne doit pouvoir se lire comme une autre.",
+              "les_cinq_sorties": [
+                {
+                  "id": "1-fetch-KO",
+                  "etabli": "On n'a pas pu regarder. Le fetch a echoue.",
+                  "contenu_obligatoire": "l'URL exacte + la cause (DNS / timeout / code HTTP)",
+                  "action": "verifier la connectivite, reessayer ; ou --deterministic-only pour un run sans reseau",
+                  "fatal": "OUI, code de sortie non nul"
+                },
+                {
+                  "id": "2-index-illisible",
+                  "etabli": "On a regarde et on n'a pas su lire. L'index est arrive mais zero release reconnue.",
+                  "contenu_obligatoire": "l'URL + le nombre d'octets recus + 'zero heading de release reconnu'",
+                  "action": "signaler une forme de changelog inedite (c'est une derive de format cote vendor) ; verifier qu'aucun proxy ne renvoie une variante de langue ou une page d'erreur",
+                  "fatal": "OUI, code de sortie non nul"
+                },
+                {
+                  "id": "3-pages-illisibles",
+                  "etabli": "On a lu l'index. On n'a pas su lire N des M pages de ta plage.",
+                  "contenu_obligatoire": "N sur M + la liste des URL avec leur release + la raison par page (pas de section Changes / pas de tableau Node.js / pas de section Impact)",
+                  "action": "les relire a la main ; si N == M, suspecter une negociation de langue ou un proxy",
+                  "fatal": "NON - le walk continue et les autres changes sont traites"
+                },
+                {
+                  "id": "4-a-jour",
+                  "etabli": "On a regarde. Ta version d'API est la plus recente publiee sur ta ligne de canal.",
+                  "contenu_obligatoire": "la version resolue, D'OU elle vient (pin explicite / SDK installe - invariant US-9 AC7), et la derniere release publiee",
+                  "action": "rien a faire",
+                  "fatal": "NON, code de sortie 0"
+                },
+                {
+                  "id": "5-rien-d-auto-corrigeable",
+                  "etabli": "On a regarde K releases, il y avait des changements de rupture, aucun n'est auto-corrigeable ici.",
+                  "contenu_obligatoire": "K releases parcourues + le nombre de forme #2 report-only + le nombre de gaps",
+                  "action": "traiter manuellement les forme #2 listees",
+                  "fatal": "NON, code de sortie 0"
+                }
+              ],
+              "pourquoi_4_et_5_ne_se_fondent_pas": "'Tu es a jour' et 'il y a eu des ruptures mais on ne sait pas les corriger tout seuls' menent a des actions humaines opposees. Les confondre, c'est repeter la faute d'US-9 dans l'autre sens.",
+              "test_exige": "Les cinq chaines sont capturees dans le meme test et comparees DEUX A DEUX (10 paires). Pas 'elles sont differentes de la premiere' : deux a deux.",
+              "honnetete_confidentialite_AC6": {
+                "ce_qui_est_vrai_et_doit_etre_dit": "Le fetch de detection porte sur la spec PUBLIQUE du vendor (docs.stripe.com). Aucun contenu du repo, aucun chemin, aucun extrait de code ne part par ce chemin.",
+                "ce_qui_est_vrai_et_ne_doit_PAS_etre_masque": "Le fixer IA BYOT est un chemin DISTINCT, et lui envoie bien du code au fournisseur de modele de l'utilisateur. L'aide CLI ne doit pas laisser croire l'inverse. Le texte actuel de src/cli.ts ('Your code never leaves your machine in either mode', ligne 45) etait vrai quand la detection etait opt-in ; il doit etre relu a l'aune du nouveau defaut plutot que recopie.",
+                "test": "Un test asserte que le texte d'aide distingue nommement les deux chemins."
+              }
+            },
+            "D5b_offline_et_cache_frais_TRANCHE": {
+              "question_posee": "--offline avec un cache local FRAIS (US-15) : doit-il fonctionner, ou fail-close ?",
+              "decision": "FAIL-CLOSE, INCONDITIONNELLEMENT. Sous --offline, le module de cache n'est meme pas consulte.",
+              "motifs": [
+                "--offline est une promesse sur le RESEAU, pas une demande de resultat 'au mieux'. Un utilisateur qui le passe demande une garantie, pas une tentative.",
+                "Si --offline reussissait sur cache frais, la MEME commande rendrait un resultat a 59 minutes et une erreur a 61 minutes, sur la foi d'un etat local invisible. L'utilisateur ne pourrait plus distinguer 'aucun changement' de 'on n'a jamais regarde' - l'invariant central d'US-16, viole par le mecanisme meme cense l'epauler.",
+                "Ca rendrait le cache PORTEUR DE CORRECTION et non plus porteur de latence. C'est exactement la derive que la raison d'etre d'US-15 nomme : 'qu'un cache persiste finisse par etre lu, versionne et entretenu comme une bibliotheque de fixes'. Un cache qu'on ne peut jamais lire hors ligne ne peut pas devenir une bibliotheque.",
+                "Effet de bord favorable : l'invariant devient trivialement testable ('espion de lecture cache = zero appel sous --offline'), au lieu d'un test de fraicheur dependant d'une horloge."
+              ],
+              "cout_assume": "Un utilisateur qui vient de lancer un run en ligne et perd sa connexion ne peut pas rejouer. Attenuation : le message nomme --deterministic-only, qui tourne hors ligne sur le registre embarque ; et le cache continue de servir a plein sur les relances EN LIGNE, qui sont le cas de loin le plus frequent (69 requetes economisees, cf. US-13 P1e).",
+              "composition_avec_US_15_AC6": "'Cache corrompu -> traite comme une absence et refetche, le refetch obeit alors au fail-loud d'US-16' reste vrai et sans conflit : sous --offline on n'atteint jamais ce chemin, puisqu'on ne lit pas le cache."
+            },
+            "D4b_le_repli_sur_le_registre_doit_etre_DIT": {
+              "contexte": "AC5 interdit 'tout repli silencieux sur le registre statique'. Or US-14 fait du diff dynamique le defaut, et il existe un cas ou le registre tourne quand meme : --deterministic-only (ou l'absence de cle, qui resout a deterministic-only via resolveInference).",
+              "decision": "Ce repli est LEGITIME (un change detecte n'a par construction aucun fix deterministe : le fetcher tournerait pour rien) mais il doit etre ENONCE, en une ligne, a chaque run concerne. Formulation attendue : 'deterministic-only : le diff dynamique est ignore (les changements detectes n'ont pas de fix deterministe) ; seul le registre embarque a tourne - N changements.'",
+              "pourquoi_ca_satisfait_AC5": "AC5 interdit le repli SILENCIEUX, pas le repli. Une ligne enoncee, systematique et testable transforme un mode degrade invisible en comportement documente.",
+              "test": "Un run --deterministic-only asserte la presence de cette ligne ET l'absence de tout appel au fetcher."
+            },
+            "D6b_ecart_po_vers_architecte": {
+              "note": "Trois AC patches, un AC ajoute. Le PO avait vu juste sur l'intention ; la verification terrain a montre que la formulation, prise a la lettre, produisait un comportement inapplicable.",
+              "patche_AC2_perimetre_de_la_fatalite": {
+                "avant": "'Tout echec de PARSE produit un message explicite [...] zero release reconnue, zero tableau exploitable' - donc fatal dans les deux cas.",
+                "apres": "La fatalite porte sur l'INDEX seul. 'Zero tableau exploitable' sur une page devient AC2bis, non fatal.",
+                "motif": "34 des 69 pages Breaking d'un walk reel n'ont legitimement aucune section '## Changes' (P2 fait 2). L'AC d'origine, implemente a la lettre, fait echouer la quasi-totalite des runs.",
+                "cout": "Une refonte totale du format des pages de detail chez Stripe sortirait en code 0 avec 69 pages listees comme illisibles, au lieu d'un code non nul. C'est bruyant et chiffre, mais ce n'est pas une erreur - c'est le prix de ne pas casser le cas normal."
+              },
+              "ajoute_AC2bis": {
+                "motif": "Rend explicite et testable le traitement non fatal des pages, y compris le throw d'extractImpact qui existe en live aujourd'hui (P2 fait 3). Sans lui, une seule page defaillante tue le walk entier."
+              },
+              "patche_AC3_de_trois_a_cinq_sorties": {
+                "avant": "'Trois sorties distinctes : fetch en echec / parse en echec / rien de nouveau.'",
+                "apres": "Cinq, avec un test de distinction DEUX A DEUX.",
+                "motif": "Les deux ajouts ne sont pas des raffinements : (3) pages illisibles et (5) rien d'auto-corrigeable sont les cas NORMAUX d'un walk realiste (34 pages sur 69 ; 24 forme #2 pour 28 forme #1). Les fondre dans 'rien de nouveau' recreerait la confusion que l'US existe pour fermer.",
+                "cout": "Deux phrases et sept paires de comparaison de plus dans un test."
+              },
+              "patche_AC4_offline_inconditionnel": {
+                "avant": "'--offline fail-close [...] ne bascule jamais sur un cache perime' - le cas du cache FRAIS n'etait pas tranche.",
+                "apres": "Fail-close inconditionnel ; sous --offline le cache n'est pas consulte du tout.",
+                "motif": "Voir D5b. Le cas frais etait le vrai point dur ; laisse ouvert, il aurait ete tranche par defaut dans le sens de la commodite.",
+                "cout": "Pas de relance hors ligne apres un run en ligne. Le message nomme l'alternative."
+              },
+              "precise_AC5_sans_le_patcher": "Le repli sur le registre en --deterministic-only est legitime mais doit etre enonce (D4b). AC5 n'a pas ete reecrit : il interdit deja le repli SILENCIEUX, la DoR precise seulement ce qui rend le repli non silencieux.",
+              "precise_AC6_sans_le_patcher": "Le texte d'aide actuel ('Your code never leaves your machine in either mode', src/cli.ts ligne 45) devient trompeur avec le nouveau defaut : il doit etre relu, pas recopie. AC6 le demande deja ; la DoR nomme la ligne concernee.",
+              "conserve_tel_quel": "AC1 (fetch KO), AC7 (messages actionnables), AC8 (Stripe seulement), AC9 (equivalent 4 morceaux), AC10 (zero reseau), AC11 (invariants), AC12 (DoD)."
+            },
+            "decoupage_du_livrable": {
+              "gestion_d_erreur": "Dans src/detection/ : classification des echecs (reseau / index / page) et propagation via les gaps d'US-13, jamais via des exceptions qui traversent le walk.",
+              "cablage_cli": "src/cli.ts : --offline, les cinq sorties, les codes de retour, la ligne de repli deterministe (D4b), et la relecture du bloc d'aide (AC6).",
+              "fixtures": "Markdown volontairement malforme : un index a zero heading, une page sans '## Changes', une page sans '## Impact'. Plus un fetcher stub qui leve, et un qui rend un non-200.",
+              "tests": "Un test par sortie + le test de distinction deux a deux + le test 'zero lecture de cache sous --offline' + le test 'zero fetch sous --deterministic-only'."
+            },
+            "hors_scope": [
+              "Toute politique de retry / backoff : un echec est un echec, on le dit. Un retry masquerait la cause exacte que AC1 exige de nommer.",
+              "Tout fallback sur une source alternative (miroir, spec OpenAPI, GitHub) : une seule source, celle d'US-12.",
+              "Toute telemetrie ou remontee d'erreur vers un service.",
+              "Le contenu du cache lui-meme : US-15. US-16 ne definit que la regle 'sous --offline, on ne le lit pas'.",
+              "Tout second vendor, toute UI, tout dashboard, tout multi-langage.",
+              "docs/architecture.md et CLAUDE.md : livrable d'US-14."
+            ],
+            "risques": [
+              "La sortie (3) est non fatale par conception : si Stripe change massivement le format des pages, le run sort en code 0. C'est assume et compense par le chiffrage explicite ('N sur M pages illisibles') qui figure dans le resume ET dans le rapport. A relire si le chiffre devient regulierement egal a M.",
+              "Cinq phrases a maintenir distinctes : la tentation, plus tard, sera d'en factoriser deux. Le test deux a deux est le garde-fou ; ne pas le detendre.",
+              "L'en-tete Accept-Language est le rempart le plus fragile de tout le lot (P2 fait 1) : une ligne, hors de src/detection/, aujourd'hui non testee. US-12 porte l'exigence de choke point ; si US-16 est livree avant, le test de l'en-tete doit y etre pose.",
+              "Le message d'AC4 nomme --deterministic-only comme echappatoire hors ligne. Si US-14 changeait la semantique de ce flag, ce message deviendrait faux. Les deux US doivent etre relues ensemble."
+            ],
+            "invariants_claude_md_non_negociables": [
+              "Le gate reste la suite de tests DE L'UTILISATEUR ; jamais de PR non-draft sur suite rouge. Aucune sortie d'erreur d'US-16 ne raccourcit le verifier.",
+              "Stripe seulement (AC8). Pas d'UI, pas de dashboard, pas de multi-langage, pas de second vendor.",
+              "Les tests du repo cible sont en lecture seule pour le fixer IA ; garde-fous dans le code, jamais dans le prompt.",
+              "Blast radius only : jamais de CI config, de secrets, de lockfiles.",
+              "AST, jamais regex, cote matcher.",
+              "Zero reseau dans les tests (AC10) : les echecs sont simules par fetcher stub et markdown de fixture.",
+              "DoD = scripts/dod.sh (npx tsc --noEmit + npm test)."
+            ]
+          },
+          "dependencies": [
+            "US-12"
+          ]
+        },
+        "after": {
+          "definition_of_ready": {
+            "cadre_par": "architecte",
+            "date": "2026-09-10 (cadrage initial) / 2026-09-10 (note de re-cadrage apres US-12)",
+            "verdict": "READY",
+            "principe_directeur": "US-9 a etabli la regle sur le pin : 'on n'a pas pu regarder' et 'on a regarde, il n'y a rien' sont deux phrases differentes, et c'est un TEST, pas une intention (DoR US-9, D3_node_modules_absent_LE_POINT_DUR). US-16 applique la meme discipline a la source de detection. La difference avec US-9 : le pin avait trois inconnues, le changelog en a cinq - et la verification terrain du 2026-09-10 a montre que deux d'entre elles sont le cas NORMAL, pas l'exception.",
+            "P2_preuve_terrain_2026_09_10": {
+              "methode": "Fetch live de docs.stripe.com + execution des fonctions REELLES du repo (parseChangelogIndex, parseNodeJsChangesTable, buildDetectedChanges) sur 69 pages de detail Breaking reelles.",
+              "fait_1_le_mode_de_panne_SILENCIEUX_existe_deja_et_il_est_atteignable_en_HTTP_200": {
+                "scenario": "Sans l'en-tete Accept-Language, docs.stripe.com sert du francais. L'index parse quand meme (140 headings, la colonne 'Breaking'/'Non-breaking' n'est PAS traduite - donc aucun signal d'alerte). Mais sur les pages de detail, '## Changes' devient '## Modifications' (verifie sur basil/2025-03-31/deprecate-subscription-current-period-start-and-end.md). extractSection(md,'Changes',2) rend null -> parseNodeJsChangesTable rend [] -> ZERO change, sur CHAQUE page.",
+                "resultat": "69 pages fetchees avec succes, index parse, 0 change, rapporte 'ton repo est a jour'. Aucune exception, aucun code d'erreur, aucun HTTP non-200. Le faux negatif parfait.",
+                "unique_rempart_actuel": "La ligne 90 de src/cli.ts : headers: { 'Accept-Language': 'en-US' }. Une ligne, hors de src/detection/, non testee, qu'un second fetcher (cache US-15, runner, service) peut perdre sans que rien ne rougisse. Aggravant : la reponse porte 'vary: Accept' mais PAS 'vary: Accept-Language', donc un proxy peut legitimement servir la mauvaise langue.",
+                "consequence_pour_US_16": "C'est le scenario que la taxonomie doit rendre BRUYANT. Avec les gaps d'US-13 AC7b et la sortie (3) d'AC3, il se lit 'on n'a pas su lire 69 pages sur 69' au lieu de 'a jour'. C'est la raison d'etre d'AC2bis, et la raison pour laquelle le message de la sortie (3) doit suggerer la negociation de langue / un proxy parmi les causes probables."
+              },
+              "fait_2_la_lecture_litterale_d_AC2_aurait_casse_tous_les_runs": {
+                "mesure": "Sur les 69 pages Breaking d'un walk depuis le pin 2023-08-16 : 35 seulement ont un tableau '#### Node.js' exploitable. Les 34 autres sont en HTTP 200, parfaitement valides cote vendor, et n'ont simplement pas de section '## Changes' (elles ont '## Upgrade', une prose d'instructions generiques : 'View your current API version in Workbench', etc.).",
+                "verdict": "'zero tableau exploitable' n'est PAS un signal de derive de format : c'est le cas majoritaire. En faire une erreur fatale (lecture litterale d'AC2) ferait echouer 100% des runs realistes. D'ou la scission AC2 (index, fatal) / AC2bis (page, jamais fatal).",
+                "pourquoi_pas_un_seuil": "Un ratio ('fatal si plus de 80% des pages echouent') a ete envisage et REFUSE : c'est une heuristique qui misfire dans les deux sens et qu'aucun test ne peut ancrer sur une valeur juste. La regle retenue est binaire et sans reglage : l'index est un artefact unique dont on depend integralement, donc son illisibilite est fatale ; la variance page a page est empiriquement normale, donc elle est comptee et listee, jamais fatale. Cout assume : une refonte totale du format des pages de detail chez Stripe degraderait en '0 change + 69 pages listees comme illisibles' plutot qu'en erreur - c'est bruyant et chiffre, donc conforme au principe, meme si le code de sortie reste 0."
+              },
+              "fait_3_un_throw_vivant_dans_le_code_aujourd_hui": "extractImpact (src/detection/stripe-changelog.ts ligne 131) throw si la page n'a pas de '## Impact' non vide. La page LIVE dahlia/2026-03-25/updates-available-checkout-session-ui-modes.md a un tableau Node.js complet et AUCUN '## Impact'. La garde est BONNE (une migration.detail vide sortirait en 'Migration: undefined' dans le prompt de l'agent et dans le corps de PR) et ne doit pas etre assouplie ; c'est sa PORTEE qui doit changer : l'echec est isole a la page (AC2bis), il ne remonte pas.",
+              "fait_4_pas_de_cache_http": "En-tetes de https://docs.stripe.com/changelog.md verifies : aucun Cache-Control, aucun ETag, aucun Last-Modified, seulement 'vary: Accept' et 'x-content-age: 0'. Aucune revalidation conditionnelle possible - ce qui ferme la porte a toute idee de 'fetch leger sous --offline'."
+            },
+            "D6_taxonomie_des_messages_TRANCHEE": {
+              "regle_de_construction": "Chaque sortie repond a DEUX questions dans l'ordre : (1) qu'est-ce qu'on a REELLEMENT etabli ? (2) que peut faire l'humain maintenant ? Une phrase qui ne repond pas aux deux n'est pas conforme a AC7. Aucune ne doit pouvoir se lire comme une autre.",
+              "les_cinq_sorties": [
+                {
+                  "id": "1-fetch-KO",
+                  "etabli": "On n'a pas pu regarder. Le fetch a echoue.",
+                  "contenu_obligatoire": "l'URL exacte + la cause (DNS / timeout / code HTTP)",
+                  "action": "verifier la connectivite, reessayer ; ou --deterministic-only pour un run sans reseau",
+                  "fatal": "OUI, code de sortie non nul"
+                },
+                {
+                  "id": "2-index-illisible",
+                  "etabli": "On a regarde et on n'a pas su lire. L'index est arrive mais zero release reconnue.",
+                  "contenu_obligatoire": "l'URL + le nombre d'octets recus + 'zero heading de release reconnu'",
+                  "action": "signaler une forme de changelog inedite (c'est une derive de format cote vendor) ; verifier qu'aucun proxy ne renvoie une variante de langue ou une page d'erreur",
+                  "fatal": "OUI, code de sortie non nul"
+                },
+                {
+                  "id": "3-pages-illisibles",
+                  "etabli": "On a lu l'index. On n'a pas su lire N des M pages de ta plage.",
+                  "contenu_obligatoire": "N sur M + la liste des URL avec leur release + la raison par page (pas de section Changes / pas de tableau Node.js / pas de section Impact)",
+                  "action": "les relire a la main ; si N == M, suspecter une negociation de langue ou un proxy",
+                  "fatal": "NON - le walk continue et les autres changes sont traites"
+                },
+                {
+                  "id": "4-a-jour",
+                  "etabli": "On a regarde. Ta version d'API est la plus recente publiee sur ta ligne de canal.",
+                  "contenu_obligatoire": "la version resolue, D'OU elle vient (pin explicite / SDK installe - invariant US-9 AC7), et la derniere release publiee",
+                  "action": "rien a faire",
+                  "fatal": "NON, code de sortie 0"
+                },
+                {
+                  "id": "5-rien-d-auto-corrigeable",
+                  "etabli": "On a regarde K releases, il y avait des changements de rupture, aucun n'est auto-corrigeable ici.",
+                  "contenu_obligatoire": "K releases parcourues + le nombre de forme #2 report-only + le nombre de gaps",
+                  "action": "traiter manuellement les forme #2 listees",
+                  "fatal": "NON, code de sortie 0"
+                }
+              ],
+              "pourquoi_4_et_5_ne_se_fondent_pas": "'Tu es a jour' et 'il y a eu des ruptures mais on ne sait pas les corriger tout seuls' menent a des actions humaines opposees. Les confondre, c'est repeter la faute d'US-9 dans l'autre sens.",
+              "test_exige": "Les cinq chaines sont capturees dans le meme test et comparees DEUX A DEUX (10 paires). Pas 'elles sont differentes de la premiere' : deux a deux.",
+              "honnetete_confidentialite_AC6": {
+                "ce_qui_est_vrai_et_doit_etre_dit": "Le fetch de detection porte sur la spec PUBLIQUE du vendor (docs.stripe.com). Aucun contenu du repo, aucun chemin, aucun extrait de code ne part par ce chemin.",
+                "ce_qui_est_vrai_et_ne_doit_PAS_etre_masque": "Le fixer IA BYOT est un chemin DISTINCT, et lui envoie bien du code au fournisseur de modele de l'utilisateur. L'aide CLI ne doit pas laisser croire l'inverse. Le texte actuel de src/cli.ts ('Your code never leaves your machine in either mode', ligne 45) etait vrai quand la detection etait opt-in ; il doit etre relu a l'aune du nouveau defaut plutot que recopie.",
+                "test": "Un test asserte que le texte d'aide distingue nommement les deux chemins."
+              }
+            },
+            "D5b_offline_et_cache_frais_TRANCHE": {
+              "question_posee": "--offline avec un cache local FRAIS (US-15) : doit-il fonctionner, ou fail-close ?",
+              "decision": "FAIL-CLOSE, INCONDITIONNELLEMENT. Sous --offline, le module de cache n'est meme pas consulte.",
+              "motifs": [
+                "--offline est une promesse sur le RESEAU, pas une demande de resultat 'au mieux'. Un utilisateur qui le passe demande une garantie, pas une tentative.",
+                "Si --offline reussissait sur cache frais, la MEME commande rendrait un resultat a 59 minutes et une erreur a 61 minutes, sur la foi d'un etat local invisible. L'utilisateur ne pourrait plus distinguer 'aucun changement' de 'on n'a jamais regarde' - l'invariant central d'US-16, viole par le mecanisme meme cense l'epauler.",
+                "Ca rendrait le cache PORTEUR DE CORRECTION et non plus porteur de latence. C'est exactement la derive que la raison d'etre d'US-15 nomme : 'qu'un cache persiste finisse par etre lu, versionne et entretenu comme une bibliotheque de fixes'. Un cache qu'on ne peut jamais lire hors ligne ne peut pas devenir une bibliotheque.",
+                "Effet de bord favorable : l'invariant devient trivialement testable ('espion de lecture cache = zero appel sous --offline'), au lieu d'un test de fraicheur dependant d'une horloge."
+              ],
+              "cout_assume": "Un utilisateur qui vient de lancer un run en ligne et perd sa connexion ne peut pas rejouer. Attenuation : le message nomme --deterministic-only, qui tourne hors ligne sur le registre embarque ; et le cache continue de servir a plein sur les relances EN LIGNE, qui sont le cas de loin le plus frequent (69 requetes economisees, cf. US-13 P1e).",
+              "composition_avec_US_15_AC6": "'Cache corrompu -> traite comme une absence et refetche, le refetch obeit alors au fail-loud d'US-16' reste vrai et sans conflit : sous --offline on n'atteint jamais ce chemin, puisqu'on ne lit pas le cache."
+            },
+            "D4b_le_repli_sur_le_registre_doit_etre_DIT": {
+              "contexte": "AC5 interdit 'tout repli silencieux sur le registre statique'. Or US-14 fait du diff dynamique le defaut, et il existe un cas ou le registre tourne quand meme : --deterministic-only (ou l'absence de cle, qui resout a deterministic-only via resolveInference).",
+              "decision": "Ce repli est LEGITIME (un change detecte n'a par construction aucun fix deterministe : le fetcher tournerait pour rien) mais il doit etre ENONCE, en une ligne, a chaque run concerne. Formulation attendue : 'deterministic-only : le diff dynamique est ignore (les changements detectes n'ont pas de fix deterministe) ; seul le registre embarque a tourne - N changements.'",
+              "pourquoi_ca_satisfait_AC5": "AC5 interdit le repli SILENCIEUX, pas le repli. Une ligne enoncee, systematique et testable transforme un mode degrade invisible en comportement documente.",
+              "test": "Un run --deterministic-only asserte la presence de cette ligne ET l'absence de tout appel au fetcher."
+            },
+            "D6b_ecart_po_vers_architecte": {
+              "note": "Trois AC patches, un AC ajoute. Le PO avait vu juste sur l'intention ; la verification terrain a montre que la formulation, prise a la lettre, produisait un comportement inapplicable.",
+              "patche_AC2_perimetre_de_la_fatalite": {
+                "avant": "'Tout echec de PARSE produit un message explicite [...] zero release reconnue, zero tableau exploitable' - donc fatal dans les deux cas.",
+                "apres": "La fatalite porte sur l'INDEX seul. 'Zero tableau exploitable' sur une page devient AC2bis, non fatal.",
+                "motif": "34 des 69 pages Breaking d'un walk reel n'ont legitimement aucune section '## Changes' (P2 fait 2). L'AC d'origine, implemente a la lettre, fait echouer la quasi-totalite des runs.",
+                "cout": "Une refonte totale du format des pages de detail chez Stripe sortirait en code 0 avec 69 pages listees comme illisibles, au lieu d'un code non nul. C'est bruyant et chiffre, mais ce n'est pas une erreur - c'est le prix de ne pas casser le cas normal."
+              },
+              "ajoute_AC2bis": {
+                "motif": "Rend explicite et testable le traitement non fatal des pages, y compris le throw d'extractImpact qui existe en live aujourd'hui (P2 fait 3). Sans lui, une seule page defaillante tue le walk entier."
+              },
+              "patche_AC3_de_trois_a_cinq_sorties": {
+                "avant": "'Trois sorties distinctes : fetch en echec / parse en echec / rien de nouveau.'",
+                "apres": "Cinq, avec un test de distinction DEUX A DEUX.",
+                "motif": "Les deux ajouts ne sont pas des raffinements : (3) pages illisibles et (5) rien d'auto-corrigeable sont les cas NORMAUX d'un walk realiste (34 pages sur 69 ; 24 forme #2 pour 28 forme #1). Les fondre dans 'rien de nouveau' recreerait la confusion que l'US existe pour fermer.",
+                "cout": "Deux phrases et sept paires de comparaison de plus dans un test."
+              },
+              "patche_AC4_offline_inconditionnel": {
+                "avant": "'--offline fail-close [...] ne bascule jamais sur un cache perime' - le cas du cache FRAIS n'etait pas tranche.",
+                "apres": "Fail-close inconditionnel ; sous --offline le cache n'est pas consulte du tout.",
+                "motif": "Voir D5b. Le cas frais etait le vrai point dur ; laisse ouvert, il aurait ete tranche par defaut dans le sens de la commodite.",
+                "cout": "Pas de relance hors ligne apres un run en ligne. Le message nomme l'alternative."
+              },
+              "precise_AC5_sans_le_patcher": "Le repli sur le registre en --deterministic-only est legitime mais doit etre enonce (D4b). AC5 n'a pas ete reecrit : il interdit deja le repli SILENCIEUX, la DoR precise seulement ce qui rend le repli non silencieux.",
+              "precise_AC6_sans_le_patcher": "Le texte d'aide actuel ('Your code never leaves your machine in either mode', src/cli.ts ligne 45) devient trompeur avec le nouveau defaut : il doit etre relu, pas recopie. AC6 le demande deja ; la DoR nomme la ligne concernee.",
+              "conserve_tel_quel": "AC1 (fetch KO), AC7 (messages actionnables), AC8 (Stripe seulement), AC9 (equivalent 4 morceaux), AC10 (zero reseau), AC11 (invariants), AC12 (DoD)."
+            },
+            "decoupage_du_livrable": {
+              "gestion_d_erreur": "Dans src/detection/ : classification des echecs (reseau / index / page) et propagation via les gaps d'US-13, jamais via des exceptions qui traversent le walk.",
+              "cablage_cli": "src/cli.ts : --offline, les cinq sorties, les codes de retour, la ligne de repli deterministe (D4b), et la relecture du bloc d'aide (AC6).",
+              "fixtures": "Markdown volontairement malforme : un index a zero heading, une page sans '## Changes', une page sans '## Impact'. Plus un fetcher stub qui leve, et un qui rend un non-200.",
+              "tests": "Un test par sortie + le test de distinction deux a deux + le test 'zero lecture de cache sous --offline' + le test 'zero fetch sous --deterministic-only'."
+            },
+            "hors_scope": [
+              "Toute politique de retry / backoff : un echec est un echec, on le dit. Un retry masquerait la cause exacte que AC1 exige de nommer.",
+              "Tout fallback sur une source alternative (miroir, spec OpenAPI, GitHub) : une seule source, celle d'US-12.",
+              "Toute telemetrie ou remontee d'erreur vers un service.",
+              "Le contenu du cache lui-meme : US-15. US-16 ne definit que la regle 'sous --offline, on ne le lit pas'.",
+              "Tout second vendor, toute UI, tout dashboard, tout multi-langage.",
+              "docs/architecture.md et CLAUDE.md : livrable d'US-14."
+            ],
+            "risques": [
+              "La sortie (3) est non fatale par conception : si Stripe change massivement le format des pages, le run sort en code 0. C'est assume et compense par le chiffrage explicite ('N sur M pages illisibles') qui figure dans le resume ET dans le rapport. A relire si le chiffre devient regulierement egal a M.",
+              "Cinq phrases a maintenir distinctes : la tentation, plus tard, sera d'en factoriser deux. Le test deux a deux est le garde-fou ; ne pas le detendre.",
+              "[FERME le 2026-09-10 par US-12] L'en-tete Accept-Language est le rempart le plus fragile de tout le lot (P2 fait 1) : une ligne, hors de src/detection/, aujourd'hui non testee. US-12 porte l'exigence de choke point ; si US-16 est livree avant, le test de l'en-tete doit y etre pose. -- httpFetcher vit desormais dans src/detection/index.ts et un test de tests/vendor-source.test.ts rougit si l en-tete disparait.",
+              "Le message d'AC4 nomme --deterministic-only comme echappatoire hors ligne. Si US-14 changeait la semantique de ce flag, ce message deviendrait faux. Les deux US doivent etre relues ensemble."
+            ],
+            "invariants_claude_md_non_negociables": [
+              "Le gate reste la suite de tests DE L'UTILISATEUR ; jamais de PR non-draft sur suite rouge. Aucune sortie d'erreur d'US-16 ne raccourcit le verifier.",
+              "Stripe seulement (AC8). Pas d'UI, pas de dashboard, pas de multi-langage, pas de second vendor.",
+              "Les tests du repo cible sont en lecture seule pour le fixer IA ; garde-fous dans le code, jamais dans le prompt.",
+              "Blast radius only : jamais de CI config, de secrets, de lockfiles.",
+              "AST, jamais regex, cote matcher.",
+              "Zero reseau dans les tests (AC10) : les echecs sont simules par fetcher stub et markdown de fixture.",
+              "DoD = scripts/dod.sh (npx tsc --noEmit + npm test)."
+            ],
+            "NOTE_RE_CADRAGE_2026_09_10_apres_US_12": {
+              "aucun_AC_modifie": "Les AC d US-16 restent valables mot pour mot. Une DEPENDANCE est ajoutee et deux faits ont change.",
+              "DEPENDANCE_AJOUTEE_US_13": {
+                "avant": "dependencies = [US-12].",
+                "apres": "dependencies = [US-12, US-13].",
+                "motif_1": "AC2bis exige litteralement un test ou un walk sur une fixture contenant une page en echec rend QUAND MEME les changes des AUTRES pages. Ce n est pas le comportement livre par US-12 : son try/catch entoure detectChanges, donc une RELEASE entiere - une page qui throw fait perdre les 10 autres pages de sa release (cas live 2026-03-25.dahlia, 11 pages Breaking). L isolation PAR PAGE est le AC4 d US-13 re-cadre. Sans elle, AC2bis n est pas satisfiable, ou alors US-16 devrait la reimplementer - duplication.",
+                "motif_2": "La sortie (3) d AC3 exige la liste des URL avec leur release et la raison PAR PAGE. VendorDiffGap ne porte aujourd hui que { release, reason } ; le champ url est ajoute par US-13 AC4.",
+                "motif_3_LE_PLUS_IMPORTANT": "La sortie (3) porte l indice N==M -> suspecter une negociation de langue. Or aujourd hui une page francaise arrive en HTTP 200, ne parse rien et ne produit AUCUN gap : N vaut 0, jamais M, et l indice ne se declenche JAMAIS. Le discriminant qui rend le scenario francais bruyant est US-13 AC5 (sentinelle de lisibilite sur le vocabulaire de headings anglais traduisibles, Impact exclu car identique en francais). Sans US-13, la sortie (3) est inatteignable dans le scenario meme pour lequel elle a ete ecrite.",
+                "pas_de_cycle": "US-14 depend deja de US-13 et de US-16. L ordre devient 12 -> 13 -> 16 -> 14, sans cycle."
+              },
+              "FRONTIERE_US_13_US_16_reaffirmee": "US-13 produit la DONNEE (gaps portant release + url + raison, et leur compte ; la distinction lue-mais-vide / pas-lue). US-16 produit les PHRASES et les codes de sortie. AC2bis d US-16 se lit donc comme un test de RENDU sur des gaps deja produits, pas comme l implementation de l isolation.",
+              "RISQUE_3_FERME": "Le risque L en-tete Accept-Language est le rempart le plus fragile de tout le lot : une ligne, hors de src/detection/, aujourd hui non testee est FERME. US-12 a deplace httpFetcher de src/cli.ts vers src/detection/index.ts (choke point unique) et l a couvert par un test de regression dans tests/vendor-source.test.ts qui rougit si l en-tete disparait. Le fait P2 fait_1 reste vrai comme description du mode de panne ; son rempart n est plus non teste.",
+              "FAIT_P2_2_AFFINE_le_2026_09_10": "Re-mesure sur les 69 pages Breaking reelles : 36 sur 69 portent ## Changes (et non 35 - la valeur bouge avec le changelog, ce qui confirme qu il ne faut pas la figer). Fait nouveau et utile a AC2bis : 56 pages sur 69 portent un #### Node.js, mais sur les pages sans ## Changes il vit sous ## Upgrade et contient de la prose d upgrade numerotee (Upgrade your Node SDK to v19.1.0), pas un tableau de parametres. Un discriminant du type Node.js present mais rien extrait produirait donc 20 faux gaps - a ne pas ecrire. Le vocabulaire de headings de niveau 2 est ferme et stable : What s new (69/69), Why is this a breaking change?, Impact (67/69), Changes (36/69), Upgrade, Related changes."
+            }
+          },
+          "dependencies": [
+            "US-12",
+            "US-13"
+          ]
+        }
+      },
+      "note": "US-16 depend desormais aussi de US-13 (isolation par page, champ url sur les gaps, discriminant de lisibilite) ; risque Accept-Language ferme par US-12"
+    },
+    {
+      "ts": "2026-09-10T17:54:11.318Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-10T17:54:19.569Z",
+      "type": "update",
+      "actor": "architecte",
+      "us": "US-14",
+      "payload": {
+        "fields": [
+          "definition_of_ready"
+        ],
+        "before": {
+          "definition_of_ready": {
+            "cadre_par": "architecte",
+            "date": "2026-09-10",
+            "verdict": "READY",
+            "condition_d_entree": "US-14 depend de US-12, US-13 ET US-16, deja encode dans dependencies. La dependance sur US-16 est une decision produit validee par l'humain et elle n'est pas negociable : on ne bascule pas le defaut sur un chemin RESEAU avant que le fail-loud existe. Un defaut reseau sans taxonomie d'echec transforme chaque panne en 'rien a faire', ce qui est le pire resultat possible pour un outil dont l'unique role est de prevenir.",
+            "principe_directeur": "C'est l'US qui rend le lot visible : sans elle, US-12/13/15/16 sont du code que personne n'execute. Regle qui gouverne les arbitrages : la bascule ne doit rien rendre IMPOSSIBLE qui etait possible avant, et ne doit rien rendre IMPLICITE qui etait explicite. Concretement, le mode sans reseau ne disparait pas - il change de nom (de 'defaut' a --deterministic-only) et il s'annonce.",
+            "P4_verification_sur_le_code_2026_09_10": {
+              "fait_1_deux_tests_lancent_la_VRAIE_CLI": {
+                "constat": "grep sur tests/ : tests/api-version.test.ts ligne 599 et tests/installed-sdk.test.ts ligne 516 font spawnSync('npx', ['tsx','src/cli.ts','run', <fixture>, '--deterministic-only', '--out', ...]). Ce ne sont pas des tests unitaires sur une fonction : ils executent le binaire.",
+                "consequence_si_on_ne_fait_rien": "Apres la bascule du defaut, ces deux tests declenchent le walk : fetch de l'index (200 Ko) + jusqu'a 69 pages de detail. Violation frontale de 'zero reseau dans les tests' (CLAUDE.md), tests flaky, suite cassee hors ligne, et DoD (scripts/dod.sh) rouge de facon intermittente.",
+                "pourquoi_c_est_decisif": "Ca transforme une question ouverte ('comment garder le registre accessible aux tests sans en faire un chemin produit ?') en contrainte dure a satisfaire, avec une reponse deja ecrite dans les deux tests : ils passent DEJA --deterministic-only. Il suffit que ce flag signifie 'pas de reseau, registre seul'. C'est AC2bis."
+              },
+              "fait_2_npm_run_demo_est_expose_de_la_meme_facon": "package.json : \"demo\": \"tsx src/cli.ts run ./fixtures/acme-payments\", sans aucun flag. Apres la bascule, la demo fetche le changelog live si la machine du dev exporte ANTHROPIC_API_KEY (resolveInference resout alors a 'byot'). Une demo sur fixture ne doit pas dependre du reseau ni de la presence d'une cle : le script doit recevoir --deterministic-only.",
+              "fait_3_le_texte_d_aide_devient_faux": "src/cli.ts ligne 45 : 'Your code never leaves your machine in either mode.' C'etait vrai quand la detection etait opt-in. Ca reste vrai sur le fond (le fetch porte sur la spec PUBLIQUE du vendor, jamais sur le code de l'utilisateur), mais la phrase telle quelle laisse aussi croire que le fixer IA BYOT n'envoie rien - ce qui est faux et l'etait deja. La bascule est l'occasion ou ce texte est relu, pas recopie (US-16 AC6).",
+              "fait_4_le_seam_existe_deja_et_est_deja_utilise": "src/cli.ts ligne 142 fait deja exactement le cablage cible : codemods = [...defaultCodemods, ...detection.autoExecutable.map(genericSymbolCodemod)] -> RunOptions.codemods. La bascule consiste a retirer defaultCodemods de cette concatenation et a piloter la detection par le pin resolu au lieu de --release. AC4 ('aucune nouvelle plomberie de pipeline') est donc satisfait sans effort - c'est un fait, pas un voeu."
+            },
+            "D4_contrat_de_sortie_du_CLI_TRANCHE": {
+              "flags_qui_meurent": {
+                "--detect": "SUPPRIME. La detection est le defaut ; demander ce qui est deja fait n'a plus de sens. Passe par habitude, il produit une erreur qui dit 'la detection est le comportement par defaut, ce flag n'existe plus'.",
+                "--release <id>": "SUPPRIME dans son sens actuel (selectionner UNE release). Remplace, voir ci-dessous."
+              },
+              "flags_qui_naissent": {
+                "--since <api-version>": "Surcharge la BORNE BASSE du walk. Semantique differente de --release : ce n'est plus 'analyse cette release', c'est 'pars de cette version'. C'est l'echappatoire que le message d'erreur d'US-13 AC3 doit nommer quand le pin n'est pas resolvable (SDK <= v11, node_modules absent, apiVersion non litteral). Sans lui, AC3 exige un 'comment le fournir' qui n'existerait pas.",
+                "--offline": "US-16 AC4. Fail-close inconditionnel.",
+                "--max-changes <n>": "US-13 AC5. Seuil du cap, defaut 5.",
+                "--yes / -y": "US-13 AC5. Confirme sans invite."
+              },
+              "flags_qui_survivent_inchanges": "--ai, --deterministic-only, --model, --out, -h/--help, -v/--version. resolveInference et resolveLlm (src/config.ts) ne changent pas.",
+              "statut_du_registre_statique": {
+                "decision": "Le registre n'est PAS mis au placard, il est REAFFECTE : il devient le contenu exact du mode --deterministic-only, et par la meme la fixture de test interne permettant une CI sans cle API.",
+                "pourquoi_c_est_plus_precis_que_fixture_de_test_interne": "Parce que --deterministic-only reste un mode PRODUIT documente (il est dans l'aide, il est la valeur par defaut quand aucune cle n'est presente) et que c'est le seul mode qui n'a rien d'autre a executer. Le decrire uniquement comme 'fixture de test' laisserait croire qu'il ne tourne jamais chez un utilisateur, ce qui est faux : il tourne chez tout utilisateur sans ANTHROPIC_API_KEY.",
+                "la_regle_qui_en_decoule": "Detection SI ET SEULEMENT SI un modele est configure (inference.policy !== 'deterministic-only'). Ce n'est pas un raccourci d'implementation, c'est correct sur le fond : un Change detecte n'a pas d'apply(), donc sans Llm src/pipeline.ts (lignes 179-182) le skippe proprement apres l'avoir matche. Fetcher 200 Ko + 69 pages pour aboutir a 100% de skips serait du gaspillage pur.",
+                "et_le_repli_silencieux_interdit_par_US_16_AC5": "Ce repli est enonce, pas silencieux : une ligne systematique a chaque run --deterministic-only (AC2bis). US-16 AC5 interdit le repli SILENCIEUX, pas le repli."
+              },
+              "matrice_de_comportement_a_figer_en_test": [
+                "cle presente (ou --ai), aucun flag de detection -> diff dynamique, registre NON execute.",
+                "aucune cle, aucun flag -> resolveInference rend deterministic-only -> registre seul, zero reseau, ligne d'explication affichee.",
+                "--deterministic-only explicite -> idem, quelle que soit la presence d'une cle.",
+                "--offline -> arret en erreur, code non nul, message nommant --deterministic-only (US-16 AC4).",
+                "--since <v> -> borne basse surchargee, le reste inchange.",
+                "--detect ou --release passes -> erreur explicite nommant le remplacant."
+              ]
+            },
+            "D4b_ce_qui_ne_doit_PAS_changer": {
+              "pipeline": "AUCUNE nouvelle plomberie (AC4). Le seam RunOptions.codemods suffit et est deja utilise (P4 fait 4). Ne pas ajouter d'option a RunOptions, ne pas deplacer la boucle de run().",
+              "garde_de_version_epinglee": "US-7/US-9 restent en place et se comportent a l'identique. Sur le chemin du walk, la garde ne bloquera de fait jamais (tous les changes ont une apiVersion posterieure au pin, par construction) ; c'est la propriete voulue, et ce n'est PAS une raison de la retirer : elle couvre encore le registre en --deterministic-only et reste le dernier filet si la borne du walk est fausse.",
+              "garde_anti_silence": "PipelineResult.warning 'vendor-present-no-match' (78dbfe2) doit rester actif, y compris pour les candidats ecartes par la passe de comptage du cap (US-13 D3, LE_PIEGE_a_ne_pas_ouvrir). C'est le point de regression le plus probable du lot, d'ou son inscription en AC8.",
+              "autres_points_d_entree": "src/runner.ts (Enterprise) et src/service/job.ts (Pro) ne sont PAS dans le perimetre. US-14 ne bascule que le CLI Free. Ne pas etendre - et ne pas non plus laisser le runner casser : verifier qu'il compile et que ses tests passent inchanges."
+            },
+            "D4c_les_deux_fichiers_de_documentation": {
+              "cadre_mais_non_execute": "CLAUDE.md et docs/architecture.md sont un livrable de CETTE US (AC5/AC6) et c'est le DEV qui les ecrit. L'architecte les cadre ici et ne les touche pas - ils sont restes intacts pendant ce cadrage.",
+              "CLAUDE_md_les_endroits_a_reprendre": [
+                "Scope guards : la ligne '❌ automated change detection (oasdiff / changelog ingestion) — still hardcoded' est desormais fausse dans les deux moities (ce n'est plus interdit, et ce n'est plus hardcode). Elle doit devenir une description du perimetre reel : ingestion du changelog Stripe, un seul vendor, declenchee par l'utilisateur, sans scheduler.",
+                "Section 'Current state (what's built)' : elle decrit deux tiers de fixer et un registre. Elle doit dire que le chemin Free par defaut est le diff dynamique.",
+                "Section 'Architecture', point 1 : 'src/changes/ — normalized Change records + Codemods (the change feed)' doit refleter le nouveau statut (contenu du mode deterministe + fixture de CI), et src/detection/ doit y apparaitre comme un module de premier rang.",
+                "Le paragraphe qui dit 'Today: no scheduler (changes are hardcoded in src/changes/index.ts)' : la premiere moitie reste vraie (pas de scheduler), la seconde ne l'est plus.",
+                "Ce qui NE change PAS et doit le rester mot pour mot : Deterministic-first, Verification is the moat, Tests are read-only to the fixer, Blast radius only, One hard case fully solved. Aucun principe n'est assoupli par ce lot."
+              ],
+              "docs_architecture_md": "Carte des modules et mentions de statut 'still hardcoded' a reprendre. Rappel de la regle de la maison (memoire architecte, feedback_arch_doc_tracks_code) : la doc d'architecture DECRIT le code date, elle ne le devance pas. Ne pas y ecrire l'architecture cible d'US-15 si US-15 n'est pas encore mergee.",
+              "verification_exigee_par_AC6": "Une verification explicite qu'aucune affirmation subsistante dans ces deux fichiers ne dit que la detection est hardcodee ou opt-in. Un grep sur 'hardcoded', 'opt-in', '--detect', '--release' dans les deux fichiers est la forme minimale."
+            },
+            "D4d_ecart_po_vers_architecte": {
+              "note": "Quatre AC patches, un AC ajoute. Les AC du PO etaient justes ; deux d'entre eux laissaient ouvert un point qui, non tranche, casse la suite de tests.",
+              "patche_AC1_exception_deterministic_only": {
+                "ajout": "'Sans aucun flag de detection' devient explicite sur le cas --deterministic-only, qui n'active pas le diff dynamique.",
+                "motif": "Sans cette exception, AC1 et l'invariant zero reseau des tests sont en contradiction directe (P4 fait 1)."
+              },
+              "patche_AC2_statut_du_registre": {
+                "avant": "'documente comme fixture de test interne permettant une CI sans cle API'.",
+                "apres": "'contenu du mode --deterministic-only ET fixture de test interne'.",
+                "motif": "Plus precis et plus honnete : le registre tourne chez tout utilisateur sans ANTHROPIC_API_KEY, pas seulement en CI. Le decrire comme purement interne serait faux dans la doc que cette meme US produit.",
+                "cout": "Le registre garde un pied dans le produit. Contrepartie assumee : c'est ce qui permet a l'outil de fonctionner sans cle et sans reseau."
+              },
+              "ajoute_AC2bis": {
+                "motif": "Transforme la contrainte decouverte sur le code (deux tests spawnent la vraie CLI, npm run demo n'a pas de flag) en critere verifiable. Sans lui, la bascule casse la DoD de facon intermittente et hors ligne.",
+                "cout": "Une ligne de sortie de plus a chaque run deterministe, et un flag a ajouter au script demo."
+              },
+              "patche_AC3_flags_figes": {
+                "avant": "'--detect et --release disparaissent OU changent de sens' - alternative laissee ouverte.",
+                "apres": "--detect meurt ; --release est remplace par --since <api-version> (borne basse, pas selection de release) ; un flag mort passe par habitude produit une erreur qui nomme le remplacant.",
+                "motif": "L'alternative ouverte aurait ete tranchee par le dev au moment le moins propice. Et --since n'est pas cosmetique : c'est le 'comment fournir la borne' que le message d'US-13 AC3 est OBLIGE de nommer.",
+                "cout": "Rupture de compatibilite pour quiconque scriptait --detect --release. Assume : le flag date d'US-2, l'outil est en 0.x, et l'erreur explicite guide vers le remplacant."
+              },
+              "patche_AC8_garde_anti_silence_apres_le_cap": {
+                "ajout": "Le garde 'vendor-present-no-match' doit rester actif y compris pour les candidats ecartes par la passe de comptage du cap.",
+                "motif": "La passe de comptage d'US-13 (D3) filtre les 0-match en amont de run() ; or ce garde n'est emis que DEPUIS pipeline.ts. Non explicite, il disparait silencieusement - un garde anti-silence supprime en silence.",
+                "cout": "Exporter noMatchWarning() (aujourd'hui privee, src/pipeline.ts ligne 95). Quelques lignes."
+              },
+              "conserve_tel_quel": "AC4 (seam RunOptions.codemods), AC5 et AC6 (les deux fichiers de doc, livrable du dev), AC7 (dependance a US-16), AC9 (Stripe seulement), AC10 (equivalent 4 morceaux), AC11 (zero reseau), AC12 (invariants), AC13 (DoD)."
+            },
+            "decoupage_du_livrable": {
+              "bascule": "src/cli.ts : parse() (flags), main() (resolution du pin -> walk -> plan/cap -> run), l'aide, les codes de sortie.",
+              "cablage": "Consomme VendorSource (US-12), le walk (US-13), la taxonomie (US-16), le cache (US-15 s'il est deja la). Aucune modification de src/pipeline.ts hormis l'export de noMatchWarning.",
+              "fixtures": "Les existantes, reutilisees : fixtures/acme-payments (registre / --deterministic-only) et fixtures/implicit-pinned-stripe (pin resolu par le SDK installe, 2023-08-16 - la borne qui exerce le correctif de regex d'US-13 AC7bis). Aucune nouvelle fixture de repo n'est necessaire.",
+              "tests": "La matrice de comportement de D4 (6 lignes), le test d'aide (AC3), le test AC2bis (ligne + zero fetch), le test AC8 (garde anti-silence apres le cap).",
+              "documentation": "CLAUDE.md + docs/architecture.md (AC5/AC6) + le script demo dans package.json."
+            },
+            "hors_scope": [
+              "src/runner.ts (Enterprise) et src/service/ (Pro) : seul le CLI Free bascule. Ils doivent continuer a compiler et a passer leurs tests, rien de plus.",
+              "Tout scheduler / cron interne (AC9). Le trigger reste l'utilisateur : CLI ou GitHub Action cron cote client.",
+              "Toute UI, dashboard, auth, billing, multi-langage, second vendor.",
+              "Toute suppression du registre statique ou des deux codemods ecrits a la main : ils restent, avec un statut nouveau.",
+              "Toute modification du verifier, du fixer IA ou de ses garde-fous.",
+              "Toute modification de resolveInference / resolveLlm (src/config.ts) : la resolution de la politique d'inference ne change pas."
+            ],
+            "risques": [
+              "RISQUE PRINCIPAL - c'est l'US ou la suite de tests peut se mettre a faire du reseau sans que personne le remarque tout de suite (deux tests spawnent la vraie CLI). AC2bis est la parade ; le test 'zero appel au fetcher sous --deterministic-only' doit etre ecrit AVANT la bascule.",
+              "Le garde anti-silence de 78dbfe2, tout juste livre, traverse trois US de ce lot (13, 14) et peut disparaitre par simple reorganisation du flux. AC8 le protege ; c'est le point de revue humaine a ne pas sauter.",
+              "Rupture de compatibilite sur --detect / --release. Attenuee par une erreur explicite plutot qu'un flag ignore, mais c'est un changement visible pour tout script existant.",
+              "AC6 exige de prouver une ABSENCE dans deux fichiers de doc ('aucune affirmation subsistante ne dit que la detection est hardcodee'). Une preuve d'absence se fait par grep, pas par relecture : le dev doit consigner les motifs cherches.",
+              "US-14 est en fin de chaine : si US-12, US-13 ou US-16 derivent en revue humaine (notamment la forme de VendorSource ou la regle de canal), le contrat de flags fige ici doit etre rejoue. La substance (registre = mode deterministe, --since = borne basse) ne bouge pas."
+            ],
+            "invariants_claude_md_non_negociables": [
+              "Le gate reste la suite de tests DE L'UTILISATEUR ; jamais de PR non-draft sur suite rouge. La bascule du defaut n'assouplit rien : elle augmente le nombre de changes candidats, pas la tolerance du verifier.",
+              "Stripe seulement (AC9). Pas d'UI, pas de dashboard, pas de multi-langage, pas de second vendor, pas de scheduler interne.",
+              "Les tests du repo cible sont en lecture seule pour le fixer IA ; les garde-fous sont dans le code de l'outil, jamais dans le prompt. La bascule ne touche pas a src/fixer/.",
+              "Blast radius only : jamais de CI config, de secrets, de lockfiles.",
+              "AST, jamais regex, cote matcher.",
+              "Zero reseau dans les tests (AC11) - c'est ici l'invariant le plus expose de tout le lot, voir P4 fait 1.",
+              "Deterministic-first n'est PAS abandonne : le registre reste le tier 1 et il garde la priorite quand il s'applique. Ce qui change, c'est que le tier 2 a desormais une source d'alimentation dynamique.",
+              "DoD = scripts/dod.sh (npx tsc --noEmit + npm test)."
+            ]
+          }
+        },
+        "after": {
+          "definition_of_ready": {
+            "cadre_par": "architecte",
+            "date": "2026-09-10 (cadrage initial) / 2026-09-10 (note de re-cadrage apres US-12)",
+            "verdict": "READY",
+            "condition_d_entree": "US-14 depend de US-12, US-13 ET US-16, deja encode dans dependencies. La dependance sur US-16 est une decision produit validee par l'humain et elle n'est pas negociable : on ne bascule pas le defaut sur un chemin RESEAU avant que le fail-loud existe. Un defaut reseau sans taxonomie d'echec transforme chaque panne en 'rien a faire', ce qui est le pire resultat possible pour un outil dont l'unique role est de prevenir.",
+            "principe_directeur": "C'est l'US qui rend le lot visible : sans elle, US-12/13/15/16 sont du code que personne n'execute. Regle qui gouverne les arbitrages : la bascule ne doit rien rendre IMPOSSIBLE qui etait possible avant, et ne doit rien rendre IMPLICITE qui etait explicite. Concretement, le mode sans reseau ne disparait pas - il change de nom (de 'defaut' a --deterministic-only) et il s'annonce.",
+            "P4_verification_sur_le_code_2026_09_10": {
+              "fait_1_deux_tests_lancent_la_VRAIE_CLI": {
+                "constat": "grep sur tests/ : tests/api-version.test.ts ligne 599 et tests/installed-sdk.test.ts ligne 516 font spawnSync('npx', ['tsx','src/cli.ts','run', <fixture>, '--deterministic-only', '--out', ...]). Ce ne sont pas des tests unitaires sur une fonction : ils executent le binaire.",
+                "consequence_si_on_ne_fait_rien": "Apres la bascule du defaut, ces deux tests declenchent le walk : fetch de l'index (200 Ko) + jusqu'a 69 pages de detail. Violation frontale de 'zero reseau dans les tests' (CLAUDE.md), tests flaky, suite cassee hors ligne, et DoD (scripts/dod.sh) rouge de facon intermittente.",
+                "pourquoi_c_est_decisif": "Ca transforme une question ouverte ('comment garder le registre accessible aux tests sans en faire un chemin produit ?') en contrainte dure a satisfaire, avec une reponse deja ecrite dans les deux tests : ils passent DEJA --deterministic-only. Il suffit que ce flag signifie 'pas de reseau, registre seul'. C'est AC2bis."
+              },
+              "fait_2_npm_run_demo_est_expose_de_la_meme_facon": "package.json : \"demo\": \"tsx src/cli.ts run ./fixtures/acme-payments\", sans aucun flag. Apres la bascule, la demo fetche le changelog live si la machine du dev exporte ANTHROPIC_API_KEY (resolveInference resout alors a 'byot'). Une demo sur fixture ne doit pas dependre du reseau ni de la presence d'une cle : le script doit recevoir --deterministic-only.",
+              "fait_3_le_texte_d_aide_devient_faux": "src/cli.ts ligne 45 : 'Your code never leaves your machine in either mode.' C'etait vrai quand la detection etait opt-in. Ca reste vrai sur le fond (le fetch porte sur la spec PUBLIQUE du vendor, jamais sur le code de l'utilisateur), mais la phrase telle quelle laisse aussi croire que le fixer IA BYOT n'envoie rien - ce qui est faux et l'etait deja. La bascule est l'occasion ou ce texte est relu, pas recopie (US-16 AC6).",
+              "fait_4_le_seam_existe_deja_et_est_deja_utilise": "src/cli.ts ligne 142 fait deja exactement le cablage cible : codemods = [...defaultCodemods, ...detection.autoExecutable.map(genericSymbolCodemod)] -> RunOptions.codemods. La bascule consiste a retirer defaultCodemods de cette concatenation et a piloter la detection par le pin resolu au lieu de --release. AC4 ('aucune nouvelle plomberie de pipeline') est donc satisfait sans effort - c'est un fait, pas un voeu."
+            },
+            "D4_contrat_de_sortie_du_CLI_TRANCHE": {
+              "flags_qui_meurent": {
+                "--detect": "SUPPRIME. La detection est le defaut ; demander ce qui est deja fait n'a plus de sens. Passe par habitude, il produit une erreur qui dit 'la detection est le comportement par defaut, ce flag n'existe plus'.",
+                "--release <id>": "SUPPRIME dans son sens actuel (selectionner UNE release). Remplace, voir ci-dessous."
+              },
+              "flags_qui_naissent": {
+                "--since <api-version>": "Surcharge la BORNE BASSE du walk. Semantique differente de --release : ce n'est plus 'analyse cette release', c'est 'pars de cette version'. C'est l'echappatoire que le message d'erreur d'US-13 AC3 doit nommer quand le pin n'est pas resolvable (SDK <= v11, node_modules absent, apiVersion non litteral). Sans lui, AC3 exige un 'comment le fournir' qui n'existerait pas.",
+                "--offline": "US-16 AC4. Fail-close inconditionnel.",
+                "--max-changes <n>": "US-13 AC5. Seuil du cap, defaut 5.",
+                "--yes / -y": "US-13 AC5. Confirme sans invite."
+              },
+              "flags_qui_survivent_inchanges": "--ai, --deterministic-only, --model, --out, -h/--help, -v/--version. resolveInference et resolveLlm (src/config.ts) ne changent pas.",
+              "statut_du_registre_statique": {
+                "decision": "Le registre n'est PAS mis au placard, il est REAFFECTE : il devient le contenu exact du mode --deterministic-only, et par la meme la fixture de test interne permettant une CI sans cle API.",
+                "pourquoi_c_est_plus_precis_que_fixture_de_test_interne": "Parce que --deterministic-only reste un mode PRODUIT documente (il est dans l'aide, il est la valeur par defaut quand aucune cle n'est presente) et que c'est le seul mode qui n'a rien d'autre a executer. Le decrire uniquement comme 'fixture de test' laisserait croire qu'il ne tourne jamais chez un utilisateur, ce qui est faux : il tourne chez tout utilisateur sans ANTHROPIC_API_KEY.",
+                "la_regle_qui_en_decoule": "Detection SI ET SEULEMENT SI un modele est configure (inference.policy !== 'deterministic-only'). Ce n'est pas un raccourci d'implementation, c'est correct sur le fond : un Change detecte n'a pas d'apply(), donc sans Llm src/pipeline.ts (lignes 179-182) le skippe proprement apres l'avoir matche. Fetcher 200 Ko + 69 pages pour aboutir a 100% de skips serait du gaspillage pur.",
+                "et_le_repli_silencieux_interdit_par_US_16_AC5": "Ce repli est enonce, pas silencieux : une ligne systematique a chaque run --deterministic-only (AC2bis). US-16 AC5 interdit le repli SILENCIEUX, pas le repli."
+              },
+              "matrice_de_comportement_a_figer_en_test": [
+                "cle presente (ou --ai), aucun flag de detection -> diff dynamique, registre NON execute.",
+                "aucune cle, aucun flag -> resolveInference rend deterministic-only -> registre seul, zero reseau, ligne d'explication affichee.",
+                "--deterministic-only explicite -> idem, quelle que soit la presence d'une cle.",
+                "--offline -> arret en erreur, code non nul, message nommant --deterministic-only (US-16 AC4).",
+                "--since <v> -> borne basse surchargee, le reste inchange.",
+                "--detect ou --release passes -> erreur explicite nommant le remplacant."
+              ]
+            },
+            "D4b_ce_qui_ne_doit_PAS_changer": {
+              "pipeline": "AUCUNE nouvelle plomberie (AC4). Le seam RunOptions.codemods suffit et est deja utilise (P4 fait 4). Ne pas ajouter d'option a RunOptions, ne pas deplacer la boucle de run().",
+              "garde_de_version_epinglee": "US-7/US-9 restent en place et se comportent a l'identique. Sur le chemin du walk, la garde ne bloquera de fait jamais (tous les changes ont une apiVersion posterieure au pin, par construction) ; c'est la propriete voulue, et ce n'est PAS une raison de la retirer : elle couvre encore le registre en --deterministic-only et reste le dernier filet si la borne du walk est fausse.",
+              "garde_anti_silence": "PipelineResult.warning 'vendor-present-no-match' (78dbfe2) doit rester actif, y compris pour les candidats ecartes par la passe de comptage du cap (US-13 D3, LE_PIEGE_a_ne_pas_ouvrir). C'est le point de regression le plus probable du lot, d'ou son inscription en AC8.",
+              "autres_points_d_entree": "src/runner.ts (Enterprise) et src/service/job.ts (Pro) ne sont PAS dans le perimetre. US-14 ne bascule que le CLI Free. Ne pas etendre - et ne pas non plus laisser le runner casser : verifier qu'il compile et que ses tests passent inchanges."
+            },
+            "D4c_les_deux_fichiers_de_documentation": {
+              "cadre_mais_non_execute": "CLAUDE.md et docs/architecture.md sont un livrable de CETTE US (AC5/AC6) et c'est le DEV qui les ecrit. L'architecte les cadre ici et ne les touche pas - ils sont restes intacts pendant ce cadrage.",
+              "CLAUDE_md_les_endroits_a_reprendre": [
+                "Scope guards : la ligne '❌ automated change detection (oasdiff / changelog ingestion) — still hardcoded' est desormais fausse dans les deux moities (ce n'est plus interdit, et ce n'est plus hardcode). Elle doit devenir une description du perimetre reel : ingestion du changelog Stripe, un seul vendor, declenchee par l'utilisateur, sans scheduler.",
+                "Section 'Current state (what's built)' : elle decrit deux tiers de fixer et un registre. Elle doit dire que le chemin Free par defaut est le diff dynamique.",
+                "Section 'Architecture', point 1 : 'src/changes/ — normalized Change records + Codemods (the change feed)' doit refleter le nouveau statut (contenu du mode deterministe + fixture de CI), et src/detection/ doit y apparaitre comme un module de premier rang.",
+                "Le paragraphe qui dit 'Today: no scheduler (changes are hardcoded in src/changes/index.ts)' : la premiere moitie reste vraie (pas de scheduler), la seconde ne l'est plus.",
+                "Ce qui NE change PAS et doit le rester mot pour mot : Deterministic-first, Verification is the moat, Tests are read-only to the fixer, Blast radius only, One hard case fully solved. Aucun principe n'est assoupli par ce lot."
+              ],
+              "docs_architecture_md": "Carte des modules et mentions de statut 'still hardcoded' a reprendre. Rappel de la regle de la maison (memoire architecte, feedback_arch_doc_tracks_code) : la doc d'architecture DECRIT le code date, elle ne le devance pas. Ne pas y ecrire l'architecture cible d'US-15 si US-15 n'est pas encore mergee.",
+              "verification_exigee_par_AC6": "Une verification explicite qu'aucune affirmation subsistante dans ces deux fichiers ne dit que la detection est hardcodee ou opt-in. Un grep sur 'hardcoded', 'opt-in', '--detect', '--release' dans les deux fichiers est la forme minimale."
+            },
+            "D4d_ecart_po_vers_architecte": {
+              "note": "Quatre AC patches, un AC ajoute. Les AC du PO etaient justes ; deux d'entre eux laissaient ouvert un point qui, non tranche, casse la suite de tests.",
+              "patche_AC1_exception_deterministic_only": {
+                "ajout": "'Sans aucun flag de detection' devient explicite sur le cas --deterministic-only, qui n'active pas le diff dynamique.",
+                "motif": "Sans cette exception, AC1 et l'invariant zero reseau des tests sont en contradiction directe (P4 fait 1)."
+              },
+              "patche_AC2_statut_du_registre": {
+                "avant": "'documente comme fixture de test interne permettant une CI sans cle API'.",
+                "apres": "'contenu du mode --deterministic-only ET fixture de test interne'.",
+                "motif": "Plus precis et plus honnete : le registre tourne chez tout utilisateur sans ANTHROPIC_API_KEY, pas seulement en CI. Le decrire comme purement interne serait faux dans la doc que cette meme US produit.",
+                "cout": "Le registre garde un pied dans le produit. Contrepartie assumee : c'est ce qui permet a l'outil de fonctionner sans cle et sans reseau."
+              },
+              "ajoute_AC2bis": {
+                "motif": "Transforme la contrainte decouverte sur le code (deux tests spawnent la vraie CLI, npm run demo n'a pas de flag) en critere verifiable. Sans lui, la bascule casse la DoD de facon intermittente et hors ligne.",
+                "cout": "Une ligne de sortie de plus a chaque run deterministe, et un flag a ajouter au script demo."
+              },
+              "patche_AC3_flags_figes": {
+                "avant": "'--detect et --release disparaissent OU changent de sens' - alternative laissee ouverte.",
+                "apres": "--detect meurt ; --release est remplace par --since <api-version> (borne basse, pas selection de release) ; un flag mort passe par habitude produit une erreur qui nomme le remplacant.",
+                "motif": "L'alternative ouverte aurait ete tranchee par le dev au moment le moins propice. Et --since n'est pas cosmetique : c'est le 'comment fournir la borne' que le message d'US-13 AC3 est OBLIGE de nommer.",
+                "cout": "Rupture de compatibilite pour quiconque scriptait --detect --release. Assume : le flag date d'US-2, l'outil est en 0.x, et l'erreur explicite guide vers le remplacant."
+              },
+              "patche_AC8_garde_anti_silence_apres_le_cap": {
+                "ajout": "Le garde 'vendor-present-no-match' doit rester actif y compris pour les candidats ecartes par la passe de comptage du cap.",
+                "motif": "La passe de comptage d'US-13 (D3) filtre les 0-match en amont de run() ; or ce garde n'est emis que DEPUIS pipeline.ts. Non explicite, il disparait silencieusement - un garde anti-silence supprime en silence.",
+                "cout": "Exporter noMatchWarning() (aujourd'hui privee, src/pipeline.ts ligne 95). Quelques lignes."
+              },
+              "conserve_tel_quel": "AC4 (seam RunOptions.codemods), AC5 et AC6 (les deux fichiers de doc, livrable du dev), AC7 (dependance a US-16), AC9 (Stripe seulement), AC10 (equivalent 4 morceaux), AC11 (zero reseau), AC12 (invariants), AC13 (DoD)."
+            },
+            "decoupage_du_livrable": {
+              "bascule": "src/cli.ts : parse() (flags), main() (resolution du pin -> walk -> plan/cap -> run), l'aide, les codes de sortie.",
+              "cablage": "Consomme VendorSource (US-12), le walk (US-13), la taxonomie (US-16), le cache (US-15 s'il est deja la). Aucune modification de src/pipeline.ts hormis l'export de noMatchWarning.",
+              "fixtures": "Les existantes, reutilisees : fixtures/acme-payments (registre / --deterministic-only) et fixtures/implicit-pinned-stripe (pin resolu par le SDK installe, 2023-08-16 - la borne qui exerce le correctif de regex d'US-13 AC7bis). Aucune nouvelle fixture de repo n'est necessaire.",
+              "tests": "La matrice de comportement de D4 (6 lignes), le test d'aide (AC3), le test AC2bis (ligne + zero fetch), le test AC8 (garde anti-silence apres le cap).",
+              "documentation": "CLAUDE.md + docs/architecture.md (AC5/AC6) + le script demo dans package.json."
+            },
+            "hors_scope": [
+              "src/runner.ts (Enterprise) et src/service/ (Pro) : seul le CLI Free bascule. Ils doivent continuer a compiler et a passer leurs tests, rien de plus.",
+              "Tout scheduler / cron interne (AC9). Le trigger reste l'utilisateur : CLI ou GitHub Action cron cote client.",
+              "Toute UI, dashboard, auth, billing, multi-langage, second vendor.",
+              "Toute suppression du registre statique ou des deux codemods ecrits a la main : ils restent, avec un statut nouveau.",
+              "Toute modification du verifier, du fixer IA ou de ses garde-fous.",
+              "Toute modification de resolveInference / resolveLlm (src/config.ts) : la resolution de la politique d'inference ne change pas."
+            ],
+            "risques": [
+              "RISQUE PRINCIPAL - c'est l'US ou la suite de tests peut se mettre a faire du reseau sans que personne le remarque tout de suite (deux tests spawnent la vraie CLI). AC2bis est la parade ; le test 'zero appel au fetcher sous --deterministic-only' doit etre ecrit AVANT la bascule.",
+              "Le garde anti-silence de 78dbfe2, tout juste livre, traverse trois US de ce lot (13, 14) et peut disparaitre par simple reorganisation du flux. AC8 le protege ; c'est le point de revue humaine a ne pas sauter.",
+              "Rupture de compatibilite sur --detect / --release. Attenuee par une erreur explicite plutot qu'un flag ignore, mais c'est un changement visible pour tout script existant.",
+              "AC6 exige de prouver une ABSENCE dans deux fichiers de doc ('aucune affirmation subsistante ne dit que la detection est hardcodee'). Une preuve d'absence se fait par grep, pas par relecture : le dev doit consigner les motifs cherches.",
+              "US-14 est en fin de chaine : si US-12, US-13 ou US-16 derivent en revue humaine (notamment la forme de VendorSource ou la regle de canal), le contrat de flags fige ici doit etre rejoue. La substance (registre = mode deterministe, --since = borne basse) ne bouge pas."
+            ],
+            "invariants_claude_md_non_negociables": [
+              "Le gate reste la suite de tests DE L'UTILISATEUR ; jamais de PR non-draft sur suite rouge. La bascule du defaut n'assouplit rien : elle augmente le nombre de changes candidats, pas la tolerance du verifier.",
+              "Stripe seulement (AC9). Pas d'UI, pas de dashboard, pas de multi-langage, pas de second vendor, pas de scheduler interne.",
+              "Les tests du repo cible sont en lecture seule pour le fixer IA ; les garde-fous sont dans le code de l'outil, jamais dans le prompt. La bascule ne touche pas a src/fixer/.",
+              "Blast radius only : jamais de CI config, de secrets, de lockfiles.",
+              "AST, jamais regex, cote matcher.",
+              "Zero reseau dans les tests (AC11) - c'est ici l'invariant le plus expose de tout le lot, voir P4 fait 1.",
+              "Deterministic-first n'est PAS abandonne : le registre reste le tier 1 et il garde la priorite quand il s'applique. Ce qui change, c'est que le tier 2 a desormais une source d'alimentation dynamique.",
+              "DoD = scripts/dod.sh (npx tsc --noEmit + npm test)."
+            ],
+            "NOTE_RE_CADRAGE_2026_09_10_apres_US_12": {
+              "aucun_AC_modifie_aucune_dependance_modifiee": "dependencies restent [US-12, US-13, US-16]. Les 13 AC restent valables mot pour mot. Quatre precisions de cablage, issues du code livre par US-12 (branche feature/US-12-vendor-source, commit 2fda315, non mergee).",
+              "1_le_point_d_entree_du_walk_est_VendorSource_pas_un_module_walk": "Le cadrage initial supposait un module src/detection/walk.ts appele directement. Le code livre expose changesSince(from) sur VendorSource (src/detection/vendor-source.ts), et createStripeVendorSource / vendorSourceFor dans src/detection/stripe-source.ts. US-14 cable donc : vendorSourceFor(\"stripe\", { fetcher }) puis source.resolveCurrentApiVersion(project, projectRoot) puis source.changesSince(pin). Le module pur de selection de releases extrait par US-13 (AC12) reste interne a la detection - le CLI ne l appelle pas.",
+              "2_le_fetcher_HTTP_a_change_d_adresse": "httpFetcher n est plus une constante privee de src/cli.ts : US-12 l a deplace dans src/detection/index.ts, avec son en-tete Accept-Language: en-US et un test de regression. src/cli.ts l importe deja. US-14 ne doit PAS redefinir un fetcher ; le cablage du cache d US-15 se fera en enveloppant CE fetcher-la.",
+              "3_LA_FUITE_US_11_EST_A_FERMER_ICI": "resolveCurrentApiVersion rend un PinnedApiVersion dont PinnedApiVersionSite.filePath est ABSOLU - c est le contrat explicite de resolvePinnedApiVersion, reaffirme dans la doc de l interface (src/detection/vendor-source.ts). src/pipeline.ts relativise deja avec path.relative avant tout affichage ; le nouveau chemin CLI par defaut doit faire de meme. C est la fuite US-11 : la resoudre dans VendorSource la deplacerait sans la fermer. A verifier dans les messages de la matrice de comportement de D4 et dans le corps de PR - un chemin absolu de la machine de l utilisateur ne doit jamais sortir.",
+              "4_le_seam_RunOptions_codemods_est_inchange": "P4 fait_4 reste vrai. Seule precision : les lignes de src/cli.ts ont glisse d environ 7 (suppression du httpFetcher local). Le cablage cible reste diff.autoExecutable.map(genericSymbolCodemod) -> RunOptions.codemods, et AC4 (aucune plomberie de pipeline nouvelle) reste satisfait sans effort.",
+              "5_ce_qui_ne_change_PAS": "AC2bis (zero reseau et zero detection sous --deterministic-only) reste l invariant le plus expose du lot : les deux tests qui spawnent la vraie CLI passent deja --deterministic-only, et npm run demo doit recevoir le meme flag. Rien dans US-12 ne modifie ce constat."
+            }
+          }
+        }
+      },
+      "note": "note de re-cadrage : cablage via VendorSource, httpFetcher deplace, fuite US-11 (filePath absolu) a fermer ici ; aucun AC ni dependance modifies"
+    },
+    {
+      "ts": "2026-09-10T17:55:06.506Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-10T17:56:01.064Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-10T17:56:11.547Z",
+      "type": "move",
+      "actor": "architecte",
+      "us": "US-13",
+      "note": "ready"
+    },
+    {
+      "ts": "2026-09-10T17:56:55.517Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-10T17:57:50.322Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
     }
   ]
 }
