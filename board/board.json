@@ -7692,6 +7692,236 @@
       "type": "gate",
       "actor": "dod",
       "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-10T17:59:54.454Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-10T18:18:53.790Z",
+      "type": "gate",
+      "actor": "dod",
+      "note": "DoD ok"
+    },
+    {
+      "ts": "2026-09-18T19:53:12.957Z",
+      "type": "update",
+      "actor": "architecte",
+      "us": "US-17",
+      "payload": {
+        "fields": [
+          "dependencies",
+          "definition_of_ready"
+        ],
+        "before": {},
+        "after": {
+          "dependencies": [],
+          "definition_of_ready": {
+            "cadre_par": "architecte",
+            "date": "2026-09-18",
+            "verdict": "READY",
+            "principe_directeur": "Le commit 78dbfe2 a pose la regle : le silence du terminal est une AFFIRMATION. 'done - 0 pull requests' se lit 'ton code est propre', et c'etait faux quand on avait trouve des call sites sans les toucher. US-17 termine la meme phrase par l'autre bout : quand le run est REELLEMENT propre, il faut le DIRE, sinon l'utilisateur ne sait pas distinguer 'rien a faire' de 'l'outil n'a rien regarde / a plante silencieusement'. Corollaire non negociable : la nouvelle phrase ne doit jamais pouvoir s'afficher dans un cas que 78dbfe2 a rendu bruyant. C'est un pur AJOUT, jamais une modification d'un rendu existant.",
+            "lot": "MINIMAL. Une ligne d'etat dans src/cli.ts + son predicat (fonction pure) + ses tests + une section README. Rien d'autre, aucune exception.",
+            "D1_ou_vit_la_decision": {
+              "TRANCHE": "Fonction pure exportee depuis un nouveau module minuscule : src/cli-summary.ts. UNE seule fonction exportee, aucun etat, aucun import lourd.",
+              "signature_imposee": "export function cleanRunNote(counts: { checked: number; opened: number; warned: number; blocked: number; skipped: number }): string | null",
+              "contrat": "Rend la PHRASE BRUTE, sans aucun code ANSI, ou null. La couleur est appliquee au point d'appel dans src/cli.ts. Aucune ecriture, aucun console.log dans la fonction.",
+              "pourquoi_pas_un_export_depuis_src_cli_ts": "src/cli.ts appelle main() au chargement du module (ligne 234). Tout import depuis un test lancerait le CLI. Non negociable, donc la decision sort du fichier.",
+              "pourquoi_pas_le_test_par_sous_processus_SEUL": "Le precedent existe bien (tests/api-version.test.ts:597, tests/installed-sdk.test.ts:516 : spawnSync npx tsx src/cli.ts + strip ANSI) MAIS il ne peut pas atteindre les branches d'inhibition d'AC4. Le warning 'vendor-present-no-match' n'est emis que pour un codemod SANS apply() (src/pipeline.ts, noMatchWarning) : par la CLI, cela suppose --detect --release, donc un fetch reel de docs.stripe.com. Idem pour skipped (change matche sans apply() et sans LLM). Tester AC4 par sous-processus imposerait du reseau dans la suite : interdit. Le predicat pur couvre les 4 branches d'inhibition hors reseau, en O(1).",
+              "pourquoi_pas_dans_un_module_existant": "pipeline.ts ne doit rien savoir de la presentation terminal (et AC6 interdit la plomberie de pipeline). config.ts porte la politique d'inference. pr.ts porte du texte PAR CHANGE (apiVersionNote), or ce message est PAR RUN et n'a aucun equivalent dans un corps de PR. Un fichier de 15 lignes coute moins qu'un rangement approximatif.",
+              "pourquoi_des_COMPTEURS_et_non_PipelineResult[]": "Prendre results[] obligerait la fonction a reclassifier chaque resultat (applied / warning / skipped.reason / needsAi), c.-a-d. a dupliquer la boucle src/cli.ts:148-199 : deuxieme source de verite, derive garantie a la premiere evolution. Les 4 compteurs existent DEJA (src/cli.ts:146) et checked est results.length : AC6 est respecte, zero compteur ajoute.",
+              "UNE_SEULE_VOIE_IMPOSEE_AU_DEV": "Toutes les branches du predicat sont testees en unitaire sur la fonction pure. Il y a EXACTEMENT UN test par sous-processus, et un seul : le repo propre, pour prouver le cablage et l'exit code. Interdiction d'ajouter des tests sous-processus pour warned / blocked / skipped."
+            },
+            "D2_le_predicat_exact": {
+              "TRANCHE": "checked > 0 && opened === 0 && warned === 0 && blocked === 0 && skipped === 0. Evalue APRES la boucle, quand tous les resultats ont ete classes.",
+              "skipped_INHIBE_le_message": "OUI, sans ambiguite. skipped (src/cli.ts:196-197) compte les resultats non appliques pour lesquels needsAi est FAUX, c.-a-d. ceux ou il y a EU des matches (ou un verify). Ce sont des call sites trouves et laisses tels quels. Ecrire 'no known API change affects this repo' dans ce cas, c'est exactement le faux bulletin de sante que 78dbfe2 a interdit ; seule la cause differe (pas de LLM configure, au lieu d'une forme de construction non reconnue par le matcher). Meme famille, meme regle.",
+              "le_cas_needsAi_n_inhibe_PAS": "needsAi = !r.verify && r.matches.length === 0 (src/cli.ts:196) n'incremente aucun compteur et ne doit rien inhiber : c'est un change correctement evalue qui ne concerne pas ce repo. L'inhiber rendrait le message inatteignable des qu'un change sans codemod est au registre - le message ne s'afficherait litteralement jamais.",
+              "checked_zero_rend_null": "Si checked === 0, rendre null. On ne certifie pas une couverture vide : 'checked 0 known changes' affirmerait qu'on a regarde alors qu'on n'a rien eu a regarder.",
+              "aucun_rendu_ajoute_pour_skipped": "US-17 n'affiche RIEN de nouveau pour les changes skipped : ils restent silencieux comme aujourd'hui. Les rendre visibles est un autre sujet (voir hors_perimetre)."
+            },
+            "D3_le_N_du_message": {
+              "TRANCHE": "N = results.length, la longueur du tableau rendu par run() (src/cli.ts:145), passe tel quel comme `checked`.",
+              "pourquoi": "C'est litteralement 'le nombre de changes evalues dans ce run' : 2 aujourd'hui avec le registre par defaut (src/changes/index.ts : stripeChargesToIntents, stripeSubscriptionPeriodToItems), plus les auto-executables detectes si --detect est passe. Aucun compteur supplementaire : la valeur est deja disponible sur place (AC6).",
+              "interdit": "Ne pas recompter defaultCodemods, ne pas maintenir une constante, ne pas instrumenter le pipeline."
+            },
+            "D4_style_placement_exit_code": {
+              "couleur": "Vert (c.green) pour le glyphe, dim ou neutre pour la phrase. JAMAIS c.red, JAMAIS c.amber - ces deux couleurs appartiennent aux warnings et au cas pinned-api-version, les confondre annule le contraste que 78dbfe2 a construit.",
+              "glyphe": "Un check vert, distinct du point rond ● utilise par change (ouvert / bloque). Un seul caractere, meme famille visuelle que le reste de la sortie.",
+              "placement_impose": "Une nouvelle ligne, APRES la ligne `done — ...` (src/cli.ts:227) et AVANT le tip deterministic-only (src/cli.ts:228-230). La ligne `done` reste identique au BYTE PRES : elle est l'ancre des sorties existantes. Toute insertion avant elle est un refus de revue.",
+              "phrase_exacte_sans_ANSI": "no known API change affects this repo — nothing to fix (checked 2 known changes)",
+              "pluralisation": "Le '(s)' d'AC2 se lit comme un placeholder : pluraliser a la maison (`change` / `changes`, cf. src/cli.ts:227). Les assertions portent sur /no known API change affects this repo/ et /checked \\d+ known changes?/, jamais sur la ponctuation exacte, pour ne pas figer le rendu.",
+              "em_dash": "Meme tiret cadratin — que le reste de la sortie.",
+              "exit_code": "0, inchange. Aucun process.exit ajoute, aucun chemin d'erreur touche (AC3, AC13)."
+            },
+            "seams": {
+              "src/cli.ts": "Deux touches seulement : (1) un import de cleanRunNote ; (2) 2-3 lignes d'appel + affichage entre la ligne 227 et la ligne 228. Rien d'autre dans ce fichier.",
+              "src/cli-summary.ts": "Nouveau. Une fonction pure, un type inline, zero import.",
+              "INTOUCHABLE_1": "src/pipeline.ts : zero modification. Le warning est emis ligne 99, il reste tel quel.",
+              "INTOUCHABLE_2": "src/cli.ts:161-169 (rendu vendor-present-no-match) et src/cli.ts:170-195 (rendu pinned-api-version) : identiques au byte pres.",
+              "INTOUCHABLE_3": "Les compteurs de la ligne 146 : on les LIT, on n'en ajoute pas, on n'en renomme pas."
+            },
+            "tests_attendus": {
+              "fichier": "tests/cli-clean-run.test.ts (nouveau). Ne pas toucher aux fichiers de test existants.",
+              "T1_unitaire_cas_propre": "checked=2, opened=0, warned=0, blocked=0, skipped=0 -> phrase non nulle, contient 'no known API change affects this repo' et matche /checked 2 known changes?/.",
+              "T2_unitaire_warned_inhibe": "warned=1 -> null. Commentaire obligatoire dans le test : c'est le garde-fou 78dbfe2 ; les deux messages ne coexistent jamais (AC4).",
+              "T3_unitaire_blocked_inhibe": "blocked=1 -> null (cas pinned-api-version : des sites ont ete trouves et laisses UNCHANGED).",
+              "T4_unitaire_opened_inhibe": "opened=1 -> null.",
+              "T5_unitaire_skipped_inhibe": "skipped=1 -> null. Commentaire obligatoire : matche mais non applique n'est PAS un repo propre (D2).",
+              "T6_unitaire_checked_zero": "checked=0 -> null.",
+              "T7_unitaire_zero_ANSI": "La valeur rendue ne contient aucun \\x1b : la couleur vit au point d'appel, et le README (AC10) peut citer la phrase telle quelle.",
+              "T8_sous_processus_UNIQUE": "Repo propre cree en tmpdir (pattern makeRepo + spawnSync de tests/installed-sdk.test.ts:516, --deterministic-only, --out vers un tmpdir, env SANS ANTHROPIC_API_KEY, ANSI strippe). Asserts : status === 0 ; la phrase est presente ; 'done — 0 pull requests' est toujours presente ; aucune occurrence de 'WARNING' ; le repertoire de sortie est vide. Aucun fichier ecrit dans le repo cible.",
+              "non_regression_AC1": "tests/matcher-symbol.test.ts, tests/detection-pipeline.test.ts, tests/api-version.test.ts, tests/installed-sdk.test.ts : ZERO assertion modifiee. Si l'une rougit, c'est le placement du message qui est faux - on corrige le placement, jamais l'assertion.",
+              "zero_reseau": "Aucun test n'ouvre de socket. Pas de --detect, pas de npm install."
+            },
+            "readme_AC8_AC10": {
+              "portee_exacte": "UNE section, la section existante `## Quickstart` (README.md ligne 64), renommee `## Quick Start (2 minutes)` et enrichie. Interdiction de restructurer le README, de deplacer ou de supprimer une autre section (y compris `## Ship the Free tier tonight`). Un doublon de commande residuel est tolere et signale en description de PR, il n'est pas corrige ici.",
+              "contenu_impose": "npm install / npx @apidrift/cli run . -> bloc de sortie REELLE (ANSI strippe) -> ou trouver apidrift-<change-id>.md et .patch -> mention explicite du message AC2 (ce que l'utilisateur voit quand rien ne le concerne) -> UNE ligne sur --ai + ANTHROPIC_API_KEY (BYOT optionnel).",
+              "AC10_sortie_reelle": "Le bloc de sortie est un copier-coller d'une capture faite APRES l'implementation, avec les codes ANSI retires, dans la meme PR. Jamais recopie de memoire, jamais retouche a la main. Reference de capture verifiee par l'architecte le 2026-09-18 sur fixtures/acme-payments sans cle : 2 PR, 'tests passed' pour les deux, ligne 'api version: takes effect from 2025-03-31.basil - ... could not check ...' presente sur le second change, 'done — 2 pull requests' + ligne de tip.",
+              "AC9_verification_de_la_commande": "Verifier que `npx @apidrift/cli run .` est bien la commande du paquet publie : name + bin + version dans package.json, et `npm view @apidrift/cli version` si le reseau est disponible. INTERDICTION de publier, de bumper la version ou de taguer. Si la version publiee ne correspond pas a 0.3.0, le SIGNALER dans la PR au lieu de corriger.",
+              "AC12_proprete": "apidrift-out/ est deja gitignore. Toutes les captures ecrivent via --out vers un tmpdir HORS du repo. `git status` doit etre propre en fin de tache (hors les 4 fichiers autorises). docs/USAGE.md est en LECTURE SEULE : toute incoherence de chemin d'artefact est signalee, pas corrigee."
+            },
+            "fichiers_modifiables_liste_close": [
+              "src/cli.ts (import + 2-3 lignes entre la ligne 227 et la ligne 228)",
+              "src/cli-summary.ts (nouveau)",
+              "tests/cli-clean-run.test.ts (nouveau)",
+              "README.md (section Quickstart uniquement)"
+            ],
+            "hors_perimetre": [
+              "Toute nouvelle option CLI, toute nouvelle variable d'environnement, tout nouveau compteur (AC6).",
+              "Toute plomberie de pipeline : src/pipeline.ts, src/types.ts, PipelineResult ne bougent pas d'un octet.",
+              "Toute refacto de main() (extraction, decoupage, deplacement de la boucle d'affichage). Le seul changement est un ajout localise.",
+              "Rendre le cas `skipped` visible dans la sortie terminal : reel, mais c'est une autre US (candidat backlog). US-17 se contente de l'empecher d'usurper un message de repo propre.",
+              "Modifier, reformuler ou deplacer d'un byte le rendu vendor-present-no-match (src/cli.ts:161-169) ou pinned-api-version (src/cli.ts:170-195).",
+              "docs/architecture.md, CLAUDE.md, docs/USAGE.md, docs/backlog.md : lecture seule.",
+              "architecture/architecture.json : inchange (voir architecture_json).",
+              "Publication npm, bump de version, tag, release.",
+              "Toute restructuration du README hors la section Quick Start.",
+              "Toute fixture committee pour le repo propre : tmpdir uniquement (AC11b).",
+              "Tout ce qui releve d'US-12..US-16 : detection par defaut, walk, cache, taxonomie de pannes. US-17 n'y touche pas et n'anticipe pas dessus."
+            ],
+            "risques": [
+              "Placement : inserer le message AVANT la ligne `done` casserait l'ancre que les tests sous-processus existants lisent et changerait l'ordre de lecture. D'ou l'ordre impose (D4). Premier point de revue.",
+              "Elargissement du predicat : la premiere fois que quelqu'un trouvera que 'le message ne s'affiche pas assez souvent', il retirera un terme (skipped, le plus probable). C'est la fin de l'US : on retombe sur le faux bulletin de sante que 78dbfe2 a supprime. Le reviewer refuse tout PR qui retire un terme du predicat.",
+              "README fige sur une sortie inventee : un bloc de code recopie de memoire devient faux au premier changement de wording et personne ne le voit. AC10 exige une capture reelle prise apres l'implementation, dans la meme PR.",
+              "Dependance descendante US-14 : quand la detection deviendra le defaut, N variera d'un run a l'autre et un repli vers le registre sera enonce. La phrase reste techniquement vraie (N = results.length), MAIS elle ne devra jamais s'afficher quand la detection a echoue silencieusement - c'est precisement le sujet d'US-16 (AC5, AC2bis). US-14/US-16 devront RELIRE cette ligne, pas la recopier. Aucun travail ici, note de cadrage pour la suite.",
+              "Formulation : 'no known API change affects this repo' affirme une couverture limitee au KNOWN. Le mot 'known' est porteur et ne doit pas disparaitre a la relecture - c'est lui qui empeche la phrase de promettre une exhaustivite qu'APIdrift n'a pas."
+            ],
+            "invariants_claude_md_non_negociables": [
+              "Pur AJOUT : aucun code de sortie, aucun comportement existant ne change (AC13). Exit code 0 inchange.",
+              "Le garde-fou anti-silence 78dbfe2 reste actif et intact ; ses tests restent verts sans modification d'assertion (AC1).",
+              "Zero reseau dans les tests : pas de --detect, pas de npm install, pas de fetch.",
+              "Blast radius only : aucun octet ecrit dans le repo de l'utilisateur ; les captures ecrivent hors du repo.",
+              "Scope guards : pas de detection nouvelle, pas d'UI/dashboard, pas de second vendor, pas de second langage.",
+              "Les tests du repo cible restent en lecture seule pour le fixer ; le verifier reste le gate, pas de PR non-draft sur suite rouge.",
+              "AST jamais regex (sans objet ici : aucun code utilisateur n'est lu par cette US).",
+              "DoD = scripts/dod.sh (npx tsc --noEmit + npm test)."
+            ],
+            "architecture_json": "INCHANGE, deliberement. L'ajout est une ligne de presentation interne au composant `cli` : il ne cree aucune dependance, ne modifie aucune interface (le contrat de flags est identique), ne deplace aucune frontiere. Les `constraints` du composant cli portent sur le contrat de flags US-14 et l'honnetete des messages US-16 ; US-17 ne les contredit pas et ne les anticipe pas. Inscrire une ligne de sortie terminal dans architecture.json en ferait un journal de rendu, pas une architecture.",
+            "preuves_terrain_2026_09_18": {
+              "methode": "Execution reelle de la CLI (npx tsx src/cli.ts), sans ANTHROPIC_API_KEY (env -u), sorties ANSI strippees.",
+              "acme_payments": "2 PR produites, 'tests passed' sur les deux, artefacts .md + .patch ecrits dans le --out. AC11a confirme faisable en l'etat.",
+              "repo_propre": "Un repo tmpdir sans aucun usage Stripe produit AUJOURD'HUI exactement : 'done — 0 pull requests in <out>' puis la ligne de tip. Zero mot sur ce qui a ete verifie. C'est le trou qu'AC2 comble, constate et non suppose.",
+              "registre": "src/changes/index.ts ligne 10 : 2 codemods. N vaut donc 2 sur un run par defaut aujourd'hui.",
+              "precedent_sous_processus": "tests/api-version.test.ts:597 et tests/installed-sdk.test.ts:516 lancent la vraie CLI par spawnSync avec strip ANSI. Le pattern existe, il est reutilise tel quel pour T8. tests/cli.test.ts (cite par AC7) n'existe PAS : le dev cree tests/cli-clean-run.test.ts."
+            }
+          }
+        }
+      }
+    },
+    {
+      "ts": "2026-09-18T19:53:17.588Z",
+      "type": "move",
+      "actor": "architecte",
+      "us": "US-17",
+      "note": "ready"
+    },
+    {
+      "ts": "2026-09-18T19:53:38.522Z",
+      "type": "move",
+      "actor": "dev#1",
+      "us": "US-17",
+      "note": "ready>in_progress"
+    },
+    {
+      "ts": "2026-09-18T19:53:38.581Z",
+      "type": "delegate",
+      "actor": "orchestrateur",
+      "target": "dev#1",
+      "us": "US-17",
+      "payload": {
+        "branche": "feature/US-17-clean-run-note",
+        "lot": "MINIMAL - 4 fichiers, liste close par la DoR",
+        "fichiers_autorises": [
+          "src/cli.ts",
+          "src/cli-summary.ts",
+          "tests/cli-clean-run.test.ts",
+          "README.md"
+        ],
+        "gate": "scripts/dod.sh (npx tsc --noEmit + npm test)",
+        "interdits": [
+          "tag",
+          "release",
+          "npm publish",
+          "push/merge vers main",
+          "toute modification hors des 4 fichiers"
+        ]
+      }
+    },
+    {
+      "ts": "2026-09-18T20:04:40.796Z",
+      "type": "move",
+      "actor": "dev#1",
+      "us": "US-17",
+      "note": "in_progress>review"
+    },
+    {
+      "ts": "2026-09-18T20:04:40.854Z",
+      "type": "report",
+      "actor": "dev#1",
+      "us": "US-17",
+      "payload": {
+        "branche": "feature/US-17-clean-run-note",
+        "commit": "c8f1f46",
+        "pr": "https://github.com/apidrift/apidrift/pull/14",
+        "fichiers": [
+          "src/cli-summary.ts (nouveau)",
+          "src/cli.ts (+3 lignes)",
+          "tests/cli-clean-run.test.ts (nouveau)",
+          "README.md (section Quick Start)"
+        ],
+        "gates": {
+          "tsc": "exit 0",
+          "npm_test": "171/171 pass"
+        },
+        "preuves": {
+          "acme_payments": "2 PRs, tests passed, .md + .patch ecrits",
+          "repo_propre": "message clean-run affiche, exit 0, out vide"
+        }
+      }
+    },
+    {
+      "ts": "2026-09-18T20:15:00.226Z",
+      "type": "qa_review",
+      "actor": "qa",
+      "target": "orchestrateur",
+      "us": "US-17",
+      "note": "ACCEPTE. AC1-AC14 OK. DoD: tsc exit 0, npm test 171/171. Perimetre clos 4 fichiers. Garde-fou 78dbfe2 intact (18/18). Preuves sans cle: acme-payments 2 PRs + repo propre message clean-run. Reserve non bloquante: phrase README sur le cas skipped, renvoyee au dev."
+    },
+    {
+      "ts": "2026-09-18T20:27:09.858Z",
+      "type": "move",
+      "actor": "qa",
+      "us": "US-17",
+      "note": "review>done"
+    },
+    {
+      "ts": "2026-09-18T20:27:09.929Z",
+      "type": "gate",
+      "actor": "orchestrateur",
+      "us": "US-17",
+      "note": "DoD verifie par orchestrateur sur d311011: tsc exit 0, npm test 171/171. Preuves sans cle re-executees: (a) acme-payments 2 PRs + 4 artefacts, (b) repo propre message clean-run vert, out vide, repo cible intact. Garde-fou 78dbfe2: 18/18, cli.ts purement additif. PR #14 EN ATTENTE du gate humain de merge vers main."
     }
   ]
 }

@@ -11,4 +11,5 @@
 - [Page illisible vs page sans changement](decision_page_readability_sentinel.md) — sentinelle sur les headings anglais traduisibles, `Impact` exclu (identique en français) ; `#### Node.js` est un faux discriminant.
 - [Un N+1 intra-run n'est pas un problème de cache](decision_cache_vs_nplus1.md) — arbitré vers le walk (US-13) ; le test de comptage de fetchs doit précéder le cache.
 - [Pannes silencieuses du changelog](decision_changelog_silent_failures.md) — langue, regex de heading, throw sur une page : trois façons de lire « à jour » à tort.
+- [Message "repo propre" du CLI (US-17)](decision_clean_run_message.md) — `skipped` inhibe le message, `needsAi` non ; fonction pure, pas de test sous-processus pour les branches.
 - [Design du Free tier dynamique](decision_free_tier_dynamic_diff.md) — VendorSource rend des `Change`, registre = mode déterministe, cache en tmpdir, `--offline` fail-close.
