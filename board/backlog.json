@@ -1645,6 +1645,25 @@
         }
       },
       "assignee": "qa"
+    },
+    {
+      "id": "US-18",
+      "title": "Un change matche mais non applique (skipped) est silencieux dans la sortie terminal",
+      "why": "Dans src/cli.ts, une PipelineResult non appliquee sans warning ni skipped.reason 'pinned-api-version' (change matche, pas de LLM configure, donc rien applique) incremente seulement le compteur skipped : aucune ligne n'est affichee et le resume final reste 'done — 0 pull requests'. Des call sites ont ete trouves puis laisses tels quels sans que l'utilisateur le sache : meme risque de faux bulletin de sante que celui que 78dbfe2 a supprime pour vendor-present-no-match. US-17 empeche seulement ce cas d'usurper le message 'no known API change affects this repo' (predicat cleanRunNote : skipped === 0), sans le rendre visible. Remonte par le rapport de la QA d'US-17. NE PAS corriger dans le cadre du test reel de bout en bout : entree de backlog uniquement.",
+      "acceptance_criteria": [
+        "AC1 - Quand un change est matche puis non applique faute de LLM (mode deterministic-only, pas de codemod.apply), le terminal affiche un bloc nomme qui dit : titre du change, nombre de sites trouves et laisses UNCHANGED, liste fichier:ligne, et l'action (ex. relancer avec --ai).",
+        "AC2 - Le rendu est distinct du WARNING vendor-present-no-match et du bloc pinned-api-version, sans les modifier (non-regression byte a byte des deux).",
+        "AC3 - Le message 'no known API change affects this repo' reste inhibe (cleanRunNote), et le resume final mentionne le nombre de changes matches non appliques, comme blockedNote/warnedNote.",
+        "AC4 - Test dedie : repo qui matche un change sans codemod.apply, sans LLM -> bloc present, message repo propre absent, exit code inchange. Le garde anti-silence 78dbfe2 reste actif."
+      ],
+      "status": "backlog",
+      "priority": 5,
+      "component": "cli",
+      "epic": "EPIC-mvp-proof",
+      "dependencies": [
+        "US-17"
+      ],
+      "assignee": "orchestrateur"
     }
   ]
 }
