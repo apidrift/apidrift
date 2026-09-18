@@ -1664,6 +1664,47 @@
         "US-17"
       ],
       "assignee": "orchestrateur"
+    },
+    {
+      "id": "US-19",
+      "title": "Le verifier ne doit pas transmettre les secrets du processus au npm test du repo cible",
+      "why": "src/verifier/index.ts:30 construit l'environnement des tests par { ...process.env, CI: 'true' } : tout le processus apidrift est transmis au `npm test` du repo cible, donc a son code, a ses scripts npm et a toutes ses dependances. En mode BYOT (--ai), process.env contient ANTHROPIC_API_KEY (et potentiellement GITHUB_TOKEN cote runner Enterprise, ou toute autre variable de la machine). Un test ou une dependance tierce peut la lire, la logger ou l'exfiltrer. Le meme verify() est appele par l'agent IA (src/fixer/agent.ts:111), donc le chemin IA est concerne. Constate lors du test reel sur RandomAPI/Randomuser.me-Node (docs/proof/real-world-Randomuser.me-Node/, constat 4) : non exploite (aucune cle dans l'environnement, le code du repo ne lit que process.env.spec), mais a corriger avant de pointer --ai sur des repos non maitrises. La cle doit servir a apidrift, jamais au code du tiers.",
+      "acceptance_criteria": [
+        "AC1 - L'environnement passe au sous-processus `npm test` du verifier ne contient jamais ANTHROPIC_API_KEY ni les autres secrets connus d'apidrift (au minimum ANTHROPIC_API_KEY, GITHUB_TOKEN, GH_TOKEN, NPM_TOKEN, NODE_AUTH_TOKEN, AWS_*/credentials Bedrock, identifiants Vertex). L'architecte tranche le mecanisme : liste de refus des secrets connus OU liste d'autorisation minimale (PATH, HOME, NODE_*, CI, LANG...). Le choix et son risque residuel sont documentes ; une liste de refus perime en silence, une liste d'autorisation peut casser des repos qui ont besoin d'une variable : arbitrer explicitement.",
+        "AC2 - Les variables existantes du verifier gardent leur comportement : CI=true est force, NODE_TEST_CONTEXT et NODE_OPTIONS restent supprimes. Aucun changement de la commande executee (npm test --silent) ni de son code de sortie.",
+        "AC3 - Test dedie, sans reseau : avec ANTHROPIC_API_KEY et GITHUB_TOKEN positionnes dans le processus parent, un mini-repo dont le script test ecrit ses variables d'environnement dans un fichier prouve que ni l'une ni l'autre n'y figure ; et que PATH et CI y figurent.",
+        "AC4 - Meme garantie pour l'appel de l'agent IA (src/fixer/agent.ts, verify() utilise comme outil) : couvert par le meme code ou par un test explicite. L'agent ne recoit toujours pas le droit d'editer les tests (garde-fou inchange).",
+        "AC5 - Non-regression : les tests existants du verifier, du pipeline et de l'agent IA restent verts ; tsc + npm test verts. Aucun changement de perimetre hors verifier (pas de sandbox reseau, pas de conteneur : hors scope).",
+        "AC6 - La note de proof docs/proof/real-world-Randomuser.me-Node/README.md (constat 4) est mise a jour pour renvoyer a cette US une fois livree."
+      ],
+      "status": "backlog",
+      "priority": 2,
+      "component": "verifier",
+      "epic": "EPIC-mvp-proof",
+      "dependencies": [],
+      "assignee": "orchestrateur"
+    },
+    {
+      "id": "US-20",
+      "title": "Verifier que le SDK installe supporte l'API cible avant d'appliquer un correctif",
+      "why": "apidrift sait lire la version d'API epinglee (US-7/US-9) mais pas si le SDK present dans node_modules expose reellement la ressource vers laquelle le correctif migre. Sur RandomAPI/Randomuser.me-Node (docs/proof/real-world-Randomuser.me-Node/, constat 2), stripe@4.25.0 n'a pas de ressource paymentIntents : le correctif charges.create -> paymentIntents.create est juste pour l'API moderne mais plante a l'execution (`Cannot read properties of undefined (reading 'create')`). Le verifier l'a attrape uniquement parce que la suite exerce la route /donate ; un repo a la suite plus mince recevrait une PR verte qui casse en production, ce qui contredit le principe 'la verification est le fosse'. Meme famille de risque que US-9 : une information presente sur la machine (le paquet installe) que l'outil n'interroge pas.",
+      "acceptance_criteria": [
+        "AC1 - Avant d'appliquer un correctif dont la cible est une ressource ou methode du SDK vendor (ex. stripe.paymentIntents.create), apidrift sonde le paquet installe (node_modules/<vendor>) pour savoir si cette ressource existe. La sonde est STRUCTURELLE (lecture du paquet installe), jamais une table de versions codee en dur : US-9 a explicitement refuse la table de versions parce qu'elle perime en silence.",
+        "AC2 - Si le SDK installe n'expose pas la ressource cible : le correctif n'est PAS applique comme PR non-draft, les sites trouves sont listes et laisses INCHANGES, et le message dit quoi faire (mettre a jour le paquet vendor puis relancer), sur le modele du bloc pinned-api-version (US-7/US-9). L'architecte tranche si le resultat est 'non applique + explication' (alignement US-7/US-9, recommande) ou 'draft'.",
+        "AC3 - Si le SDK n'est pas installe ou n'est pas lisible : le resultat le DIT (meme invariant qu'US-9 AC7) ; jamais de silence qui se lit comme 'verifie, tout va bien'. Ce cas apparait dans le terminal ET dans le corps de la PR.",
+        "AC4 - Non-regression : sur fixtures/acme-payments (SDK recent ou absent selon la fixture) et fixtures/implicit-pinned-stripe le comportement reste identique ; le garde anti-silence 78dbfe2 et la garde de version epinglee US-7/US-9 restent intacts.",
+        "AC5 - Test dedie sur une fixture commitee representant un SDK ancien (sans la ressource cible) : correctif non applique + message actionnable ; et une fixture avec SDK recent : correctif applique comme avant. Aucun reseau dans la suite.",
+        "AC6 - Perimetre : Stripe/JS-TS uniquement, comme le reste du produit (pas de moteur multi-vendor). Le CLI (src/cli.ts) affiche ce cas sans reutiliser ni masquer les rendus existants ; tsc + npm test verts.",
+        "AC7 - La note de proof docs/proof/real-world-Randomuser.me-Node/README.md (constat 2) renvoie a cette US une fois livree ; rejouer la cible produit le nouveau comportement documente."
+      ],
+      "status": "backlog",
+      "priority": 3,
+      "component": "matcher",
+      "epic": "EPIC-mvp-proof",
+      "dependencies": [
+        "US-9"
+      ],
+      "assignee": "orchestrateur"
     }
   ]
 }
