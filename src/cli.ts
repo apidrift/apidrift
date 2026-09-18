@@ -9,6 +9,7 @@ import { codemods as defaultCodemods } from './changes/index.js';
 import { detectChanges, type Fetcher } from './detection/index.js';
 import { genericSymbolCodemod } from './matcher/symbol.js';
 import { apiVersionNote } from './pr.js';
+import { cleanRunNote } from './cli-summary.js';
 import type { Change, Codemod } from './types.js';
 
 const c = {
@@ -225,6 +226,8 @@ async function main() {
     ? `, ${c.amber}${warned} change${warned === 1 ? '' : 's'} detected but unmatched — see WARNING above${c.reset}`
     : '';
   console.log(`${c.bold}done${c.reset} — ${opened} pull request${opened === 1 ? '' : 's'} in ${c.bold}${outputDir}${c.reset}${blockedNote}${warnedNote}`);
+  const clean = cleanRunNote({ checked: results.length, opened, warned, blocked, skipped });
+  if (clean) console.log(`${c.green}✓${c.reset} ${c.dim}${clean}${c.reset}`);
   if (inference.policy === 'deterministic-only') {
     console.log(`${c.dim}tip: set ANTHROPIC_API_KEY and pass --ai to also fix changes without a codemod.${c.reset}`);
   }
