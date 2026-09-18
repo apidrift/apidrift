@@ -122,8 +122,8 @@ inside the scanned repo):
 ```
 
 It only appears when every known change was checked and none touched your
-code. If APIdrift found call sites it could not or would not change, you get a
-`WARNING` or a `not applied` block instead, never that line.
+code. As soon as APIdrift finds call sites it did not change, for any reason and
+whether or not it prints a warning about them, that line is not shown.
 
 **Optional AI fixer (BYOT):** for changes with no built-in codemod, set
 `ANTHROPIC_API_KEY` and add `--ai`. Without it, nothing leaves your machine.
