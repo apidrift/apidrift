@@ -61,23 +61,75 @@ deps — Free users never install them.
 provenance) and `package-lock.json` must be committed (needed by `npm ci`) —
 both already true in this repo.
 
-## Quickstart
+## Quick Start (2 minutes)
+
+From a clone of this repo, no API key needed:
 
 ```bash
 npm install
-npm run demo          # runs the pipeline against fixtures/acme-payments
-npm test              # proves the happy path AND the "moat" (draft on red)
+npx tsx src/cli.ts run ./fixtures/acme-payments
 ```
 
-`npm run demo` prints a summary and writes a ready-to-review PR to
-`apidrift-out/apidrift-<change-id>.md` plus a matching `.patch` you can apply
-with `git am` — one pair per change that matched.
-
-Run it against any repo:
+Against your own repo, straight from npm (`@apidrift/cli` v0.3.0, binary
+`apidrift`):
 
 ```bash
-npx tsx src/cli.ts run <path-to-repo> --out ./apidrift-out
+npx @apidrift/cli run .
 ```
+
+Real output for the first command (`fixtures/acme-payments`, deterministic
+mode, colors stripped; that sample repo has not run `npm install`, hence the
+`api version:` line):
+
+```text
+apidrift v0.3.0  scanning ./fixtures/acme-payments
+inference: deterministic-only (no model — codemod library only)
+
+● Migrate deprecated Charges.create to PaymentIntents.create
+  vendor: stripe  confidence: high  via: deterministic
+  branch: apidrift/stripe-charges-create-to-payment-intents
+    src/checkout.js:8  stripe.charges.create({
+  tests passed
+  PR: ./apidrift-out/apidrift-stripe-charges-create-to-payment-intents.md
+  patch: ./apidrift-out/apidrift-stripe-charges-create-to-payment-intents.patch
+
+● Read subscription billing periods off subscription items (Basil 2025-03-31)
+  vendor: stripe  confidence: medium  via: deterministic
+  branch: apidrift/stripe-subscription-current-period-to-items
+  api version: takes effect from 2025-03-31.basil — this repo's code sets no apiVersion, and APIdrift could not check the implicit one: node_modules/stripe is not installed here. stripe-node v12+ pins IMPLICITLY to the API version current at its own release, so "no pin in the code" is not "latest" — install dependencies and re-run, or confirm yours is 2025-03-31.basil or later.
+    src/billing.js:14  subscription.current_period_start
+    src/billing.js:15  subscription.current_period_end
+  tests passed
+  PR: ./apidrift-out/apidrift-stripe-subscription-current-period-to-items.md
+  patch: ./apidrift-out/apidrift-stripe-subscription-current-period-to-items.patch
+
+done — 2 pull requests in ./apidrift-out
+tip: set ANTHROPIC_API_KEY and pass --ai to also fix changes without a codemod.
+```
+
+**Where the results are.** One PR body + one patch per change that matched,
+written to `./apidrift-out/` (change it with `--out <dir>`; nothing is written
+inside the scanned repo):
+
+- `apidrift-<change-id>.md` — the ready-to-review PR description
+- `apidrift-<change-id>.patch` — apply it with `git am`
+
+**If nothing concerns your repo**, you see this line right after
+`done — 0 pull requests`, and the exit code is 0:
+
+```text
+✓ no known API change affects this repo — nothing to fix (checked 2 known changes)
+```
+
+It only appears when every known change was checked and none touched your
+code. As soon as APIdrift finds call sites it did not change, for any reason and
+whether or not it prints a warning about them, that line is not shown.
+
+**Optional AI fixer (BYOT):** for changes with no built-in codemod, set
+`ANTHROPIC_API_KEY` and add `--ai`. Without it, nothing leaves your machine.
+
+Contributors: `npm run demo` runs the pipeline on the same fixture and
+`npm test` proves the happy path AND the "moat" (draft on red).
 
 ## What it does, end to end
 
