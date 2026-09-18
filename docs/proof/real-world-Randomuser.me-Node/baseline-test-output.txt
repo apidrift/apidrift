@@ -1,0 +1,459 @@
+
+
+[database] Connected to MongoDB.
+Loaded 5 generators.
+• v1.0 [16]: AU BR CA CH DE DK ES FI FR GB IE IR NL NZ TR US 
+• v1.1 [16]: AU BR CA CH DE DK ES FI FR GB IE IR NL NZ TR US 
+• v1.2 [17]: AU BR CA CH DE DK ES FI FR GB IE IR NL NO NZ TR US 
+• v1.3 [17]: AU BR CA CH DE DK ES FI FR GB IE IR NL NO NZ TR US 
+• v1.4 [21]: AU BR CA CH DE DK ES FI FR GB IE IN IR MX NL NO NZ RS TR UA US 
+
+Listening on port 3000
+  Randomuser.me
+    Website
+      ✓ should return 200 when visiting home page (/)
+      ✓ should return 301 when visiting home page (/index) and redirect to /
+      ✓ should return 200 when visiting photos page (/photos)
+      ✓ should return 200 when visiting documentation page (/documentation)
+      ✓ should return 200 when visiting changelog page (/changelog)
+      ✓ should return 200 when visiting stats page (/stats)
+      ✓ should return 200 when visiting donate page (/donate)
+      ✓ should return 200 when visiting copyright page (/copyright)
+      ✓ should return 200 when visiting photoshop page (/photoshop)
+      ✓ should return 200 when visiting sketch page (/sketch)
+      ✓ should return chart into when hitting /getStats endpoint
+      ✓ should return 200 when posting to /donate with valid info and valid email (284ms)
+    API
+      General
+        ✓ should return 200 when visiting api route
+        ✓ should use latest version when hitting default api route
+        ✓ should default to 1 instead of accepting floating point results values
+      Legacy versions <1.0
+        0.1
+          ✓ should return 200 when visiting api route (/api/0.1) (311ms)
+          ✓ should return correct versioned response when visiting api route (/api/0.1) (441ms)
+          ✓ should return the same user object when given the same seed (829ms)
+        0.2
+          ✓ should return 200 when visiting api route (/api/0.2) (424ms)
+          ✓ should return correct versioned response when visiting api route (/api/0.2) (423ms)
+          ✓ should return the same user object when given the same seed (863ms)
+        0.2.1
+          ✓ should return 200 when visiting api route (/api/0.2.1) (441ms)
+          ✓ should return correct versioned response when visiting api route (/api/0.2.1) (443ms)
+          ✓ should return the same user object when given the same seed (889ms)
+        0.3
+          ✓ should return 200 when visiting api route (/api/0.3) (419ms)
+          ✓ should return correct versioned response when visiting api route (/api/0.3) (447ms)
+          ✓ should return the same user object when given the same seed (859ms)
+        0.3.1
+          ✓ should return 200 when visiting api route (/api/0.3.1) (422ms)
+          ✓ should return correct versioned response when visiting api route (/api/0.3.1) (416ms)
+          ✓ should return the same user object when given the same seed (867ms)
+        0.3.2
+          ✓ should return 200 when visiting api route (/api/0.3.2) (428ms)
+          ✓ should return correct versioned response when visiting api route (/api/0.3.2) (437ms)
+          ✓ should return the same user object when given the same seed (862ms)
+        0.4
+          ✓ should return 200 when visiting api route (/api/0.4) (417ms)
+          ✓ should return correct versioned response when visiting api route (/api/0.4) (462ms)
+          ✓ should return the same user object when given the same seed (843ms)
+        0.4.1
+          ✓ should return 200 when visiting api route (/api/0.4.1) (430ms)
+          ✓ should return correct versioned response when visiting api route (/api/0.4.1) (448ms)
+          ✓ should return the same user object when given the same seed (875ms)
+        0.5
+          ✓ should return 200 when visiting api route (/api/0.5) (438ms)
+          ✓ should return correct versioned response when visiting api route (/api/0.5) (534ms)
+          ✓ should return the same user object when given the same seed (750ms)
+        0.6
+          ✓ should return 200 when visiting api route (/api/0.6) (430ms)
+          ✓ should return correct versioned response when visiting api route (/api/0.6) (442ms)
+          ✓ should return the same user object when given the same seed (868ms)
+      Modern versions >=1.0
+        General
+          1.0
+            ✓ should return 200 when visiting api route (/api/1.0)
+            ✓ should return correct versioned response when visiting api route (/api/1.0)
+            ✓ should return the same user object when given the same seed
+            ✓ should return the same user object when given the same seed and on a different page
+            ✓ should download random user data when dl parameter is provided
+          1.1
+            ✓ should return 200 when visiting api route (/api/1.1)
+            ✓ should return correct versioned response when visiting api route (/api/1.1)
+            ✓ should return the same user object when given the same seed
+            ✓ should return the same user object when given the same seed and on a different page
+            ✓ should download random user data when dl parameter is provided
+          1.2
+            ✓ should return 200 when visiting api route (/api/1.2)
+            ✓ should return correct versioned response when visiting api route (/api/1.2)
+            ✓ should return the same user object when given the same seed
+            ✓ should return the same user object when given the same seed and on a different page
+            ✓ should download random user data when dl parameter is provided
+          1.3
+            ✓ should return 200 when visiting api route (/api/1.3)
+            ✓ should return correct versioned response when visiting api route (/api/1.3)
+            ✓ should return the same user object when given the same seed
+            ✓ should return the same user object when given the same seed and on a different page
+            ✓ should download random user data when dl parameter is provided
+          1.4
+            ✓ should return 200 when visiting api route (/api/1.4)
+            ✓ should return correct versioned response when visiting api route (/api/1.4)
+            ✓ should return the same user object when given the same seed
+            ✓ should return the same user object when given the same seed and on a different page
+            ✓ should download random user data when dl parameter is provided
+        1.0
+          Include fields
+            ✓ should return only included fields [check 1 of 5] using fields (cell,gender,id,picture,registered)
+            ✓ should return only included fields [check 2 of 5] using fields (dob,email,id,location,registered)
+            ✓ should return only included fields [check 3 of 5] using fields (email,id,location,login,name)
+            ✓ should return only included fields [check 4 of 5] using fields (gender,location,login,nat,phone)
+            ✓ should return only included fields [check 5 of 5] using fields (dob,email,id,name,nat)
+          Exclude fields
+            ✓ should return all fields except excluded fields [check 1 of 5] using fields (email,name,nat,phone,picture)
+            ✓ should return all fields except excluded fields [check 2 of 5] using fields (cell,dob,gender,id,registered)
+            ✓ should return all fields except excluded fields [check 3 of 5] using fields (cell,dob,gender,login,name)
+            ✓ should return all fields except excluded fields [check 4 of 5] using fields (dob,email,location,login,phone)
+            ✓ should return all fields except excluded fields [check 5 of 5] using fields (dob,name,nat,phone,registered)
+          Request multiple nats
+            ✓ should return multiple nats [check 1 of 5] using nats (DE,ES,NZ)
+            ✓ should return multiple nats [check 2 of 5] using nats (DE,NZ,US)
+            ✓ should return multiple nats [check 3 of 5] using nats (ES,NZ,TR)
+            ✓ should return multiple nats [check 4 of 5] using nats (IE,NL,TR)
+            ✓ should return multiple nats [check 5 of 5] using nats (DK,IR,NL)
+          Pretty JSON format
+            ✓ should return output in nicely formatted json
+          Fetch Limits
+            ✓ should fetch 5,000 users in 1 request (278ms)
+            ✓ should return 1 request when more than 5,000 users are requested
+          Format parameter testing
+            ✓ should return JSON when JSON format specified
+            ✓ should return JSON when prettyjson format specified
+            ✓ should return JSON when pretty format specified
+            ✓ should return JSON when invalid format specified
+            ✓ should return CSV when CSV format specified
+            ✓ should return content type text/xml when XML format specified
+            ✓ should return content type text/x-yaml when YAML format specified
+            ✓ should return content type text/csv when CSV format specified
+          Nat check
+            ✓ should retrieve AU nat when specified
+            ✓ should retrieve BR nat when specified
+            ✓ should retrieve CA nat when specified
+            ✓ should retrieve CH nat when specified
+            ✓ should retrieve DE nat when specified
+            ✓ should retrieve DK nat when specified
+            ✓ should retrieve ES nat when specified
+            ✓ should retrieve FI nat when specified
+            ✓ should retrieve FR nat when specified
+            ✓ should retrieve GB nat when specified
+            ✓ should retrieve IE nat when specified
+            ✓ should retrieve IR nat when specified
+            ✓ should retrieve NL nat when specified
+            ✓ should retrieve NZ nat when specified
+            ✓ should retrieve TR nat when specified
+            ✓ should retrieve US nat when specified
+            ✓ should retrieve lego nat when lego parameter is specified
+            ✓ should retrieve random nat when invalid nat is specified
+        1.1
+          DoB and registration overlap
+            ✓ DoB should be before registration dates (308ms)
+          Password features
+            ✓ should support special charset
+            ✓ should support upper charset
+            ✓ should support lower charset
+            ✓ should support number charset
+            ✓ should support passwords using all charsets with range 8 to 14 [check 1 of 5]
+            ✓ should support passwords using all charsets with range 3 to 10 [check 2 of 5]
+            ✓ should support passwords using all charsets with range 4 to 18 [check 3 of 5]
+            ✓ should support passwords using all charsets with range 11 to 12 [check 4 of 5]
+            ✓ should support passwords using all charsets with range 2 to 5 [check 5 of 5]
+          Checking support of previous version features
+            1.0
+              Include fields
+                ✓ should return only included fields [check 1 of 5] using fields (dob,login,nat,phone,picture)
+                ✓ should return only included fields [check 2 of 5] using fields (cell,dob,location,login,phone)
+                ✓ should return only included fields [check 3 of 5] using fields (email,gender,name,phone,picture)
+                ✓ should return only included fields [check 4 of 5] using fields (gender,login,name,nat,picture)
+                ✓ should return only included fields [check 5 of 5] using fields (cell,id,nat,picture,registered)
+              Exclude fields
+                ✓ should return all fields except excluded fields [check 1 of 5] using fields (email,name,nat,phone,registered)
+                ✓ should return all fields except excluded fields [check 2 of 5] using fields (email,gender,id,name,picture)
+                ✓ should return all fields except excluded fields [check 3 of 5] using fields (gender,name,nat,phone,picture)
+                ✓ should return all fields except excluded fields [check 4 of 5] using fields (dob,location,login,nat,registered)
+                ✓ should return all fields except excluded fields [check 5 of 5] using fields (gender,location,login,name,registered)
+              Request multiple nats
+                ✓ should return multiple nats [check 1 of 5] using nats (CA,GB,US)
+                ✓ should return multiple nats [check 2 of 5] using nats (BR,FR,IE)
+                ✓ should return multiple nats [check 3 of 5] using nats (AU,FI,NL)
+                ✓ should return multiple nats [check 4 of 5] using nats (CA,ES,TR)
+                ✓ should return multiple nats [check 5 of 5] using nats (DE,FR,TR)
+              Pretty JSON format
+                ✓ should return output in nicely formatted json
+              Fetch Limits
+                ✓ should fetch 5,000 users in 1 request (286ms)
+                ✓ should return 1 request when more than 5,000 users are requested
+              Format parameter testing
+                ✓ should return JSON when JSON format specified
+                ✓ should return JSON when prettyjson format specified
+                ✓ should return JSON when pretty format specified
+                ✓ should return JSON when invalid format specified
+                ✓ should return CSV when CSV format specified
+                ✓ should return content type text/xml when XML format specified
+                ✓ should return content type text/x-yaml when YAML format specified
+                ✓ should return content type text/csv when CSV format specified
+              Nat check
+                ✓ should retrieve AU nat when specified
+                ✓ should retrieve BR nat when specified
+                ✓ should retrieve CA nat when specified
+                ✓ should retrieve CH nat when specified
+                ✓ should retrieve DE nat when specified
+                ✓ should retrieve DK nat when specified
+                ✓ should retrieve ES nat when specified
+                ✓ should retrieve FI nat when specified
+                ✓ should retrieve FR nat when specified
+                ✓ should retrieve GB nat when specified
+                ✓ should retrieve IE nat when specified
+                ✓ should retrieve IR nat when specified
+                ✓ should retrieve NL nat when specified
+                ✓ should retrieve NZ nat when specified
+                ✓ should retrieve TR nat when specified
+                ✓ should retrieve US nat when specified
+                ✓ should retrieve lego nat when lego parameter is specified
+                ✓ should retrieve random nat when invalid nat is specified
+        1.2
+          Norway check
+            ✓ should retrieve NO nat when specified
+          Checking support of previous version features
+            1.1
+              DoB and registration overlap
+                ✓ DoB should be before registration dates (705ms)
+              Password features
+                ✓ should support special charset
+                ✓ should support upper charset
+                ✓ should support lower charset
+                ✓ should support number charset
+                ✓ should support passwords using all charsets with range 2 to 17 [check 1 of 5]
+                ✓ should support passwords using all charsets with range 15 to 32 [check 2 of 5]
+                ✓ should support passwords using all charsets with range 8 to 15 [check 3 of 5]
+                ✓ should support passwords using all charsets with range 11 to 28 [check 4 of 5]
+                ✓ should support passwords using all charsets with range 12 to 22 [check 5 of 5]
+              Checking support of previous version features
+                1.0
+                  Include fields
+                    ✓ should return only included fields [check 1 of 5] using fields (cell,id,name,nat,registered)
+                    ✓ should return only included fields [check 2 of 5] using fields (cell,email,gender,id,nat)
+                    ✓ should return only included fields [check 3 of 5] using fields (cell,dob,email,picture,registered)
+                    ✓ should return only included fields [check 4 of 5] using fields (email,gender,login,picture,registered)
+                    ✓ should return only included fields [check 5 of 5] using fields (dob,email,login,phone,registered)
+                  Exclude fields
+                    ✓ should return all fields except excluded fields [check 1 of 5] using fields (cell,email,location,login,registered)
+                    ✓ should return all fields except excluded fields [check 2 of 5] using fields (dob,email,location,name,nat)
+                    ✓ should return all fields except excluded fields [check 3 of 5] using fields (cell,email,id,name,nat)
+                    ✓ should return all fields except excluded fields [check 4 of 5] using fields (cell,email,location,login,picture)
+                    ✓ should return all fields except excluded fields [check 5 of 5] using fields (cell,dob,gender,nat,phone)
+                  Request multiple nats
+                    ✓ should return multiple nats [check 1 of 5] using nats (GB,IE,NL)
+                    ✓ should return multiple nats [check 2 of 5] using nats (DE,DK,GB)
+                    ✓ should return multiple nats [check 3 of 5] using nats (DK,ES,NL)
+                    ✓ should return multiple nats [check 4 of 5] using nats (DE,DK,US)
+                    ✓ should return multiple nats [check 5 of 5] using nats (DK,FR,NL)
+                  Pretty JSON format
+                    ✓ should return output in nicely formatted json
+                  Fetch Limits
+                    ✓ should fetch 5,000 users in 1 request (666ms)
+                    ✓ should return 1 request when more than 5,000 users are requested
+                  Format parameter testing
+                    ✓ should return JSON when JSON format specified
+                    ✓ should return JSON when prettyjson format specified
+                    ✓ should return JSON when pretty format specified
+                    ✓ should return JSON when invalid format specified
+                    ✓ should return CSV when CSV format specified
+                    ✓ should return content type text/xml when XML format specified
+                    ✓ should return content type text/x-yaml when YAML format specified
+                    ✓ should return content type text/csv when CSV format specified
+                  Nat check
+                    ✓ should retrieve AU nat when specified
+                    ✓ should retrieve BR nat when specified
+                    ✓ should retrieve CA nat when specified
+                    ✓ should retrieve CH nat when specified
+                    ✓ should retrieve DE nat when specified
+                    ✓ should retrieve DK nat when specified
+                    ✓ should retrieve ES nat when specified
+                    ✓ should retrieve FI nat when specified
+                    ✓ should retrieve FR nat when specified
+                    ✓ should retrieve GB nat when specified
+                    ✓ should retrieve IE nat when specified
+                    ✓ should retrieve IR nat when specified
+                    ✓ should retrieve NL nat when specified
+                    ✓ should retrieve NZ nat when specified
+                    ✓ should retrieve TR nat when specified
+                    ✓ should retrieve US nat when specified
+                    ✓ should retrieve NO nat when specified
+                    ✓ should retrieve lego nat when lego parameter is specified
+                    ✓ should retrieve random nat when invalid nat is specified
+        1.3
+          Email address formatting
+            ✓ should not include spaces in email address (160ms)
+            ✓ should be lowercase (144ms)
+          Checking support of previous version features
+            1.2
+              Norway check
+                ✓ should retrieve NO nat when specified
+              Checking support of previous version features
+                1.1
+                  DoB and registration overlap
+                    ✓ DoB should be before registration dates (438ms)
+                  Password features
+                    ✓ should support special charset
+                    ✓ should support upper charset
+                    ✓ should support lower charset
+                    ✓ should support number charset
+                    ✓ should support passwords using all charsets with range 11 to 14 [check 1 of 5]
+                    ✓ should support passwords using all charsets with range 11 to 25 [check 2 of 5]
+                    ✓ should support passwords using all charsets with range 15 to 18 [check 3 of 5]
+                    ✓ should support passwords using all charsets with range 1 to 5 [check 4 of 5]
+                    ✓ should support passwords using all charsets with range 9 to 9 [check 5 of 5]
+                  Checking support of previous version features
+                    1.0
+                      Include fields
+                        ✓ should return only included fields [check 1 of 5] using fields (cell,location,name,picture,registered)
+                        ✓ should return only included fields [check 2 of 5] using fields (email,gender,id,name,registered)
+                        ✓ should return only included fields [check 3 of 5] using fields (gender,name,nat,picture,registered)
+                        ✓ should return only included fields [check 4 of 5] using fields (cell,dob,email,nat,registered)
+                        ✓ should return only included fields [check 5 of 5] using fields (email,login,phone,picture,registered)
+                      Exclude fields
+                        ✓ should return all fields except excluded fields [check 1 of 5] using fields (dob,gender,id,login,picture)
+                        ✓ should return all fields except excluded fields [check 2 of 5] using fields (email,gender,id,phone,picture)
+                        ✓ should return all fields except excluded fields [check 3 of 5] using fields (cell,id,login,phone,picture)
+                        ✓ should return all fields except excluded fields [check 4 of 5] using fields (email,location,phone,picture,registered)
+                        ✓ should return all fields except excluded fields [check 5 of 5] using fields (dob,id,location,name,picture)
+                      Request multiple nats
+                        ✓ should return multiple nats [check 1 of 5] using nats (CH,NO,TR)
+                        ✓ should return multiple nats [check 2 of 5] using nats (BR,CA,ES)
+                        ✓ should return multiple nats [check 3 of 5] using nats (CH,GB,IE)
+                        ✓ should return multiple nats [check 4 of 5] using nats (AU,GB,TR)
+                        ✓ should return multiple nats [check 5 of 5] using nats (AU,BR,DK)
+                      Pretty JSON format
+                        ✓ should return output in nicely formatted json
+                      Fetch Limits
+                        ✓ should fetch 5,000 users in 1 request (381ms)
+                        ✓ should return 1 request when more than 5,000 users are requested
+                      Format parameter testing
+                        ✓ should return JSON when JSON format specified
+                        ✓ should return JSON when prettyjson format specified
+                        ✓ should return JSON when pretty format specified
+                        ✓ should return JSON when invalid format specified
+                        ✓ should return CSV when CSV format specified
+                        ✓ should return content type text/xml when XML format specified
+                        ✓ should return content type text/x-yaml when YAML format specified
+                        ✓ should return content type text/csv when CSV format specified
+                      Nat check
+                        ✓ should retrieve AU nat when specified
+                        ✓ should retrieve BR nat when specified
+                        ✓ should retrieve CA nat when specified
+                        ✓ should retrieve CH nat when specified
+                        ✓ should retrieve DE nat when specified
+                        ✓ should retrieve DK nat when specified
+                        ✓ should retrieve ES nat when specified
+                        ✓ should retrieve FI nat when specified
+                        ✓ should retrieve FR nat when specified
+                        ✓ should retrieve GB nat when specified
+                        ✓ should retrieve IE nat when specified
+                        ✓ should retrieve IR nat when specified
+                        ✓ should retrieve NL nat when specified
+                        ✓ should retrieve NZ nat when specified
+                        ✓ should retrieve TR nat when specified
+                        ✓ should retrieve US nat when specified
+                        ✓ should retrieve NO nat when specified
+                        ✓ should retrieve lego nat when lego parameter is specified
+                        ✓ should retrieve random nat when invalid nat is specified
+        1.4
+          New nats check
+            India check
+              ✓ should retrieve IN nat when specified
+            Mexico check
+              ✓ should retrieve MX nat when specified
+            Serbia check
+              ✓ should retrieve RS nat when specified
+            Ukraine check
+              ✓ should retrieve UA nat when specified
+          Checking support of previous version features
+            1.3
+              Email address formatting
+                ✓ should not include spaces in email address (384ms)
+                ✓ should be lowercase (362ms)
+              Checking support of previous version features
+                1.2
+                  Norway check
+                    ✓ should retrieve NO nat when specified
+                  Checking support of previous version features
+                    1.1
+                      DoB and registration overlap
+                        ✓ DoB should be before registration dates (611ms)
+                      Password features
+                        ✓ should support special charset
+                        ✓ should support upper charset
+                        ✓ should support lower charset
+                        ✓ should support number charset
+                        ✓ should support passwords using all charsets with range 6 to 25 [check 1 of 5]
+                        ✓ should support passwords using all charsets with range 13 to 26 [check 2 of 5]
+                        ✓ should support passwords using all charsets with range 14 to 15 [check 3 of 5]
+                        ✓ should support passwords using all charsets with range 1 to 2 [check 4 of 5]
+                        ✓ should support passwords using all charsets with range 3 to 22 [check 5 of 5]
+                      Checking support of previous version features
+                        1.0
+                          Include fields
+                            ✓ should return only included fields [check 1 of 5] using fields (gender,location,login,picture,registered)
+                            ✓ should return only included fields [check 2 of 5] using fields (cell,email,gender,id,phone)
+                            ✓ should return only included fields [check 3 of 5] using fields (email,location,phone,picture,registered)
+                            ✓ should return only included fields [check 4 of 5] using fields (email,gender,location,login,registered)
+                            ✓ should return only included fields [check 5 of 5] using fields (email,id,name,phone,picture)
+                          Exclude fields
+                            ✓ should return all fields except excluded fields [check 1 of 5] using fields (cell,dob,id,nat,phone)
+                            ✓ should return all fields except excluded fields [check 2 of 5] using fields (cell,dob,email,id,login)
+                            ✓ should return all fields except excluded fields [check 3 of 5] using fields (cell,gender,id,name,picture)
+                            ✓ should return all fields except excluded fields [check 4 of 5] using fields (cell,id,location,nat,phone)
+                            ✓ should return all fields except excluded fields [check 5 of 5] using fields (cell,id,name,nat,phone)
+                          Request multiple nats
+                            ✓ should return multiple nats [check 1 of 5] using nats (FI,GB,TR)
+                            ✓ should return multiple nats [check 2 of 5] using nats (AU,CA,IR)
+                            ✓ should return multiple nats [check 3 of 5] using nats (CA,FI,US)
+                            ✓ should return multiple nats [check 4 of 5] using nats (CA,ES,FR)
+                            ✓ should return multiple nats [check 5 of 5] using nats (DE,IE,NZ)
+                          Pretty JSON format
+                            ✓ should return output in nicely formatted json
+                          Fetch Limits
+                            ✓ should fetch 5,000 users in 1 request (623ms)
+                            ✓ should return 1 request when more than 5,000 users are requested
+                          Format parameter testing
+                            ✓ should return JSON when JSON format specified
+                            ✓ should return JSON when prettyjson format specified
+                            ✓ should return JSON when pretty format specified
+                            ✓ should return JSON when invalid format specified
+                            ✓ should return CSV when CSV format specified
+                            ✓ should return content type text/xml when XML format specified
+                            ✓ should return content type text/x-yaml when YAML format specified
+                            ✓ should return content type text/csv when CSV format specified
+                          Nat check
+                            ✓ should retrieve AU nat when specified
+                            ✓ should retrieve BR nat when specified
+                            ✓ should retrieve CA nat when specified
+                            ✓ should retrieve CH nat when specified
+                            ✓ should retrieve DE nat when specified
+                            ✓ should retrieve DK nat when specified
+                            ✓ should retrieve ES nat when specified
+                            ✓ should retrieve FI nat when specified
+                            ✓ should retrieve FR nat when specified
+                            ✓ should retrieve GB nat when specified
+                            ✓ should retrieve IE nat when specified
+                            ✓ should retrieve IR nat when specified
+                            ✓ should retrieve NL nat when specified
+                            ✓ should retrieve NZ nat when specified
+                            ✓ should retrieve TR nat when specified
+                            ✓ should retrieve US nat when specified
+                            ✓ should retrieve NO nat when specified
+                            ✓ should retrieve lego nat when lego parameter is specified
+                            ✓ should retrieve random nat when invalid nat is specified
+
+
+  344 passing (25s)
+

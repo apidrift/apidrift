@@ -1,0 +1,15 @@
+
+apidrift v0.3.1  scanning /tmp/apidrift-realworld/Randomuser.me-Node
+inference: deterministic-only (no model — codemod library only)
+
+● Migrate deprecated Charges.create to PaymentIntents.create
+  vendor: stripe  confidence: high  via: deterministic
+  branch: apidrift/stripe-charges-create-to-payment-intents
+    routes/index.js:71  stripe.charges.create({
+  tests failed — draft
+  PR: /tmp/apidrift-realworld/out/apidrift-stripe-charges-create-to-payment-intents.md
+  patch: /tmp/apidrift-realworld/out/apidrift-stripe-charges-create-to-payment-intents.patch
+
+done — 1 pull request in /tmp/apidrift-realworld/out
+tip: set ANTHROPIC_API_KEY and pass --ai to also fix changes without a codemod.
+

@@ -1,0 +1,32 @@
+From 3c96470f4a62768bc32b5cac52635ac405059428 Mon Sep 17 00:00:00 2001
+From: "apidrift[bot]" <bot@apidrift.dev>
+Date: Fri, 18 Sep 2026 23:37:17 +0200
+Subject: [PATCH] Migrate deprecated Charges.create to PaymentIntents.create
+
+---
+ routes/index.js | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/routes/index.js b/routes/index.js
+index 989451a..23cbfdd 100644
+--- a/routes/index.js
++++ b/routes/index.js
+@@ -68,11 +68,13 @@ const titles = {
+     }
+     if (captchaBody.success === true) {
+       data = JSON.parse(req.body.data);
+-      stripe.charges.create({
++      stripe.paymentIntents.create({
+         amount: data.token.price,
+         currency: "usd",
+-        source: data.token.id, // obtained with Stripe.js
+-        description: `Donation from ${data.token.email} - ${data.comment}`
++        payment_method: data.token.id, // obtained with Stripe.js
++        description: `Donation from ${data.token.email} - ${data.comment}`,
++        confirm: true,
++        automatic_payment_methods: { enabled: true, allow_redirects: 'never' }
+       }, (err, charge) => {
+         if (process.env.spec === "true") return res.sendStatus(200);
+         if (err) return res.sendStatus(400);
+-- 
+2.39.5
