@@ -726,12 +726,12 @@
         "AC10 - Invariants inchanges et non redefinis : le gate reste la suite de tests de lutilisateur (verification is the moat, jamais de PR non draft sur suite rouge), les tests sont en lecture seule pour le fixer IA, blast radius only (jamais de CI config, de secrets, de lockfiles).",
         "AC11 - npx tsc --noEmit et npm test verts (scripts/dod.sh)."
       ],
-      "status": "review",
+      "status": "done",
       "priority": 1,
       "component": "detection",
       "epic": "EPIC-free-dynamic-diff",
       "dependencies": [],
-      "assignee": "qa",
+      "assignee": "orchestrateur",
       "definition_of_ready": {
         "cadre_par": "architecte",
         "date": "2026-09-10",

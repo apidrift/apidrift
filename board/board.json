@@ -7922,6 +7922,20 @@
       "actor": "orchestrateur",
       "us": "US-17",
       "note": "DoD verifie par orchestrateur sur d311011: tsc exit 0, npm test 171/171. Preuves sans cle re-executees: (a) acme-payments 2 PRs + 4 artefacts, (b) repo propre message clean-run vert, out vide, repo cible intact. Garde-fou 78dbfe2: 18/18, cli.ts purement additif. PR #14 EN ATTENTE du gate humain de merge vers main."
+    },
+    {
+      "ts": "2026-09-19T08:52:45.418Z",
+      "type": "move",
+      "actor": "orchestrateur",
+      "us": "US-12",
+      "note": "review>done"
+    },
+    {
+      "ts": "2026-09-19T08:52:45.489Z",
+      "type": "human_gate",
+      "actor": "orchestrateur",
+      "us": "US-12",
+      "note": "Gate humain leve : PR #13 squash-merge sur main (3a3be00). Reserve QA : re-cadrer US-13 (continuite inter-canaux, walk deja implemente par US-12)."
     }
   ]
 }
