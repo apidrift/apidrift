@@ -238,11 +238,36 @@ servers.
 
 ## Module map (ties to the repo layout)
 
+Sections 0–3 above describe the **target** architecture (an upstream scheduler,
+ast-grep, hosted fan-out). This map, and the "Status today" notes under it,
+describe what the code does **today**.
+
 | Stage | Module | Deterministic? |
 |---|---|---|
-| Poll + diff | `src/changes/` (+ upstream scheduler) | Yes |
-| Match | `src/matcher/` (ast-grep) | Yes |
+| Diff (default change feed) | `src/detection/` — Stripe changelog ingestion behind an injectable `Fetcher`; `VendorSource` resolves the repo's pinned API version and returns the `Change`s since it | Yes (page parsing is deterministic) |
+| Built-in fixes (tier 1) | `src/changes/` — the static codemod registry | Yes |
+| Match | `src/matcher/` (ts-morph today; ast-grep is the target) | Yes |
+| Plan (read-only) | `src/plan.ts` — counts which detected changes match code, without any model; feeds the cost cap and the no-key listing | Yes |
 | Fix | `src/fixer/` (rule tier + AI agent tier) | AI in tier 2 |
 | Verify | `src/verifier/` (sandbox test runner) | Yes |
-| Git | `src/github/` → generalize to `src/githost/` | Yes |
-| Orchestrate | `src/cli.ts` | Yes |
+| Git | `src/githost/` (`local.ts` Free, `github.ts` Octokit) | Yes |
+| Orchestrate | `src/pipeline.ts` (shared); entry points `src/cli.ts` → `src/cli-run.ts` (Free), `src/runner.ts` (Enterprise), `src/service/` (Pro) | Yes |
+
+### Status today
+
+- **Change detection exists, for Stripe only, and is the default of the Free CLI.**
+  `apidrift run <repo>` resolves the API version the repo is pinned to, walks the
+  Stripe changelog from there up to the latest release on that line, and works on
+  the `Change`s it finds. It is triggered by the user (the CLI, or a cron'd
+  Action). There is **no scheduler**, no snapshot store between runs and no
+  fan-out: the "upstream scheduler" of section 0 is not built.
+- **`src/changes/` is the tier-1 registry, not the change feed.** It runs on every
+  run, outside the cost cap (a codemod with an `apply()` costs no token); it is the
+  whole content of a `--deterministic-only` run; and it is the fixture that lets a
+  CI run with no key and no network.
+- **Without a model, a run detects and lists but does not fix**, and exits `20`;
+  with one, detected changes pass through the cost cap and then the pipeline.
+  `--deterministic-only` is the explicit offline mode (registry only, no network,
+  exit `0`); `--offline` refuses to run at all (exit `1`).
+- The Pro service (`src/service/poller.ts`) is still an unimplemented skeleton for
+  the upstream poll + diff + fan-out.
