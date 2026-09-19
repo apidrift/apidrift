@@ -52,7 +52,17 @@ export interface ChangelogEntry {
   release: string;
 }
 
-const RELEASE_HEADING_RE = /^##\s+(\d{4}-\d{2}-\d{2}\.\S+)\s*$/gm;
+// The channel suffix (`.acacia`, `.preview`, ...) is OPTIONAL (US-12, P0
+// constat 2): 99 of the 140 releases on the live changelog (2011-06-21 up to
+// 2024-06-20, including `2023-08-16` — the exact pin of
+// `fixtures/implicit-pinned-stripe`) predate channel names and are bare
+// `## <date>` headings. Their sections have the identical table shape (same
+// columns, same detail-page structure) — verified on 2023-08-16, 2022-11-15,
+// 2024-06-20 — so requiring a channel silently made 71% of the index
+// invisible to `parseChangelogIndex`. This is an in-situ extension of the
+// existing rule, not a rewrite: the matched group is still exactly the
+// `release` string other code already treats as an opaque, verbatim value.
+const RELEASE_HEADING_RE = /^##\s+(\d{4}-\d{2}-\d{2}(?:\.\S+)?)\s*$/gm;
 const LINK_RE = /\[([^\]]+)\]\(([^)]+)\)/;
 
 function splitTableRow(line: string): string[] | null {
