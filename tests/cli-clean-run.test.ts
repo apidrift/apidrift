@@ -98,3 +98,10 @@ test('T8: subprocess — a clean repo prints the note AFTER "done", exits 0, wri
     fs.rmSync(out, { recursive: true, force: true });
   }
 });
+
+test('T9: an incomplete walk inhibits — an unread page / a bound ahead of the index is a hole in the COVERAGE, not a clean repo (US-14 R1)', () => {
+  assert.strictEqual(cleanRunNote({ ...CLEAN, incomplete: true }), null);
+  // Additive and optional: absent or false leaves the predicate exactly as it was.
+  assert.ok(cleanRunNote({ ...CLEAN, incomplete: false }) !== null);
+  assert.ok(cleanRunNote(CLEAN) !== null);
+});

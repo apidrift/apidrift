@@ -394,12 +394,21 @@ export async function runCli(argv: string[], deps: CliDeps = {}): Promise<number
   // ── The default path: resolve the pin, then walk from it ────────────────────
   const offline = isExplicitOfflineChoice(inference);
   let detected: Codemod[] = [];
+  // True when the walk's COVERAGE is holed (an unreadable changelog page, or a
+  // bound ahead of the index): the clean-run note must then not be emitted.
+  let coverageIncomplete = false;
 
   if (offline) {
     // AC2bis: the fallback is ANNOUNCED, never silent. Said on every run
     // concerned, and it names both what did not happen and how to get it.
     console.log(`${c.dim}offline mode (${describeInferenceSource(inference.source)}): the changelog walk did NOT run and nothing was fetched.${c.reset}`);
-    console.log(`${c.dim}only the built-in codemod registry ran. To detect what Stripe changed since your pinned API version, drop it and re-run.${c.reset}\n`);
+    console.log(`${c.dim}only the built-in codemod registry ran. To detect what Stripe changed since your pinned API version, drop it and re-run.${c.reset}`);
+    // Fail loud (human decision 6): a flag the user typed must never be dropped
+    // in silence. `--since` is a bound for a walk, and no walk runs here.
+    if (p.since) {
+      console.log(`${c.amber}⚠${c.reset}  ${c.dim}--since ${p.since} was IGNORED: it sets the lower bound of the changelog walk, and this mode does not walk. Drop --deterministic-only to use it.${c.reset}`);
+    }
+    console.log('');
   } else {
     const source = vendorSourceFor('stripe', { fetcher });
     const project = loadProject(targetDir);
@@ -449,10 +458,12 @@ export async function runCli(argv: string[], deps: CliDeps = {}): Promise<number
       return EXIT_ERROR;
     }
     for (const line of verdict.lines) console.log(`${c.dim}${line}${c.reset}`);
+    if (diff.status === 'ahead-of-index') coverageIncomplete = true;
 
     // A page we could not read is NOT "this release had nothing" (US-13,
     // AC4/AC5/AC10) — name it, with its URL, and say how many.
     if (diff.gaps.length > 0) {
+      coverageIncomplete = true;
       console.log(`${c.amber}⚠${c.reset}  ${c.bold}${diff.gaps.length} page(s) could not be read${c.reset}`);
       for (const gap of diff.gaps) console.log(`  ${c.dim}${gap.url}\n    ${gap.reason}${c.reset}`);
     }
@@ -632,7 +643,7 @@ export async function runCli(argv: string[], deps: CliDeps = {}): Promise<number
   // plan pass evaluated and discarded, and — in the listing mode — the ones it
   // matched and did not hand to run(). Filtering them out of the pipeline must
   // never shrink the coverage this sentence claims.
-  const clean = cleanRunNote({ checked: results.length + plan.discarded.length + listed, opened, warned, blocked, skipped });
+  const clean = cleanRunNote({ checked: results.length + plan.discarded.length + listed, opened, warned, blocked, skipped, incomplete: coverageIncomplete });
   if (clean) console.log(`${c.green}✓${c.reset} ${c.dim}${clean}${c.reset}`);
   if (!capApplies && listed === 0) {
     console.log(`${c.dim}tip: set ANTHROPIC_API_KEY and pass --ai to also fix changes without a codemod.${c.reset}`);

@@ -549,3 +549,129 @@ test('AC2ter (d) — no path of the machine reaches the terminal, ANY line: head
   assert.ok(!missing.stderr.includes(os.tmpdir()), 'the "no such directory" error is not a leak either');
   assert.match(missing.stderr, /no such directory/);
 });
+
+// ══════════════════════════════════════════════════════════════════════════
+// ROUND 2 (QA reserves R1, R2, R3) — added beside the tests above, none of
+// which was edited.
+// ══════════════════════════════════════════════════════════════════════════
+
+const CLEAN_NOTE = /no known API change affects this repo/;
+
+/** The index is readable and lists releases, but EVERY detail page fails. */
+const INDEX_ONLY: Record<string, string> = { [INDEX_URL]: fx('index-walk-excerpt.md') };
+
+test('R1 (a) — unreadable detail pages: the walk found NOTHING because it could read nothing, and no clean-run note says otherwise', () => {
+  // QA repro. The repo calls `stripe.paymentIntents.confirm`, one of the five
+  // changes the fixture walk detects — but with every page unreadable the walk
+  // detects 0. Before the fix this printed "4 page(s) could not be read" and,
+  // two lines later, "✓ no known API change affects this repo… (checked 2)":
+  // a false "nothing to do" whose `checked` counted the registry, not the walk.
+  const r = runCli(['run', makeRepo(AFFECTED), '--out', tmp('out')], { fixtures: INDEX_ONLY });
+
+  assert.match(r.stdout, /\d+ page\(s\) could not be read/, 'the hole is named');
+  assert.match(r.stdout, /detected: 0 auto-executable change\(s\)/, 'and it really did detect nothing');
+  assert.ok(!CLEAN_NOTE.test(r.stdout), 'a cleanliness claim over a walk whose coverage has a hole is a false bill of health');
+  assert.strictEqual(r.status, 0, 'the exit code is untouched: only the false affirmation is withdrawn');
+});
+
+test('R1 (a\') — the same hole under --since: the override does not make the coverage complete', () => {
+  const r = runCli(['run', makeRepo(AFFECTED), '--since', '2023-08-16', '--out', tmp('out')], { fixtures: INDEX_ONLY });
+
+  assert.match(r.stdout, /walking from 2023-08-16/);
+  assert.match(r.stdout, /\d+ page\(s\) could not be read/);
+  assert.ok(!CLEAN_NOTE.test(r.stdout), '--since with unreadable pages must not certify a clean repo either');
+});
+
+test('R1 (b) — ahead-of-index: "verify it before reading this run as up to date" is not followed by a green checkmark', () => {
+  // Nothing was walked at all here, so `checked` is only the registry. The
+  // status sentence itself says to verify; the note must not contradict it.
+  const r = runCli(['run', makeRepo(UNAFFECTED), '--since', '2030-01-01.acacia', '--out', tmp('out')]);
+
+  assert.strictEqual(r.status, 0);
+  assert.match(r.stdout, /is NEWER than anything this changelog publishes/);
+  assert.match(r.stdout, /verify it before reading this run as "up to date"/);
+  assert.ok(!CLEAN_NOTE.test(r.stdout), 'the run that says "verify me" cannot also say "nothing to fix"');
+});
+
+test('R1 (control) — a COMPLETE walk on a repo the changes do not touch still earns the clean-run note', () => {
+  // Guards the fix from over-inhibiting: no gap, status `up-to-date`, so the
+  // note is emitted exactly as before.
+  const r = runCli(['run', makeRepo(UNAFFECTED), '--since', '2025-04-01.acacia', '--out', tmp('out')]);
+
+  assert.strictEqual(r.status, 0);
+  assert.match(r.stdout, /IS the latest release published on its line/);
+  assert.match(r.stdout, CLEAN_NOTE);
+});
+
+/** Five detected changes, all five MATCH: no unmatched candidate, hence no warning. */
+const FIVE_MATCHES = `${PINNED_CLIENT}
+async function all(id) {
+  await stripe.paymentIntents.create({ payment_method_types: ['card'] });
+  await stripe.paymentIntents.update(id, { payment_method_types: ['card'] });
+  await stripe.paymentIntents.confirm(id, { payment_method_types: ['card'] });
+  await stripe.setupIntents.create({ payment_method_types: ['card'] });
+  await stripe.setupIntents.update(id, { payment_method_types: ['card'] });
+}
+module.exports = { all };
+`;
+
+/**
+ * The walk fixture with its two unreadable pages made READABLE (mapped to the
+ * committed "readable, zero changes" page). Same five detected changes, but
+ * `gaps` is empty — so R1's coverage inhibition cannot be what silences the
+ * clean-run note in the R2 test below.
+ */
+const COMPLETE_WALK_FIXTURES: Record<string, string> = {
+  ...WALK_FIXTURES,
+  'https://docs.stripe.com/changelog/acacia/2025-01-01/baseline-already-applied.md': fx('billing-mode-default-flexible.md'),
+  'https://docs.stripe.com/changelog/acacia/2025-03-01/unreachable-detail-page.md': fx('billing-mode-default-flexible.md'),
+};
+
+test('R2 — AC2ter (f), ISOLATED: with five matches, no warning AND no unread page to hide behind, exit 20 and the clean-run note never coexist', () => {
+  // The existing "forbidden pair" test uses AFFECTED, where 4 of 5 changes do
+  // NOT match: `warned > 0` inhibits the note by itself, so removing
+  // `skipped += listed` left it green. Every other inhibitor must be absent
+  // here too — including `gaps` (the standard walk fixture has two unreadable
+  // pages, which R1 now also makes inhibit) — so `skipped` is the ONLY term
+  // standing between the listing and the note.
+  const r = runCli(['run', makeRepo(FIVE_MATCHES), '--out', tmp('out')], { fixtures: COMPLETE_WALK_FIXTURES });
+
+  assert.match(r.stdout, /5 detected change\(s\) affect this repo/, 'the premise: five matches');
+  assert.ok(!/WARNING: change detected but no matching call site/.test(r.stdout), 'the premise: no warning is present to inhibit the note');
+  assert.ok(!/could not be read/.test(r.stdout), 'the premise: the walk has no hole to inhibit the note');
+  assert.ok(!CLEAN_NOTE.test(r.stdout), 'a listing of five affected changes cannot sit next to "no known API change affects this repo"');
+  assert.strictEqual(r.status, 20);
+});
+
+test('R3 — AC14, wiring: a model IS resolved, the matches exceed the cap, no --yes: exit 1, "above the cap", nothing sent, nothing written', () => {
+  // The unit tests in tests/plan-cap.test.ts cover the cap itself. This covers
+  // the CABLE: that `runCli` hands the user's `--yes` (and only it) to the
+  // planner when a model exists. Hardcoding `yes: true` there disarms the cap
+  // for everybody and no unit test would notice.
+  const out = tmp('out');
+  const r = runCli(['run', makeRepo(FIVE_MATCHES), '--ai', '--max-changes', '1', '--out', out], { env: { APIDRIFT_STUB_LLM: '1' } });
+
+  assert.strictEqual(r.status, 1, `the cap must refuse:\n${r.stdout}\n${r.stderr}`);
+  assert.match(r.stderr, /above the cap of 1/);
+  assert.match(r.stderr, /--yes/, 'and it says how to confirm');
+  assert.deepStrictEqual(fs.readdirSync(out), [], 'a refusal writes nothing');
+});
+
+test('--since under --deterministic-only is said to be IGNORED (fail loud), and changes nothing else', () => {
+  const r = runCli(['run', makeRepo(AFFECTED), '--deterministic-only', '--since', '2025-03-31.basil', '--out', tmp('out')]);
+
+  assert.deepStrictEqual(r.fetched, [], 'still zero fetch');
+  assert.strictEqual(r.status, 0, 'the exit code is the offline mode\'s, unchanged');
+  assert.match(r.stdout, /--since 2025-03-31\.basil was IGNORED/);
+  assert.match(r.stdout, /does not walk/);
+
+  const without = runCli(['run', makeRepo(AFFECTED), '--deterministic-only', '--out', tmp('out')]);
+  assert.ok(!/IGNORED/.test(without.stdout), 'no --since, nothing to say');
+});
+
+test('R3 (converse) — the same run WITH --yes passes the cap: the flag is honoured, not ignored', () => {
+  const r = runCli(['run', makeRepo(FIVE_MATCHES), '--ai', '--max-changes', '1', '--yes', '--out', tmp('out')], { env: { APIDRIFT_STUB_LLM: '1' } });
+
+  assert.ok(!/above the cap/i.test(r.stderr), `--yes must lift the cap:\n${r.stderr}`);
+  assert.strictEqual(r.status, 0, `${r.stdout}\n${r.stderr}`);
+});
