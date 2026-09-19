@@ -10,7 +10,7 @@
  * process and no network. T8 is the ONE subprocess test (the clean repo): it
  * proves the wiring in src/cli.ts and the exit code. The inhibition branches
  * (warned / blocked / skipped) are deliberately NOT tested through a
- * subprocess: warned needs --detect (a real fetch of docs.stripe.com) and
+ * subprocess: warned needs the changelog walk (a real fetch of docs.stripe.com) and
  * skipped needs a matching change without apply() and without an LLM. Zero
  * network in this suite.
  */

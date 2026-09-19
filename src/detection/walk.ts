@@ -92,7 +92,19 @@ export type WalkStatus =
   /** `apiVersionDate(from)` is null — we cannot order this bound, so we do not walk (AC3c). */
   | 'unreadable-bound'
   /** The index publishes NOTHING on this line. Defensive: never observed on the live changelog. */
-  | 'line-not-published';
+  | 'line-not-published'
+  /**
+   * THE INDEX SENTINEL (US-14, AC7b). `parseReleaseHeadings` returned ZERO
+   * headings: the document was fetched and read, and none of it is in the
+   * format we know. Before this value existed, that case fell into
+   * `'line-not-published'` with `walked: []` and `to === from`, i.e. it read
+   * EXACTLY like "the vendor published nothing since your pin" — the false
+   * "nothing to do" that the whole tool exists to prevent. It is a distinct
+   * value because its cause (vendor format drift, or a page that is not the
+   * changelog at all) and its remedy (report it; do not trust this run) are
+   * distinct from both a network failure and an empty line.
+   */
+  | 'index-empty';
 
 export interface ReleaseSelection {
   /** Releases strictly after `from` on `from`'s line, chronological ascending — the intended walk path. */
@@ -128,6 +140,14 @@ export interface ReleaseSelection {
  * in the live file while every other date has the stable channel first).
  */
 export function selectReleases(releases: readonly string[], from: string): ReleaseSelection {
+  // AC7b, BEFORE the bound is even considered: an index that publishes no
+  // heading at all is not a statement about any line — it is a statement about
+  // the INDEX. Answering "line-not-published" here would hand the caller an
+  // empty walk that is indistinguishable from a genuinely up-to-date one.
+  if (releases.length === 0) {
+    return { walked: [], to: from, skippedPreview: [], unreadableBound: false, status: 'index-empty' };
+  }
+
   const fromDate = apiVersionDate(from);
   if (fromDate === null) {
     // AC3c. We stop here rather than compare strings and be silently wrong —

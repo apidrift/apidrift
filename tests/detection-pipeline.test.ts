@@ -91,10 +91,11 @@ function makeRepo(sourceBody: string, testBody: string): string {
   return repo;
 }
 
-// This is the exact wiring `--detect` performs in src/cli.ts: detectChanges()
-// -> genericSymbolCodemod() -> RunOptions.codemods. It is exercised here at
-// the pipeline level (same convention as tests/ai-fixer.test.ts) since
-// src/cli.ts's `main()` runs on import and isn't itself a unit under test.
+// This is the exact wiring the Free CLI performs on its default path
+// (src/cli-run.ts): detectChanges() -> genericSymbolCodemod() ->
+// RunOptions.codemods. It is exercised here at the pipeline level (same
+// convention as tests/ai-fixer.test.ts); the CLI itself is covered end to end,
+// with a fixture Fetcher, by tests/cli-default-path.test.ts.
 test('AC3: an auto-detected (forme #1) changelog change flows through the pipeline with zero hand-written find()/apply()', async () => {
   const detection = await detectChanges({
     fetcher: fixtureFetcher({

@@ -108,7 +108,7 @@ export function createStripeVendorSource(opts: StripeVendorSourceOptions): Vendo
     for (const release of selection.walked) {
       try {
         // Reuses `detectChanges` verbatim, one release at a time — the same
-        // seam `src/cli.ts --detect` already exercises. Per-PAGE failure
+        // seam the CLI has always exercised. Per-PAGE failure
         // isolation now lives inside it (AC4), so a hole here names a page and
         // never costs that page's siblings their changes.
         const detection = await detectChanges({

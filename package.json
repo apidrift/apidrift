@@ -34,7 +34,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "demo": "tsx src/cli.ts run ./fixtures/acme-payments",
+    "demo": "tsx src/cli.ts run ./fixtures/acme-payments --deterministic-only",
     "cli": "tsx src/cli.ts",
     "runner": "tsx src/runner.ts",
     "test": "tsx --test tests/*.test.ts",

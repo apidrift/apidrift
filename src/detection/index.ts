@@ -8,7 +8,7 @@
  *
  * `src/service/poller.ts` (the Pro backend skeleton) is the intended upstream
  * consumer of `detectChanges` — its step 2 ("diff -> Change records") is
- * exactly this call. The Free CLI's `--detect` flag (src/cli.ts) is the other.
+ * exactly this call. The Free CLI (src/cli-run.ts, via `VendorSource`) is the other.
  *
  * Deliberately NOT here (see US-2 DoR, hors_scope_explicite):
  *  - no "already seen" snapshot between polls — `release` is explicit input;
@@ -86,7 +86,7 @@ export interface DetectOptions {
   fetchedAt?: () => string;
   /**
    * OPTIONAL (US-13, AC6). When absent — every pre-US-13 caller, including
-   * `src/cli.ts --detect` — this function fetches and parses the index itself,
+   * the pre-US-14 CLI's `--detect` — this function fetches and parses the index itself,
    * byte for byte the behaviour US-2 shipped. When present, it fetches no
    * index at all and uses these entries.
    */
