@@ -2,7 +2,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { run } from './pipeline.js';
 import { resolveLlm } from './fixer/providers.js';
 import { resolveInference, describePolicy, type CliFlags } from './config.js';
 import { codemods as defaultCodemods } from './changes/index.js';
@@ -10,6 +9,13 @@ import { detectChanges, httpFetcher } from './detection/index.js';
 import { genericSymbolCodemod } from './matcher/symbol.js';
 import { apiVersionNote } from './pr.js';
 import { cleanRunNote } from './cli-summary.js';
+import {
+  DEFAULT_MAX_CHANGES,
+  capBreachLines,
+  parseMaxChanges,
+  reportOnlyEntries,
+  runPlanned,
+} from './plan.js';
 import type { Change, Codemod } from './types.js';
 
 const c = {
@@ -38,6 +44,9 @@ OPTIONS
   --detect               Opt-in: poll the real Stripe changelog (network) in
                          addition to the built-in codemod registry. Requires --release.
   --release <id>         Changelog release to poll with --detect, e.g. 2026-08-26.preview.
+  --max-changes <n>      Raise or lower the cost cap (default: ${DEFAULT_MAX_CHANGES}). Integer > 0;
+                         there is no "unlimited" value — type a number.
+  -y, --yes              Confirm a run above the cost cap. No prompt, ever.
   -h, --help             Show this help.
   -v, --version          Print version.
 
@@ -55,6 +64,15 @@ DETECTION (opt-in, --detect)
   codemod. Detected changes have no deterministic fix, so they need --ai (or
   ANTHROPIC_API_KEY) to actually produce one; without it they're matched and
   then skipped by the pipeline (no LLM configured).
+
+COST CAP (detected changes only)
+  Detected changes are the ones that reach the model. Before any of them does,
+  apidrift counts — read-only, no model involved — how many actually match code
+  in your repo. Above ${DEFAULT_MAX_CHANGES}, it lists them and STOPS with a non-zero exit
+  rather than assume a yes. There is no prompt, in a terminal or out of one:
+  re-run with --yes, or with --max-changes <n>. Your confirmation then lives in
+  your shell history or your CI log. The hardcoded registry is never capped —
+  it costs no tokens.
 
 EXAMPLES
   apidrift run .
@@ -83,6 +101,8 @@ function parse(argv: string[]) {
     flags,
     detect: args.includes('--detect'),
     release: getVal('--release'),
+    maxChanges: getVal('--max-changes'),
+    yes: args.includes('--yes') || args.includes('-y'),
   } as const;
 }
 
@@ -105,6 +125,17 @@ async function main() {
   const outputDir = p.out ? path.resolve(p.out) : path.resolve('apidrift-out');
   const inference = resolveInference(p.flags, targetDir);
 
+  // Validated BEFORE anything else happens: a malformed cap must never be
+  // silently replaced by the default — that would be a cap the user believes
+  // they set. No network has been touched at this point.
+  let maxChanges: number | undefined;
+  try {
+    maxChanges = parseMaxChanges(p.maxChanges);
+  } catch (err) {
+    console.error(`${c.red}error:${c.reset} ${(err as Error).message}`);
+    process.exit(1);
+  }
+
   let llm;
   try {
     llm = await resolveLlm(inference);
@@ -120,7 +151,7 @@ async function main() {
   // undefined and `run()` falls back to the hardcoded registry exactly as
   // before US-2 (non-regression). Network is never touched unless --detect
   // is passed explicitly.
-  let codemods: Codemod[] | undefined;
+  let detected: Codemod[] = [];
   if (p.detect) {
     if (!p.release) {
       console.error(`${c.red}error:${c.reset} --detect requires --release <id>, e.g. --release 2026-08-26.preview`);
@@ -132,12 +163,59 @@ async function main() {
       const status = d.autoExecutable ? `${c.green}auto-executable${c.reset}` : `${c.amber}forme #2 — needs a hand-written codemod, not run${c.reset}`;
       console.log(`  ${c.dim}[${d.classification}]${c.reset} ${d.change.target.symbol} — ${status}`);
     }
+
+    // US-13, AC9: a response-shaped change never produces a branch, a patch or
+    // a PR — it is not in `autoExecutable`, so it has no seam into the
+    // pipeline at all. What it DOES get is a report naming the release it came
+    // from and the page to open. (US-16 owns the final wording.)
+    const reportOnly = reportOnlyEntries(detection.all.filter((d) => !d.autoExecutable));
+    if (reportOnly.length > 0) {
+      console.log(`${c.amber}report-only${c.reset} ${c.dim}— ${reportOnly.length} response-shaped change(s): reported, never edited, no PR.${c.reset}`);
+      for (const e of reportOnly) {
+        console.log(`  ${c.dim}${e.symbol}  (from ${e.release})${c.reset}`);
+        console.log(`    ${c.dim}${e.url}${c.reset}`);
+      }
+    }
+
+    // US-13, AC4/AC5/AC10: a page we could not read is NOT "this release had
+    // nothing" — name it, with its URL, and say how many.
+    if (detection.gaps.length > 0) {
+      console.log(`${c.amber}⚠${c.reset}  ${c.bold}${detection.gaps.length} page(s) could not be read${c.reset}`);
+      for (const gap of detection.gaps) console.log(`  ${c.dim}${gap.url}\n    ${gap.reason}${c.reset}`);
+    }
+
     console.log(`${c.dim}detect: ${detection.autoExecutable.length} auto-executable change(s) added to this run${c.reset}\n`);
-    codemods = [...defaultCodemods, ...detection.autoExecutable.map((change: Change) => genericSymbolCodemod(change))];
+    detected = detection.autoExecutable.map((change: Change) => genericSymbolCodemod(change));
   }
 
-  const results = await run(targetDir, { outputDir, mode: 'workspace', llm, codemods });
+  // The cost cap (US-13, AC7/AC8) is applied HERE, in a read-only plan pass,
+  // between detection and the pipeline — structurally before any token can be
+  // spent, since applyFix() is the only caller of the Llm and it lives inside
+  // run(). The registry bypasses the plan: it costs nothing and is not capped.
+  const { plan, results } = await runPlanned(targetDir, detected, {
+    outputDir, mode: 'workspace', llm, maxChanges, yes: p.yes, alwaysRun: defaultCodemods,
+  });
+
+  if (!results) {
+    console.error(`\n${c.red}error:${c.reset} ${c.bold}${plan.matched.length} detected change(s) match code in this repo${c.reset}, above the cap of ${plan.cap}.`);
+    console.error(`${c.dim}each one would be sent to the model. Nothing has been sent, and nothing has been written.${c.reset}\n`);
+    for (const line of capBreachLines(plan)) console.error(`  ${line}`);
+    console.error(`\n${c.dim}re-run with ${c.reset}--yes${c.dim} to confirm, or ${c.reset}--max-changes <n>${c.dim} to set your own threshold.${c.reset}`);
+    process.exit(1);
+  }
+
   let opened = 0, skipped = 0, blocked = 0, warned = 0;
+
+  // The anti-silence guard (78dbfe2) for the candidates the plan pass dropped
+  // before the pipeline could ever see them — same predicate, same sentence.
+  for (const w of plan.warnings) {
+    warned += 1;
+    console.log(`${c.amber}⚠${c.reset}  ${c.bold}${w.change.title}${c.reset}`);
+    console.log(`  ${c.amber}WARNING: change detected but no matching call site found for ${w.change.target.symbol}${c.reset}`);
+    console.log(`  ${c.dim}this repo DOES construct a ${w.change.vendor} client somewhere — the usage pattern may not be one the matcher recognizes.${c.reset}`);
+    console.log(`  ${c.dim}this is NOT a confirmed "not applicable" — verify manually before assuming there is nothing to fix.${c.reset}`);
+    console.log('');
+  }
 
   for (const r of results) {
     if (!r.applied) {
@@ -219,7 +297,10 @@ async function main() {
     ? `, ${c.amber}${warned} change${warned === 1 ? '' : 's'} detected but unmatched — see WARNING above${c.reset}`
     : '';
   console.log(`${c.bold}done${c.reset} — ${opened} pull request${opened === 1 ? '' : 's'} in ${c.bold}${outputDir}${c.reset}${blockedNote}${warnedNote}`);
-  const clean = cleanRunNote({ checked: results.length, opened, warned, blocked, skipped });
+  // `checked` counts what was EVALUATED, which includes the candidates the
+  // plan pass evaluated and discarded — filtering them out of the pipeline
+  // must never shrink the coverage this sentence claims.
+  const clean = cleanRunNote({ checked: results.length + plan.discarded.length, opened, warned, blocked, skipped });
   if (clean) console.log(`${c.green}✓${c.reset} ${c.dim}${clean}${c.reset}`);
   if (inference.policy === 'deterministic-only') {
     console.log(`${c.dim}tip: set ANTHROPIC_API_KEY and pass --ai to also fix changes without a codemod.${c.reset}`);
