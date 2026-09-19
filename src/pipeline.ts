@@ -91,8 +91,15 @@ function linkNodeModules(targetDir: string, workspace: string): void {
  * Reuses `resolveAstClientOption` (US-7) purely for its `sawClient` signal —
  * "is there a vendor client construction ANYWHERE in this project" — not for
  * version resolution.
+ *
+ * EXPORTED for `src/plan.ts` (US-13, D3) and for that reason only. The plan
+ * pass drops zero-match candidates before they ever reach `run()`, which would
+ * otherwise delete this signal for exactly the candidates it is about: the
+ * warning is emitted only from here, only on a 0-match codemod. Re-deriving
+ * the predicate over there would be the same silent divergence US-7's
+ * `resolveAstClientOption` comment warns about — one copy, two call sites.
  */
-function noMatchWarning(codemod: Codemod, project: Project): PipelineResult['warning'] {
+export function noMatchWarning(codemod: Codemod, project: Project): PipelineResult['warning'] {
   if (typeof codemod.apply === 'function') return undefined;
   const site = resolveAstClientOption(project, codemod.change.vendor);
   const vendorUsagePresent = !(site.status === 'unresolved' && site.reason === 'no-client');

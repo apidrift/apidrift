@@ -34,6 +34,7 @@ import type { Project } from 'ts-morph';
 import type { PinnedApiVersion } from '../matcher/api-version.js';
 import type { Change } from '../types.js';
 import type { ChangelogEntry, DetectedChange } from './stripe-changelog.js';
+import type { WalkStatus } from './walk.js';
 
 /** Every index row published under one `## <date>[.<channel>]` heading, Q1, unfiltered — exactly what `parseChangelogIndex` returns, grouped. */
 export interface VendorRelease {
@@ -43,8 +44,9 @@ export interface VendorRelease {
 }
 
 /**
- * One release `changesSince` could not read — a page that failed to fetch or
- * parse, kept NAMED and separate from "this release had zero changes".
+ * One PAGE the walk could not read — failed to fetch, failed to parse, or came
+ * back in a language we cannot read — kept NAMED and separate from "this page
+ * had zero changes".
  *
  * This is the central field of `VendorDiff` (US-12 DoR, D1): without it,
  * `autoExecutable: []` cannot be told apart from "we fetched N pages and
@@ -52,30 +54,52 @@ export interface VendorRelease {
  * The other half of the same invariant is `PinnedApiVersion`'s `unresolved`
  * reasons (US-9): a "could not look" must never render as "there is nothing
  * there", on either side of this interface.
+ *
+ * ## US-13, AC4 — the unit is the PAGE, not the release
+ * US-12 caught around a whole `detectChanges` call, so one bad page cost every
+ * OTHER page of its release and produced a single hole named after the release.
+ * Live case: `2026-03-25.dahlia` carries 11 Breaking pages, one of which
+ * (`updates-available-checkout-session-ui-modes.md`) has a complete Node.js
+ * table and no `## Impact`, so `extractImpact` throws — and took the other 10
+ * with it. The guard on `extractImpact` is NOT relaxed; only its blast radius
+ * is. `url` is what makes a hole actionable, and it is what this interface's
+ * own comment already promised ("failed to fetch OR PARSE") without the code
+ * keeping it.
  */
 export interface VendorDiffGap {
   /** The release this gap belongs to, verbatim. */
   release: string;
-  /** Why we could not read this release's changes — the underlying fetch/parse error's message, never swallowed. */
+  /** The page we could not read, verbatim from the index row — the one thing that makes this hole actionable by hand. */
+  url: string;
+  /** Why we could not read this page — the underlying fetch/parse error's message, never swallowed. */
   reason: string;
 }
 
 /**
  * What changed for this vendor strictly after `from`, up to the latest
- * release on the SAME channel line.
+ * release published on `from`'s LINE (US-13: the stable line crosses channel
+ * boundaries; only `.preview` is a separate line — see `./walk.ts`).
  */
 export interface VendorDiff {
   /** The lower bound, verbatim, EXCLUDED. */
   from: string;
-  /** The latest release on `from`'s channel line — independent of whether every release up to it was readable (see `gaps`). */
+  /**
+   * The latest release published on `from`'s line, READ FROM THE INDEX —
+   * independent of whether every release up to it was readable (see `gaps`),
+   * and never a fallback onto `from`. It equals `from` only when the index had
+   * nothing to say: an unreadable bound (`status: 'unreadable-bound'`, where we
+   * deliberately did not even fetch) or a line the index does not publish.
+   */
   to: string;
-  /** Every release strictly between `from` (excluded) and `to` (included), same channel line, chronological ascending — the full intended walk path, whether or not each one was readable. */
+  /** Why the walk covers what it covers — one value per sentence a human is owed (AC3). US-16 writes the sentences. */
+  status: WalkStatus;
+  /** Every release strictly between `from` (excluded) and `to` (included), same line, chronological ascending — the full intended walk path, whether or not each one was readable. */
   releases: string[];
   /** Forme #1 (request-shaped) changes, safe to hand to `RunOptions.codemods` via the generic matcher. Never a `Codemod` — see `src/matcher/symbol.ts`'s `genericSymbolCodemod`, which is what turns one of these into a `find()`. */
   autoExecutable: Change[];
   /** Forme #2 (response-shaped) changes: detected, never auto-executable. */
   reportOnly: DetectedChange[];
-  /** Named holes in the walk — see `VendorDiffGap`. */
+  /** Named holes in the walk, one per unreadable PAGE — see `VendorDiffGap`. `gaps.length` is the "N pages of M unreadable" count a summary needs (AC10). */
   gaps: VendorDiffGap[];
 }
 

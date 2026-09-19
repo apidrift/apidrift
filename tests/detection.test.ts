@@ -7,8 +7,10 @@ import {
   buildDetectedChanges,
   classifyLink,
   extractImpact,
+  pageIsReadable,
   parseChangelogIndex,
   parseNodeJsChangesTable,
+  parseReleaseHeadings,
   snakeToCamel,
 } from '../src/detection/stripe-changelog.js';
 import { detectChanges, type Fetcher } from '../src/detection/index.js';
@@ -312,4 +314,234 @@ test('detectChanges: a release absent from the index yields nothing (no crash, n
   });
   assert.deepStrictEqual(result.autoExecutable, []);
   assert.deepStrictEqual(result.all, []);
+  assert.deepStrictEqual(result.gaps, []);
+});
+
+// ════════════════════════════════════════════════════════════════════════════
+// US-13 — module A
+// ════════════════════════════════════════════════════════════════════════════
+
+const ISOLATION_INDEX_MD = readFixture('index-page-isolation.md');
+const NO_IMPACT_URL = 'https://docs.stripe.com/changelog/dahlia/2026-03-25/updates-available-checkout-session-ui-modes.md';
+const NO_IMPACT_MD = readFixture('updates-available-checkout-session-ui-modes.md');
+const NO_CHANGES_URL = 'https://docs.stripe.com/changelog/basil/2025-03-31/billing-mode-default-flexible.md';
+const NO_CHANGES_MD = readFixture('billing-mode-default-flexible.md');
+const FRENCH_MD = readFixture('removes-payment-method-types-parameter-from-payment-intents-setup-intents.fr.md');
+
+// ── AC4: failure is isolated to ONE PAGE, and the hole carries its URL ──────
+
+test('AC4: a release of 3 pages whose middle page throws on parse still yields the other two pages\' changes, plus ONE gap naming the failing PAGE', async () => {
+  const result = await detectChanges({
+    fetcher: fixtureFetcher({
+      'https://docs.stripe.com/changelog.md': ISOLATION_INDEX_MD,
+      [FORM1_URL]: FORM1_MD,
+      [NO_IMPACT_URL]: NO_IMPACT_MD,
+      [FORM2_URL]: FORM2_MD,
+    }),
+    release: '2025-06-30.basil',
+  });
+
+  // This is the live shape of dahlia/2026-03-25: isolating per RELEASE (US-12)
+  // returned 0 changes and one hole named after the release; isolating per PAGE
+  // keeps the 5 + 1 that were always readable.
+  assert.strictEqual(result.autoExecutable.length, 5, 'the page BEFORE the failure still contributes');
+  assert.strictEqual(result.all.length, 6, 'and so does the page AFTER it (5 forme #1 + 1 forme #2)');
+
+  assert.strictEqual(result.gaps.length, 1);
+  assert.strictEqual(result.gaps[0].url, NO_IMPACT_URL, 'the hole names the PAGE, which is what makes it actionable');
+  assert.strictEqual(result.gaps[0].release, '2025-06-30.basil');
+  assert.match(result.gaps[0].reason, /## Impact/, 'the underlying error message is never swallowed');
+});
+
+test('AC4: extractImpact\'s guard is NOT relaxed — the very page that throws is still refused, it just no longer costs its siblings', () => {
+  assert.throws(() => extractImpact(NO_IMPACT_MD), /no non-empty "## Impact" section/);
+  assert.ok(pageIsReadable(NO_IMPACT_MD), 'and it is a perfectly READABLE page: this is a parse refusal, not an unreadable page');
+});
+
+test('AC4: a page whose FETCH fails is isolated the same way, and its gap carries the URL that failed', async () => {
+  const UNREACHABLE = 'https://docs.stripe.com/changelog/basil/2025-06-30/unreachable.md';
+  const index = [
+    '## 2025-06-30.basil',
+    '',
+    '| Title | Affected Products | Breaking change? | Category |',
+    '| --- | --- | --- | --- |',
+    `| [Unreachable](${UNREACHABLE}) | Payments | Breaking | api |`,
+    `| [Readable](${FORM1_URL}) | Payments | Breaking | api |`,
+  ].join('\n');
+
+  const result = await detectChanges({
+    fetcher: async (url) => {
+      if (url === 'https://docs.stripe.com/changelog.md') return index;
+      if (url === FORM1_URL) return FORM1_MD;
+      throw new Error(`simulated HTTP 503: ${url}`);
+    },
+    release: '2025-06-30.basil',
+  });
+
+  assert.strictEqual(result.autoExecutable.length, 5, 'a dead page never costs a live one its changes');
+  assert.deepStrictEqual(result.gaps, [
+    { release: '2025-06-30.basil', url: UNREACHABLE, reason: `simulated HTTP 503: ${UNREACHABLE}` },
+  ]);
+});
+
+// ── AC5: "we could not read it" is not "there is nothing there" ─────────────
+
+test('AC5: the readability sentinel is the TRANSLATABLE English heading vocabulary — and `## Impact`, identical in French, is explicitly excluded', () => {
+  assert.ok(pageIsReadable('## What’s new\n\nprose\n'), 'the typographic apostrophe is what all 69 live pages use');
+  assert.ok(pageIsReadable("## What's new\n\nprose\n"), 'the straight apostrophe is accepted too — neither spelling exists in French');
+  assert.ok(pageIsReadable('## Changes\n\n#### Node.js\n'));
+  assert.ok(pageIsReadable('## Upgrade\n\n#### Node.js\n'));
+  assert.ok(pageIsReadable('## Related changes\n\n- a link\n'));
+
+  assert.strictEqual(
+    pageIsReadable('# A page\n\n## Impact\n\nCeci est en français.\n'),
+    false,
+    '`## Impact` is spelled identically in French, so it can never prove we read the page',
+  );
+  assert.strictEqual(pageIsReadable('# A page\n\n### Changes\n\nnot a level-2 heading\n'), false);
+  assert.strictEqual(pageIsReadable('<html><body>Service unavailable</body></html>'), false);
+});
+
+test('AC5: a READ page with no `## Changes`, or with a `#### Node.js` of upgrade prose, is the ORDINARY case — zero changes and ZERO gaps', async () => {
+  const index = [
+    '## 2025-09-30.clover',
+    '',
+    '| Title | Affected Products | Breaking change? | Category |',
+    '| --- | --- | --- | --- |',
+    `| [Sets the default billing mode to flexible](${NO_CHANGES_URL}) | Billing | Breaking | api |`,
+  ].join('\n');
+
+  const result = await detectChanges({
+    fetcher: fixtureFetcher({ 'https://docs.stripe.com/changelog.md': index, [NO_CHANGES_URL]: NO_CHANGES_MD }),
+    release: '2025-09-30.clover',
+  });
+
+  assert.deepStrictEqual(result.all, [], '33 of the 69 live Breaking pages legitimately carry nothing for us');
+  assert.deepStrictEqual(
+    result.gaps,
+    [],
+    'this page DOES carry a `#### Node.js` — under `## Upgrade`, holding prose. Keying off it would manufacture 20 false gaps',
+  );
+});
+
+// ── AC5bis: the calibration, English vs French, on the SAME index ───────────
+
+/** The two-row index both halves of the calibration are served. */
+const CALIBRATION_INDEX_MD = [
+  '## 2026-08-26.dahlia',
+  '',
+  '| Title | Affected Products | Breaking change? | Category |',
+  '| --- | --- | --- | --- |',
+  `| [Removes payment method types](${FORM1_URL}) | Payments | Breaking | api |`,
+  `| [Deprecates subscription periods](${FORM2_URL}) | Billing | Breaking | api |`,
+].join('\n');
+
+test('AC5bis: on the ENGLISH fixture the rule yields ZERO gaps', async () => {
+  const result = await detectChanges({
+    fetcher: fixtureFetcher({
+      'https://docs.stripe.com/changelog.md': CALIBRATION_INDEX_MD,
+      [FORM1_URL]: FORM1_MD,
+      [FORM2_URL]: FORM2_MD,
+    }),
+    release: '2026-08-26.dahlia',
+  });
+
+  assert.deepStrictEqual(result.gaps, [], 'no false positive on pages we genuinely read');
+  assert.strictEqual(result.autoExecutable.length, 5);
+  assert.strictEqual(result.all.length, 6);
+});
+
+test('AC5bis: on the SAME index served in FRENCH the rule yields ONE gap PER PAGE (N == M) — the silent HTTP-200 zero becomes a named hole', async () => {
+  // The stub serves the French page for BOTH rows: that is exactly what
+  // docs.stripe.com does when the `Accept-Language: en-US` header is lost —
+  // every page comes back translated, `## Changes` becomes `## Modifications`,
+  // and the old code returned autoExecutable: 0, reportOnly: 0, gaps: 0.
+  const result = await detectChanges({
+    fetcher: fixtureFetcher({
+      'https://docs.stripe.com/changelog.md': CALIBRATION_INDEX_MD,
+      [FORM1_URL]: FRENCH_MD,
+      [FORM2_URL]: FRENCH_MD,
+    }),
+    release: '2026-08-26.dahlia',
+  });
+
+  assert.deepStrictEqual(result.all, [], 'the French page parses to nothing — that part is unchanged and unavoidable');
+  assert.strictEqual(result.gaps.length, 2, 'N == M: every page of the release is a hole, which is the LOUD failure mode we want');
+  assert.deepStrictEqual(result.gaps.map((g) => g.url).sort(), [FORM2_URL, FORM1_URL].sort());
+  for (const gap of result.gaps) {
+    assert.match(gap.reason, /fetched, not read/);
+    assert.strictEqual(gap.release, '2026-08-26.dahlia');
+  }
+
+  // The French page is NOT degenerate: it still carries a full `#### Node.js`
+  // table with a `Removed` row. Only the SECTION headings are translated —
+  // which is why the sentinel is the heading vocabulary and nothing else.
+  assert.ok(FRENCH_MD.includes('#### Node.js'));
+  assert.ok(FRENCH_MD.includes('| `payment_method_types` | Removed |'));
+});
+
+// ── AC6: the index is an OPTIONAL input, and US-2's behaviour is untouched ──
+
+function countingFetcher(map: Record<string, string>): { fetcher: Fetcher; counts: Map<string, number> } {
+  const counts = new Map<string, number>();
+  const fetcher: Fetcher = async (url) => {
+    counts.set(url, (counts.get(url) ?? 0) + 1);
+    if (!(url in map)) throw new Error(`unexpected fetch: ${url} (test fixtures are hermetic)`);
+    return map[url];
+  };
+  return { fetcher, counts };
+}
+
+test('AC6: given a pre-parsed index, detectChanges fetches NO index at all — only the detail pages', async () => {
+  const { fetcher, counts } = countingFetcher({ [FORM1_URL]: FORM1_MD, [FORM2_URL]: FORM2_MD });
+
+  const result = await detectChanges({
+    fetcher,
+    release: '2026-08-26.dahlia',
+    index: { entries: parseChangelogIndex(CALIBRATION_INDEX_MD), fetchedAt: '2026-09-19' },
+  });
+
+  assert.strictEqual(counts.get('https://docs.stripe.com/changelog.md'), undefined, 'the index is not re-fetched');
+  assert.strictEqual(result.all.length, 6, 'and the result is identical to the self-fetching path');
+  assert.ok(
+    result.all[0].change.references[1].includes('2026-09-19'),
+    'the index consultation date travels with the entries — it is when the index was READ, not when it was reused',
+  );
+});
+
+test('AC6 NON-REGRESSION: without the option, detectChanges fetches the index exactly once, exactly as US-2 shipped it', async () => {
+  const { fetcher, counts } = countingFetcher({
+    'https://docs.stripe.com/changelog.md': CALIBRATION_INDEX_MD,
+    [FORM1_URL]: FORM1_MD,
+    [FORM2_URL]: FORM2_MD,
+  });
+
+  await detectChanges({ fetcher, release: '2026-08-26.dahlia' });
+
+  assert.strictEqual(counts.get('https://docs.stripe.com/changelog.md'), 1);
+  assert.strictEqual(counts.get(FORM1_URL), 1);
+  assert.strictEqual(counts.get(FORM2_URL), 1);
+});
+
+// ── the release LINE, headings and not rows ─────────────────────────────────
+
+test('parseReleaseHeadings: returns every `## <date>[.<channel>]` heading, including one that carries no exploitable row', () => {
+  const md = [
+    '## 2015-08-07',
+    '',
+    'A release with prose only — 2 of the 140 live headings look like this, and they are legitimate.',
+    '',
+    '## 2024-09-30.acacia',
+    '',
+    '| Title | Affected Products | Breaking change? | Category |',
+    '| --- | --- | --- | --- |',
+    '| [A row](https://docs.stripe.com/changelog/acacia/2024-09-30/x.md) | Payments | Breaking | api |',
+  ].join('\n');
+
+  assert.deepStrictEqual(parseReleaseHeadings(md), ['2015-08-07', '2024-09-30.acacia']);
+  assert.deepStrictEqual(
+    [...new Set(parseChangelogIndex(md).map((e) => e.release))],
+    ['2024-09-30.acacia'],
+    'rows alone cannot see the row-less release — which is why `to` is read off the headings',
+  );
 });
