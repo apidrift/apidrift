@@ -225,6 +225,30 @@ test('AC7 CONTROL: below the cap the same run DOES reach the model — the invar
   }
 });
 
+test('alwaysRun bypasses the cap, so it refuses a codemod without apply() — that one would reach the model uncounted', async () => {
+  const repo = makeRepo(SIX_CALL_SITES);
+  const out = fs.mkdtempSync(path.join(os.tmpdir(), 'apidrift-plan-out-'));
+  try {
+    const spy = spyLlm();
+    const [aiOnly] = sixCandidates();
+    assert.strictEqual(aiOnly.apply, undefined, 'precondition: a generic-symbol codemod is AI-tier, no apply()');
+
+    await assert.rejects(
+      runPlanned(repo, [], { outputDir: out, llm: spy.llm, alwaysRun: [aiOnly] }),
+      /alwaysRun codemods must carry apply\(\).*stripe-2025-03-31-basil-stripe-paymentIntents-create/,
+    );
+    assert.strictEqual(spy.calls(), 0, 'and it fails before anything reaches the model');
+    assert.deepStrictEqual(fs.readdirSync(out), [], 'or writes an artifact');
+
+    // Control: a codemod that does carry apply() is accepted as before.
+    const { results } = await runPlanned(repo, [], { outputDir: out, llm: spy.llm, alwaysRun: [stripeChargesToIntents] });
+    assert.strictEqual(results?.length, 1);
+  } finally {
+    fs.rmSync(repo, { recursive: true, force: true });
+    fs.rmSync(out, { recursive: true, force: true });
+  }
+});
+
 // ══ AC8 — fail-closed, non interactive, two escape hatches ══
 
 test('AC8: above the threshold the run names every change concerned — id, symbol, release of origin, number of sites', () => {

@@ -192,6 +192,13 @@ export async function runPlanned(
   } = {},
 ): Promise<{ plan: ChangePlan; results: PipelineResult[] | null }> {
   const { maxChanges, yes, alwaysRun = [], ...runOptions } = options;
+  // `alwaysRun` skips both the cap and the anti-silence warning on the premise
+  // that these codemods never reach the model. That premise is only true if
+  // they carry `apply()`; refuse the ones that do not rather than trust it.
+  const withoutApply = alwaysRun.filter((c) => !c.apply).map((c) => c.change.id);
+  if (withoutApply.length > 0) {
+    throw new Error(`alwaysRun codemods must carry apply() (they bypass the cost cap): ${withoutApply.join(', ')}`);
+  }
   const plan = planChanges(targetDir, candidates, { maxChanges, yes });
   if (plan.blocked) return { plan, results: null };
   return {
