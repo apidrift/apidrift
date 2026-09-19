@@ -850,7 +850,7 @@
         "AC14 - Invariants inchanges et non redefinis : gate = suite de tests de l'utilisateur (jamais de PR non draft sur suite rouge), tests en lecture seule pour le fixer IA, blast radius only (jamais de CI config, de secrets, de lockfiles), AST jamais regex cote matcher.",
         "AC15 - npx tsc --noEmit et npm test verts (scripts/dod.sh)."
       ],
-      "status": "ready",
+      "status": "done",
       "priority": 1,
       "component": "detection",
       "epic": "EPIC-free-dynamic-diff",

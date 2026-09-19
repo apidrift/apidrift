@@ -7936,6 +7936,168 @@
       "actor": "orchestrateur",
       "us": "US-12",
       "note": "Gate humain leve : PR #13 squash-merge sur main (3a3be00). Reserve QA : re-cadrer US-13 (continuite inter-canaux, walk deja implemente par US-12)."
+    },
+    {
+      "ts": "2026-09-19T08:55:08.791Z",
+      "type": "dor_check",
+      "actor": "orchestrateur",
+      "us": "US-13",
+      "note": "DoR re-cadree 2026-09-10 revalidee contre main mergee (3a3be00) : les 4 faits de code qu'elle cite sont vrais tels quels (egalite stricte channelOf stripe-source.ts, to=repli sur from, try/catch par release, refetch index dans detectChanges index.ts:73, VendorDiffGap sans url, noMatchWarning privee pipeline.ts:95). DoR non perimee, pas de re-passe architecte, delegation dev directe."
+    },
+    {
+      "ts": "2026-09-19T08:55:08.851Z",
+      "type": "move",
+      "actor": "orchestrateur",
+      "us": "US-13",
+      "note": "ready>in_progress"
+    },
+    {
+      "ts": "2026-09-19T08:55:19.687Z",
+      "type": "delegate",
+      "actor": "orchestrateur",
+      "target": "dev#1",
+      "us": "US-13",
+      "payload": {
+        "branche": "feature/US-13-version-range-walk",
+        "base": "main (3a3be00)",
+        "worktree": "isole",
+        "lot": "A (src/detection : walk pur, continuite ligne stable, exclusion .preview nommee, bornes a/b/c/d, isolation par PAGE, discriminant de lisibilite, index fetche 1x) + B (passe de plan lecture seule, cap N=5 sur les MATCHES, --max-changes/--yes, forme #2 report-only sans artefact)",
+        "ac": "17 AC dans board/backlog.json US-13.acceptance_criteria ; DoR = definition_of_ready (D2_STATUT_APRES_US_12, D3, D7, D2b, decoupage_du_livrable, hors_scope, risques)",
+        "interdits": "liste ordonnee de canaux (AC1bis) ; assouplir extractImpact ; toucher RELEASE_HEADING_RE ; changer la signature/comportement de detectChanges pour un appel mono-release (US-2/cli --detect) ; basculer le defaut CLI (US-14) ; cache (US-15) ; phrases d echec finales (US-16) ; reseau dans les tests",
+        "dod": "scripts/dod.sh (npx tsc --noEmit + npm test)"
+      }
+    },
+    {
+      "ts": "2026-09-19T09:28:40.719Z",
+      "type": "report",
+      "actor": "dev#1",
+      "us": "US-13",
+      "payload": {
+        "branche": "feature/US-13-version-range-walk",
+        "commits": [
+          "41ecd1c feat(detection): walk the stable line across channels, isolate holes per page",
+          "a960104 feat(plan): fail-closed BYOT cost cap and report-only guarantee"
+        ],
+        "pr": {
+          "numero": 15,
+          "url": "https://github.com/apidrift/apidrift/pull/15",
+          "etat": "OPEN"
+        },
+        "dod": {
+          "exit": 0,
+          "tsc": "clean",
+          "tests": "229/229 (183 avant, +46)"
+        },
+        "nouveaux": [
+          "src/detection/walk.ts",
+          "src/detection/bound.ts",
+          "src/plan.ts",
+          "tests/walk.test.ts",
+          "tests/plan-cap.test.ts",
+          "5 fixtures changelog dont 1 fr"
+        ],
+        "ecarts_declares": 8,
+        "ecarts_cles": [
+          "parseReleaseHeadings() ajoute (to lu sur les headings, pas les lignes)",
+          "groupByRelease trie sur apiVersionDate",
+          "DetectedChange gagne url",
+          "try/catch release-level conserve en filet defensif non teste",
+          "runPlanned option alwaysRun (registre hardcode contourne le cap)",
+          "messages AC3d nomment --since livre seulement par US-14",
+          "CLI affiche les gaps (contenu minimal, phrases = US-16)",
+          "statut defensif line-not-published hors des 4 bornes AC3"
+        ]
+      }
+    },
+    {
+      "ts": "2026-09-19T09:28:40.805Z",
+      "type": "move",
+      "actor": "orchestrateur",
+      "us": "US-13",
+      "note": "in_progress>review"
+    },
+    {
+      "ts": "2026-09-19T09:29:35.554Z",
+      "type": "delegate",
+      "actor": "orchestrateur",
+      "target": "qa",
+      "us": "US-13",
+      "payload": {
+        "objet": "revue US-13 PR #15",
+        "input": "17 AC + DoR ; 8 ecarts declares par le dev ; 5 points tranches",
+        "focus": [
+          "AC2 test de mutation a verifier en mutant reellement",
+          "AC7 piege noMatchWarning + ecart alwaysRun",
+          "AC6 non-regression detectChanges mono-release US-2",
+          "frontieres US-14/US-15/US-16 (ecarts 6 et 7)",
+          "chercher un ecart NON declare"
+        ],
+        "sortie": "verdict par AC + DoD relancee + elements de demo pour le gate humain"
+      }
+    },
+    {
+      "ts": "2026-09-19T09:48:56.645Z",
+      "type": "report",
+      "actor": "qa",
+      "us": "US-13",
+      "payload": {
+        "verdict": "accepte avec reserves - merge recommande",
+        "ac": "17/17 ok",
+        "dod_rejouee_par_qa": {
+          "tsc": "exit 0, 0 diagnostic",
+          "npm_test": "229/229, 0 fail",
+          "delta": "+46 tests, 0 suppression"
+        },
+        "mutations_rejouees": [
+          "AC2 onSameLine->true : 10 tests rouges",
+          "AC5 pageIsReadable->true : 2 rouges",
+          "AC5 pageIsReadable->includes(#### Node.js) : 2 rouges",
+          "AC7 piege : suppression de lappel noMatchWarning : rouge"
+        ],
+        "proprete": {
+          "board_dans_le_diff": "VIDE",
+          "commits": "conventionnels + Refs: US-13",
+          "titre_pr": "exact",
+          "blast_radius": "18 fichiers, aucun CI/secret/lockfile"
+        },
+        "ecarts_declares": "8/8 acceptables, 2 avec reserve (4 branche defensive non testee ; 5 alwaysRun non contraint a porter un apply())",
+        "ecart_non_declare": "lINDEX na pas de sentinelle de lisibilite : un index HTTP 200 en vocabulaire francais rend status=behind + releases listees + 0 change + 0 gap. Meme classe de defaut quAC5 mais un etage plus haut ; non regressif (main porte deja ce silence), couvert par aucun AC. -> US-16",
+        "a_porter_ailleurs": {
+          "US-14": "cabler changesSinceBound au CLI (aucun appelant hors tests) + livrer --since que les 6 phrases nomment deja",
+          "US-16": "remplacer le dump brut de gaps par les 5 phrases + sentinelle de lisibilite de lINDEX",
+          "backlog": "contraindre alwaysRun a des codemods portant un apply()"
+        },
+        "artefact_demo": "/home/clemuscle/apidrift/.lavish/qa-us-13.html (gitignore)"
+      }
+    },
+    {
+      "ts": "2026-09-19T09:48:56.714Z",
+      "type": "human_gate",
+      "actor": "orchestrateur",
+      "us": "US-13",
+      "note": "Gate humain de merge OUVERT (non bloquant). PR #15 OPEN, mergeable, DoD verte rejouee par la QA (tsc 0, 229/229). Artefact : .lavish/qa-us-13.html. 4 decisions humaines : (1) cap inclusif N=5 ; (2) merger US-13 seule ou lappairer a US-14 (les 6 phrases nomment --since, flag non livre, non atteignable par un utilisateur) ; (3) ecart non declare index illisible -> US-16 ou fermeture avant merge ; (4) durcir alwaysRun maintenant ou en backlog. Rappel : main local a 1 commit davance non pousse (cdf7c63) + board dirty non commite ; lorchestrateur ne pousse ni ne merge."
+    },
+    {
+      "ts": "2026-09-19T11:13:48.172Z",
+      "type": "move",
+      "actor": "orchestrateur",
+      "us": "US-13",
+      "note": "review>done"
+    },
+    {
+      "ts": "2026-09-19T11:13:48.234Z",
+      "type": "human_gate",
+      "actor": "orchestrateur",
+      "us": "US-13",
+      "note": "Gate humain leve : cap BYOT N=5 inclusif confirme ; US-13 mergee seule (US-14 cablera changesSinceBound + --since, AC3 deja couvert) ; reserve alwaysRun corrigee avant merge (9c3a2a9, garde runtime + test de mutation) ; PR #15 squash-merge."
+    },
+    {
+      "ts": "2026-09-19T11:13:48.296Z",
+      "type": "peer_message",
+      "actor": "orchestrateur",
+      "target": "po",
+      "us": "US-16",
+      "note": "Ecart non declare trouve par la QA de US-13 : un INDEX Stripe HTTP 200 en vocabulaire francais rend status=behind + releases + 0 change + 0 gap (silence trompeur, meme classe qu'AC5 un etage plus haut, present sur main, hors AC US-13). A couvrir par US-16 : sentinelle de lisibilite de l'index, distincte de l'AC2 (zero heading reconnu)."
     }
   ]
 }
