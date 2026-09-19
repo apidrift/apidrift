@@ -58,8 +58,11 @@ code, not the prompt. Do not weaken those guardrails.
 1. `src/detection/` — the **default change feed**: Stripe changelog ingestion.
    `VendorSource` (`vendor-source.ts`, one implementation in `stripe-source.ts`)
    resolves the repo's pinned API version and returns the `Change`s published since
-   it; `walk.ts` / `bound.ts` decide which releases the walk covers. The only module
-   that touches the network, behind an injectable `Fetcher`.
+   it; `walk.ts` / `bound.ts` decide which releases the walk covers. It reads the
+   vendor's PUBLIC changelog behind an injectable `Fetcher`, so tests never touch
+   the network. That is NOT the tool's only network egress: the LLM providers
+   (`src/fixer/providers.ts`, when a model is configured) and `GitHubHost`
+   (`src/githost/github.ts`, Octokit, Enterprise/Pro) reach out too.
 2. `src/changes/` — normalized `Change` records + the built-in `Codemod`s (the
    static registry). It is tier 1, and it is not the default feed any more: it runs
    on EVERY run, outside the cost cap (`alwaysRun`, it costs no token); it is the
