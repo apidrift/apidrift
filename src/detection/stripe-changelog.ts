@@ -77,6 +77,25 @@ function isSeparatorRow(cells: string[]): boolean {
 }
 
 /**
+ * Every `## <date>[.<channel>]` heading the index publishes, in document
+ * order, duplicates included — the RELEASE LINE itself, independent of whether
+ * a release carries any exploitable table row (US-13).
+ *
+ * `parseChangelogIndex` cannot answer this: it returns ROWS, so a release with
+ * no row is invisible to it. Measured on the live index (2026-09-10): 2 of 140
+ * headings carry no exploitable row, and such a release is perfectly LEGITIMATE
+ * — not a hole. The walk's `to` ("the last release published on this line")
+ * must be read off the headings, or a row-less last release would silently
+ * shift `to` backwards.
+ *
+ * Uses the SAME `RELEASE_HEADING_RE` as `parseChangelogIndex`, untouched
+ * (US-12 owns that regex).
+ */
+export function parseReleaseHeadings(markdown: string): string[] {
+  return [...markdown.matchAll(RELEASE_HEADING_RE)].map((m) => m[1]);
+}
+
+/**
  * Parses the changelog index into one entry per index-table row, tagged with
  * the `## <date>.<release>` heading it appeared under. Domain sub-headings
  * (`### Payments`, ...) are not tracked — nothing downstream needs them.
@@ -128,6 +147,66 @@ function extractSection(markdown: string, heading: string, level: number): strin
   const nextHeadingRe = new RegExp(`^#{1,${level}}\\s+`, 'm');
   const nextMatch = nextHeadingRe.exec(rest);
   return nextMatch ? rest.slice(0, nextMatch.index) : rest;
+}
+
+const LEVEL_2_HEADING_RE = /^##[ \t]+(.+?)[ \t]*$/gm;
+
+/**
+ * The level-2 section headings of an English detail page whose text Stripe
+ * TRANSLATES. `Impact` is deliberately absent: verified live on 2026-09-10
+ * with `Accept-Language: fr`, `## Impact` is spelled identically in French
+ * (`Changes` -> `Modifications`, `What's new` -> `Nouveautés`, `Upgrade` ->
+ * `Mise à niveau`, `Related changes` -> `Modifications associées`), so it
+ * cannot tell an English page from a French one and is useless as a sentinel.
+ *
+ * Both apostrophes are listed for `What's new` because the live pages use the
+ * TYPOGRAPHIC one (U+2019) — all 69 of them — and a straight-quote variant
+ * would otherwise read as unreadable. Neither spelling exists in French, so
+ * accepting both costs the discriminant nothing.
+ */
+const TRANSLATABLE_SECTION_HEADINGS: readonly string[] = [
+  'What’s new',
+  "What's new",
+  'Changes',
+  'Upgrade',
+  'Related changes',
+];
+
+/**
+ * Did we actually READ this page, as opposed to fetching 200 OK and finding
+ * nothing we recognize? (US-13, AC5 — the invariant the QA found uncovered.)
+ *
+ * `detectChanges` only ever raised when the FETCHER raised. A page served in
+ * the wrong language parses to zero rows with no exception at all, and came
+ * out as `autoExecutable: 0, reportOnly: 0, gaps: 0` — indistinguishable from
+ * "this release changed nothing". `httpFetcher` sends `Accept-Language: en-US`
+ * precisely to avoid that, but a header is a rempart, not a proof.
+ *
+ * THE RULE: a page counts as read iff it carries at least one level-2 heading
+ * from the closed, translatable English vocabulary above. Measured on the 69
+ * real Breaking pages of the reference walk: 69/69 carry `## What's new`, and
+ * the whole level-2 vocabulary is six values across eleven combinations.
+ *
+ * What this rule deliberately does NOT call a hole — all three are the normal,
+ * majority case:
+ *   - a read page with no `## Changes` (33 of 69);
+ *   - a `## Changes` with no `#### Node.js` table;
+ *   - a Node.js table with no `Removed` row.
+ * And it must NEVER key off `#### Node.js`: 56 of 69 pages carry one, but on a
+ * page without `## Changes` it sits under `## Upgrade` holding upgrade prose
+ * ("Upgrade your Node SDK to v19.1.0"), not a parameter table — reading it as
+ * signal would manufacture 20 false holes.
+ *
+ * Direction of error, assumed: if Stripe renamed its section vocabulary, EVERY
+ * page would become a hole — loud over-reporting, never a silent "nothing to
+ * do". That is what makes this literal list acceptable where US-9's version
+ * table was not: this one expires screaming.
+ */
+export function pageIsReadable(markdown: string): boolean {
+  for (const match of markdown.matchAll(LEVEL_2_HEADING_RE)) {
+    if (TRANSLATABLE_SECTION_HEADINGS.includes(match[1])) return true;
+  }
+  return false;
 }
 
 /**
@@ -249,6 +328,13 @@ export interface DetectedChange {
   /** true only for forme #1 (request-shaped, method link) — the only form a generic matcher can execute. */
   autoExecutable: boolean;
   classification: 'method' | 'object';
+  /**
+   * The detail page this was read from, verbatim from the index row (US-13,
+   * AC9). `change.references[0]` also carries it, but wrapped in
+   * "(consulted <date>)" prose — a caller that has to report a forme #2 with
+   * its page should not have to parse a sentence back apart to do it.
+   */
+  url: string;
 }
 
 /**
@@ -321,7 +407,12 @@ export function buildDetectedChanges(args: {
         apiVersion: entry.release,
       };
 
-      out.push({ change, autoExecutable: classified.kind === 'method', classification: classified.kind });
+      out.push({
+        change,
+        autoExecutable: classified.kind === 'method',
+        classification: classified.kind,
+        url: entry.url,
+      });
     }
   }
 

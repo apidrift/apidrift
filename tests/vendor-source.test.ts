@@ -166,11 +166,136 @@ test('changesSince: `from` at (or after) the latest release on its line yields n
   const source = createStripeVendorSource({ fetcher, indexUrl, fetchedAt: () => '2026-09-10' });
 
   const diff = await source.changesSince('2025-04-01.acacia');
-  assert.strictEqual(diff.to, '2025-04-01.acacia', 'nothing after `from` on this line, so `to` falls back to `from`');
+  assert.strictEqual(diff.to, '2025-04-01.acacia', 'the last release on this line, read off the index (US-13 AC3a)');
   assert.deepStrictEqual(diff.releases, []);
   assert.deepStrictEqual(diff.autoExecutable, []);
   assert.deepStrictEqual(diff.reportOnly, []);
   assert.deepStrictEqual(diff.gaps, []);
+});
+
+// ════════════════════════════════════════════════════════════════════════════
+// US-13 — the walk, end to end through `changesSince`
+// ════════════════════════════════════════════════════════════════════════════
+
+const CHANNELS_INDEX_MD = readFixture('index-walk-channels.md');
+const NO_CHANGES_URL = 'https://docs.stripe.com/changelog/basil/2025-03-31/billing-mode-default-flexible.md';
+const NO_CHANGES_MD = readFixture('billing-mode-default-flexible.md');
+const PREVIEW_PAGE_URL = 'https://docs.stripe.com/changelog/preview/2025-02-15/off-channel.md';
+
+/** Serves the channel-transitions index; counts every request, per URL (AC6/AC13). */
+function channelsFetcher(): { fetcher: Fetcher; counts: Map<string, number>; total: () => number } {
+  const counts = new Map<string, number>();
+  const pages: Record<string, string> = {
+    [indexUrl]: CHANNELS_INDEX_MD,
+    [FORM1_URL]: FORM1_MD,
+    [FORM2_URL]: FORM2_MD,
+    [NO_CHANGES_URL]: NO_CHANGES_MD,
+  };
+  const fetcher: Fetcher = async (url) => {
+    counts.set(url, (counts.get(url) ?? 0) + 1);
+    if (url in pages) return pages[url];
+    throw new Error(`simulated fetch failure: ${url}`);
+  };
+  return { fetcher, counts, total: () => [...counts.values()].reduce((a, b) => a + b, 0) };
+}
+
+test('AC1: from a CHANNEL-LESS bound, the walk crosses into .acacia and then .basil — the exact set of releases includes the channelled ones', async () => {
+  const { fetcher, counts } = channelsFetcher();
+  const source = createStripeVendorSource({ fetcher, indexUrl, fetchedAt: () => '2026-09-19' });
+
+  const diff = await source.changesSince('2023-08-16');
+
+  assert.deepStrictEqual(
+    diff.releases,
+    ['2024-06-20', '2024-09-30.acacia', '2025-03-31.basil'],
+    'US-12\'s strict channelOf equality stopped at 2024-06-20 and saw neither of the last two',
+  );
+  assert.strictEqual(diff.to, '2025-03-31.basil');
+  assert.strictEqual(diff.status, 'behind');
+
+  // The changes only exist because the walk crossed the channel boundary.
+  assert.strictEqual(diff.autoExecutable.length, 5);
+  assert.ok(diff.autoExecutable.every((c) => c.apiVersion === '2024-09-30.acacia'), 'carried by an .acacia release');
+  assert.strictEqual(diff.reportOnly.length, 1);
+  assert.strictEqual(diff.reportOnly[0].change.apiVersion, '2024-06-20', 'and one by a channel-less release');
+
+  assert.deepStrictEqual(diff.gaps, [], 'every page of this walk was read; the .basil page simply carries nothing for us');
+  assert.strictEqual(counts.get(PREVIEW_PAGE_URL), undefined, 'AC2: the preview row is filtered out before any fetch is attempted');
+});
+
+test('AC2 MUTATION, end to end: the `.preview` release is excluded from `releases`, never advances `to`, and is never fetched', async () => {
+  const { fetcher, counts } = channelsFetcher();
+  const source = createStripeVendorSource({ fetcher, indexUrl, fetchedAt: () => '2026-09-19' });
+
+  const diff = await source.changesSince('2024-06-20');
+
+  assert.deepStrictEqual(diff.releases, ['2024-09-30.acacia', '2025-03-31.basil']);
+  assert.ok(!diff.releases.includes('2025-02-15.preview'), 'a preview release is on a PARALLEL line, never on the walk');
+  assert.strictEqual(counts.get(PREVIEW_PAGE_URL), undefined);
+});
+
+test('AC3(b): a bound newer than anything the index publishes is a DISTINCT status from "up to date", and `to` is still read off the index', async () => {
+  const { fetcher } = channelsFetcher();
+  const source = createStripeVendorSource({ fetcher, indexUrl, fetchedAt: () => '2026-09-19' });
+
+  const ahead = await source.changesSince('2030-01-01.dahlia');
+  assert.strictEqual(ahead.status, 'ahead-of-index');
+  assert.strictEqual(ahead.to, '2025-03-31.basil', 'never a fallback onto `from`');
+  assert.deepStrictEqual(ahead.releases, []);
+
+  const upToDate = await source.changesSince('2025-03-31.basil');
+  assert.strictEqual(upToDate.status, 'up-to-date');
+  assert.strictEqual(upToDate.to, '2025-03-31.basil');
+});
+
+test('AC3(c): an UNREADABLE bound stops before any I/O — `changesSince("latest")` fetches nothing and says the BOUND is the problem', async () => {
+  const { fetcher, total } = channelsFetcher();
+  const source = createStripeVendorSource({ fetcher, indexUrl, fetchedAt: () => '2026-09-19' });
+
+  const diff = await source.changesSince('latest');
+
+  assert.strictEqual(diff.status, 'unreadable-bound');
+  assert.deepStrictEqual(diff.releases, [], 'the old string comparison `release > from` walked the whole changelog here');
+  assert.deepStrictEqual(diff.gaps, [], 'nothing was read, so nothing is a hole — the bound is');
+  assert.strictEqual(total(), 0, 'not one byte fetched for a bound we cannot order');
+});
+
+test('AC6: the index is fetched EXACTLY ONCE per changesSince(), whatever the length of the walk', async () => {
+  const { fetcher, counts, total } = channelsFetcher();
+  const source = createStripeVendorSource({ fetcher, indexUrl, fetchedAt: () => '2026-09-19' });
+
+  const diff = await source.changesSince('2023-08-16');
+
+  assert.strictEqual(diff.releases.length, 3);
+  assert.strictEqual(
+    counts.get(indexUrl),
+    1,
+    'it used to be 1 + one per release — 28 requests for a 200 KB document on the reference walk',
+  );
+  // One index + one page per walked release: nothing is fetched twice. This
+  // test must exist BEFORE US-15's cache: once a cache absorbs the repeats, an
+  // N+1 becomes invisible and this assertion can no longer go red.
+  assert.strictEqual(total(), 4);
+  for (const [url, n] of counts) assert.strictEqual(n, 1, `${url} was fetched ${n} times`);
+});
+
+test('AC4/AC10: a gap reaches the caller with its URL, its release and its reason — and one bad page never stops the walk', async () => {
+  const { fetcher } = channelsFetcher();
+  // Same index, but the .acacia detail page is now unreachable.
+  const failing: Fetcher = async (url) => (url === FORM1_URL ? Promise.reject(new Error(`simulated HTTP 503: ${url}`)) : fetcher(url));
+  const source = createStripeVendorSource({ fetcher: failing, indexUrl, fetchedAt: () => '2026-09-19' });
+
+  const diff = await source.changesSince('2023-08-16');
+
+  assert.deepStrictEqual(diff.releases, ['2024-06-20', '2024-09-30.acacia', '2025-03-31.basil'], 'the intended path is reported whole');
+  assert.strictEqual(diff.to, '2025-03-31.basil', '`to` does not depend on every release having been readable');
+  assert.strictEqual(diff.gaps.length, 1, 'gaps.length IS the "N of M unreadable" count a summary needs');
+  assert.deepStrictEqual(diff.gaps[0], {
+    release: '2024-09-30.acacia',
+    url: FORM1_URL,
+    reason: `simulated HTTP 503: ${FORM1_URL}`,
+  });
+  assert.strictEqual(diff.reportOnly.length, 1, 'the releases before and after the hole still contribute');
 });
 
 // ── AC6: every URL requested is a public vendor URL, nothing about the target repo leaves ──

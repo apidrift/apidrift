@@ -12,9 +12,11 @@
  * second branch here.
  */
 import type { Project } from 'ts-morph';
+import { apiVersionDate } from '../changes/api-version.js';
 import { resolvePinnedApiVersion } from '../matcher/api-version.js';
 import { detectChanges, DEFAULT_CHANGELOG_INDEX_URL, type Fetcher } from './index.js';
-import { parseChangelogIndex, type ChangelogEntry } from './stripe-changelog.js';
+import { parseChangelogIndex, parseReleaseHeadings, type ChangelogEntry } from './stripe-changelog.js';
+import { boundIsReadable, selectReleases } from './walk.js';
 import type { VendorDiff, VendorDiffGap, VendorRelease, VendorSource } from './vendor-source.js';
 
 const VENDOR = 'stripe' as const;
@@ -31,12 +33,6 @@ function todayUtc(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-/** `'2025-03-31.basil'` -> `'basil'`; `'2023-08-16'` (channel-less, US-12 P0 constat 2) -> `undefined`. */
-function channelOf(release: string): string | undefined {
-  const dot = release.indexOf('.');
-  return dot === -1 ? undefined : release.slice(dot + 1);
-}
-
 function groupByRelease(entries: ChangelogEntry[]): VendorRelease[] {
   const byRelease = new Map<string, ChangelogEntry[]>();
   for (const entry of entries) {
@@ -44,12 +40,19 @@ function groupByRelease(entries: ChangelogEntry[]): VendorRelease[] {
     if (list) list.push(entry);
     else byRelease.set(entry.release, [entry]);
   }
-  // Chronological ascending, matching `VendorDiff.releases`'s contract —
-  // string comparison works because every release starts with a zero-padded
-  // `YYYY-MM-DD` (the same property `isPinnedBefore` relies on).
+  // Chronological ascending, matching `VendorDiff.releases`'s contract. The
+  // key is `apiVersionDate()`, not the full release string: `.dahlia` and
+  // `.preview` published the same day compare lexicographically but not
+  // chronologically, and this module now has exactly one ordering rule
+  // (US-13, AC3) rather than one here and another in `./walk.ts`. The full
+  // string only ever breaks a same-date tie, so the order stays stable.
   return [...byRelease.entries()]
     .map(([release, releaseEntries]) => ({ release, entries: releaseEntries }))
-    .sort((a, b) => a.release.localeCompare(b.release));
+    .sort((a, b) => {
+      const da = apiVersionDate(a.release) ?? a.release;
+      const db = apiVersionDate(b.release) ?? b.release;
+      return da === db ? a.release.localeCompare(b.release) : da.localeCompare(db);
+    });
 }
 
 /** The one `VendorSource` implementation. See module docs above. */
@@ -70,37 +73,74 @@ export function createStripeVendorSource(opts: StripeVendorSourceOptions): Vendo
   }
 
   async function changesSince(from: string): Promise<VendorDiff> {
-    const all = await releases();
-    const channel = channelOf(from);
-    // Same channel line, strictly after `from` — never cross from a stable
-    // channel into `preview` (a parallel, experimental line) or vice versa.
-    const inRange = all
-      .map((r) => r.release)
-      .filter((release) => release > from && channelOf(release) === channel);
+    // AC3c, BEFORE any I/O: a bound we cannot order (`'latest'`, `''`, a
+    // truncated date) is not walkable, so downloading a 200 KB index to
+    // discover that would be pure waste. The old code compared whole strings
+    // (`release > from`) and walked anyway, silently wrong.
+    if (!boundIsReadable(from)) {
+      return {
+        from,
+        to: from,
+        status: 'unreadable-bound',
+        releases: [],
+        autoExecutable: [],
+        reportOnly: [],
+        gaps: [],
+      };
+    }
+
+    // AC6: the index is fetched ONCE per changesSince() — here — and then
+    // handed to every `detectChanges` call below. It used to be re-fetched
+    // per release: 28 requests for the 27-release reference walk.
+    const indexMarkdown = await opts.fetcher(indexUrl);
+    const indexFetchedAt = fetchedAt();
+    const entries = parseChangelogIndex(indexMarkdown);
+
+    // Headings, not rows: a release that publishes no exploitable table row is
+    // legitimate (2 of the 140 live headings), and `to` — "the last release
+    // published on this line" — has to see it.
+    const selection = selectReleases(parseReleaseHeadings(indexMarkdown), from);
 
     const autoExecutable = [] as VendorDiff['autoExecutable'];
     const reportOnly = [] as VendorDiff['reportOnly'];
     const gaps: VendorDiffGap[] = [];
 
-    for (const release of inRange) {
+    for (const release of selection.walked) {
       try {
         // Reuses `detectChanges` verbatim, one release at a time — the same
-        // seam `src/cli.ts --detect` already exercises. Refetching the index
-        // per release is deliberately NOT optimized here: caching the index
-        // between calls is US-15's job, not this one's.
-        const detection = await detectChanges({ fetcher: opts.fetcher, release, indexUrl, fetchedAt });
+        // seam `src/cli.ts --detect` already exercises. Per-PAGE failure
+        // isolation now lives inside it (AC4), so a hole here names a page and
+        // never costs that page's siblings their changes.
+        const detection = await detectChanges({
+          fetcher: opts.fetcher,
+          release,
+          indexUrl,
+          fetchedAt,
+          index: { entries, fetchedAt: indexFetchedAt },
+        });
         autoExecutable.push(...detection.autoExecutable);
         reportOnly.push(...detection.all.filter((d) => !d.autoExecutable));
+        gaps.push(...detection.gaps);
       } catch (err) {
-        // A page that fails to fetch or parse must be NAMED, never silently
-        // dropped as "this release had nothing" — the other half of the
-        // gaps invariant (US-12 DoR, D1).
-        gaps.push({ release, reason: (err as Error).message });
+        // Defensive net only: with per-page isolation in place, `detectChanges`
+        // no longer throws for anything a page can do. A throw reaching here is
+        // a bug in our own code — it must still cost one release, not the walk.
+        gaps.push({ release, url: indexUrl, reason: `release-level failure (not one page): ${(err as Error).message}` });
       }
     }
 
-    const to = inRange.length > 0 ? inRange[inRange.length - 1] : from;
-    return { from, to, releases: inRange, autoExecutable, reportOnly, gaps };
+    // `to` comes from the INDEX, never from `from` — "you are on the last
+    // release" and "we could not read anything past you" are different facts
+    // (AC3a/AC3b), and `status` is what tells them apart.
+    return {
+      from,
+      to: selection.to,
+      status: selection.status,
+      releases: selection.walked,
+      autoExecutable,
+      reportOnly,
+      gaps,
+    };
   }
 
   return { vendor: VENDOR, releases, resolveCurrentApiVersion, changesSince };
