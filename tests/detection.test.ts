@@ -7,6 +7,7 @@ import {
   buildDetectedChanges,
   classifyLink,
   extractImpact,
+  findUnclassifiedBreakingRows,
   pageIsReadable,
   parseChangelogIndex,
   parseNodeJsChangesTable,
@@ -521,6 +522,51 @@ test('AC6 NON-REGRESSION: without the option, detectChanges fetches the index ex
   assert.strictEqual(counts.get('https://docs.stripe.com/changelog.md'), 1);
   assert.strictEqual(counts.get(FORM1_URL), 1);
   assert.strictEqual(counts.get(FORM2_URL), 1);
+});
+
+// ── US-16, AC2c: an unrecognized Breaking-column value is no longer silent ──
+
+test('findUnclassifiedBreakingRows: a linked row whose Breaking cell is neither "Breaking" nor "Non-breaking" is returned, named — parseChangelogIndex keeps ignoring it, unchanged', () => {
+  const md = [
+    '## 2025-02-01.acacia',
+    '',
+    '| Title | Affected Products | Breaking change? | Category |',
+    '| --- | --- | --- | --- |',
+    '| [Ambiguous row](https://docs.stripe.com/changelog/acacia/2025-02-01/ambiguous.md) | Payments | Maybe | api |',
+    '| [A normal row](https://docs.stripe.com/changelog/acacia/2025-02-01/normal.md) | Payments | Breaking | api |',
+  ].join('\n');
+
+  const rows = findUnclassifiedBreakingRows(md);
+  assert.strictEqual(rows.length, 1, 'the recognized "Breaking" row is not this function\'s concern');
+  assert.deepStrictEqual(rows[0], {
+    release: '2025-02-01.acacia',
+    url: 'https://docs.stripe.com/changelog/acacia/2025-02-01/ambiguous.md',
+    title: 'Ambiguous row',
+    breakingCell: 'Maybe',
+  });
+
+  // parseChangelogIndex's own contract is untouched: it still silently skips
+  // the ambiguous row and returns only the recognized one (decision humaine 3
+  // du 2026-09-19 — additions only, never a change to this function).
+  const entries = parseChangelogIndex(md);
+  assert.strictEqual(entries.length, 1);
+  assert.strictEqual(entries[0].title, 'A normal row');
+});
+
+test('findUnclassifiedBreakingRows: a header/separator row, or a row with no link, is never mistaken for one of these', () => {
+  const md = [
+    '## 2025-02-01.acacia',
+    '',
+    '| Title | Affected Products | Breaking change? | Category |',
+    '| --- | --- | --- | --- |',
+    '| No link here at all | Payments | Maybe | api |',
+  ].join('\n');
+
+  assert.deepStrictEqual(findUnclassifiedBreakingRows(md), []);
+});
+
+test('findUnclassifiedBreakingRows: zero on the live-shaped fixtures, matching the live measurement (0 of 877 rows)', () => {
+  assert.deepStrictEqual(findUnclassifiedBreakingRows(INDEX_MD), []);
 });
 
 // ── the release LINE, headings and not rows ─────────────────────────────────

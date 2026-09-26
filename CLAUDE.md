@@ -135,9 +135,13 @@ a before/after case in `fixtures/` · a test in `tests/`.
   stops, `--deterministic-only` runs). `--max-changes` / `--yes` matter only when a
   model is configured. Passing a retired flag is an explicit error naming its
   replacement, never silently ignored.
-- Exit codes: `0` run complete, nothing left to do · `1` the run STOPPED (bad
-  argument, unreachable or unreadable changelog, `--offline`, unresolvable pin, cost
-  cap refused) · `20` drift detected and not fixed because no model is configured
+- Exit codes (US-16, decision humaine A3/B1 du 2026-09-26): `0` run complete —
+  no site found in the repo is left without a fix; report-only (forme #2)
+  changes and unreadable changelog pages are LISTED, never counted against
+  this · `1` the run STOPPED (bad argument, unreachable or unreadable
+  changelog, `--offline`, unresolvable pin, cost cap refused, or a range whose
+  EVERY attempted page came back unreadable — nothing established) · `20`
+  drift detected and not fixed because no model is configured
   (`20`–`29` is reserved for APIdrift verdicts)
 
 ## Agile agent team (agile-agents-socle)

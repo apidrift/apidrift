@@ -101,6 +101,23 @@ export interface VendorDiff {
   reportOnly: DetectedChange[];
   /** Named holes in the walk, one per unreadable PAGE — see `VendorDiffGap`. `gaps.length` is the "N pages of M unreadable" count a summary needs (AC10). */
   gaps: VendorDiffGap[];
+  /**
+   * M (US-16, AC3 sortie 3): the number of Breaking-flagged detail pages the
+   * walk ATTEMPTED to read across every walked release — read successfully or
+   * not, i.e. `gaps.length` (N) is always `<= pagesAttempted`. Additive field;
+   * every pre-US-16 caller of `VendorDiff` ignores it exactly as it always
+   * did. A row whose Breaking column is unrecognized (`UnclassifiedBreakingRow`)
+   * counts here too and contributes its own gap — it was never fetched, but it
+   * is in scope of the range the same way an unreadable page is.
+   */
+  pagesAttempted: number;
+  /**
+   * The number of `## <date>[.<channel>]` headings the index carried when this
+   * diff was computed (US-16, AC2b) — `undefined` only when the index was
+   * never fetched at all (`status: 'unreadable-bound'`). Lets a caller report
+   * "N headings, zero classable rows" without re-parsing the document.
+   */
+  headingCount?: number;
 }
 
 /**

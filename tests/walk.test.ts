@@ -198,6 +198,30 @@ test('selectReleases tolerates duplicates and unorderable headings without inven
   assert.deepStrictEqual(selection.walked, ['2024-06-20', '2024-09-30.acacia']);
 });
 
+// ── US-16, AC2b: THE INDEX-LINE SENTINEL — >= 1 heading, ZERO classable row ──
+
+test('AC2b: >= 1 heading but classifiableRowCount === 0 is its own fatal status, distinct from index-empty', () => {
+  const selection = selectReleases(LIVE_SHAPED_INDEX, '2023-08-16', 0);
+
+  assert.strictEqual(selection.status, 'index-unclassable');
+  assert.deepStrictEqual(selection.walked, [], 'no blind walk on an index we could not classify');
+  assert.strictEqual(selection.to, '2023-08-16', 'we never looked further than the headings, so `to` reports nothing more than the bound');
+  assert.notStrictEqual(
+    selectReleases([], '2023-08-16').status,
+    selection.status,
+    'zero headings (index-empty) and headings-with-zero-rows (index-unclassable) must never collapse into one status',
+  );
+});
+
+test('AC2b: omitting classifiableRowCount (every caller that predates this check) leaves selectReleases exactly as it always was', () => {
+  assert.strictEqual(selectReleases(LIVE_SHAPED_INDEX, '2023-08-16').status, 'behind');
+  assert.strictEqual(selectReleases(LIVE_SHAPED_INDEX, '2023-08-16', undefined).status, 'behind');
+});
+
+test('AC2b: a NON-zero classifiableRowCount never triggers the sentinel, however small', () => {
+  assert.strictEqual(selectReleases(LIVE_SHAPED_INDEX, '2023-08-16', 1).status, 'behind');
+});
+
 // ── AC3(d): an UNRESOLVED bound — no walk, zero fetch, and a way out ────────
 
 const UNRESOLVED_REASONS: UnresolvedPinReason[] = [
@@ -261,7 +285,28 @@ test('AC3(d) INVARIANT: an unresolved bound performs ZERO fetches — not one by
 });
 
 test('AC3(d): a resolved bound DOES walk — the gate is the bound, not a switch that disables detection', async () => {
-  const index = ['## 2026-08-26.dahlia', '', '| Title | Affected Products | Breaking change? | Category |', '| --- | --- | --- | --- |'].join('\n');
+  // US-16, AC2b note: the `2026-08-26.dahlia` heading itself carries no
+  // exploitable row on purpose (this fixture's own point, pre-dating US-16) —
+  // that is the documented legitimate case (stripe-changelog.ts: "2 of the 140
+  // live headings carry no exploitable row"), NOT the AC2b sentinel, which is
+  // about the WHOLE index having zero classable rows anywhere. A leading
+  // `2020-01-01` row (before `from`, so it changes nothing else this test
+  // asserts: it is excluded from `walked` by `date > fromDate` same as
+  // always, and `to` is still the LATEST date) keeps the index's overall
+  // classable-row count non-zero, matching the shape of the real changelog
+  // this fixture stands in for.
+  const index = [
+    '## 2020-01-01',
+    '',
+    '| Title | Affected Products | Breaking change? | Category |',
+    '| --- | --- | --- | --- |',
+    '| [Unrelated older row](https://docs.stripe.com/changelog/2020-01-01/older.md) | Payments | Breaking | api |',
+    '',
+    '## 2026-08-26.dahlia',
+    '',
+    '| Title | Affected Products | Breaking change? | Category |',
+    '| --- | --- | --- | --- |',
+  ].join('\n');
   let fetches = 0;
   const fetcher: Fetcher = async () => {
     fetches += 1;

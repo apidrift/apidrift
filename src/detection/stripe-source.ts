@@ -15,7 +15,12 @@ import type { Project } from 'ts-morph';
 import { apiVersionDate } from '../changes/api-version.js';
 import { resolvePinnedApiVersion } from '../matcher/api-version.js';
 import { detectChanges, DEFAULT_CHANGELOG_INDEX_URL, type Fetcher } from './index.js';
-import { parseChangelogIndex, parseReleaseHeadings, type ChangelogEntry } from './stripe-changelog.js';
+import {
+  findUnclassifiedBreakingRows,
+  parseChangelogIndex,
+  parseReleaseHeadings,
+  type ChangelogEntry,
+} from './stripe-changelog.js';
 import { boundIsReadable, selectReleases } from './walk.js';
 import type { VendorDiff, VendorDiffGap, VendorRelease, VendorSource } from './vendor-source.js';
 
@@ -86,6 +91,10 @@ export function createStripeVendorSource(opts: StripeVendorSourceOptions): Vendo
         autoExecutable: [],
         reportOnly: [],
         gaps: [],
+        pagesAttempted: 0,
+        // Zero fetch by construction (AC3c/AC3d): the index was never read,
+        // so there is no heading count to report at all.
+        headingCount: undefined,
       };
     }
 
@@ -95,17 +104,44 @@ export function createStripeVendorSource(opts: StripeVendorSourceOptions): Vendo
     const indexMarkdown = await opts.fetcher(indexUrl);
     const indexFetchedAt = fetchedAt();
     const entries = parseChangelogIndex(indexMarkdown);
+    const headingCount = parseReleaseHeadings(indexMarkdown).length;
 
     // Headings, not rows: a release that publishes no exploitable table row is
     // legitimate (2 of the 140 live headings), and `to` — "the last release
-    // published on this line" — has to see it.
-    const selection = selectReleases(parseReleaseHeadings(indexMarkdown), from);
+    // published on this line" — has to see it. `entries.length` (US-16, AC2b)
+    // is the classable-row count over the WHOLE index, independent of `from`'s
+    // line: the sentinel it feeds is about the index itself, not the walk.
+    const selection = selectReleases(parseReleaseHeadings(indexMarkdown), from, entries.length);
+    // Computed once, outside the walk loop — same document, one parse.
+    const unclassifiedRows = findUnclassifiedBreakingRows(indexMarkdown);
 
     const autoExecutable = [] as VendorDiff['autoExecutable'];
     const reportOnly = [] as VendorDiff['reportOnly'];
     const gaps: VendorDiffGap[] = [];
+    // M (US-16, AC3 sortie 3): every Breaking page the walk ATTEMPTED, whether
+    // or not it was readable — computed from the same `entries` filter
+    // `detectChanges` itself applies, so it counts exactly the pages that
+    // could produce a gap, never more.
+    let pagesAttempted = 0;
 
     for (const release of selection.walked) {
+      pagesAttempted += entries.filter((e) => e.release === release && e.breaking).length;
+
+      // US-16, AC2c: an index row with a link whose Breaking column is
+      // unrecognized, in a release this walk actually covers, is no longer
+      // silently dropped (that is still `parseChangelogIndex`'s own contract,
+      // untouched) — it becomes a named gap, and it counts towards M too: it
+      // was never fetched, but it is squarely in scope of this range.
+      const unclassified = unclassifiedRows.filter((r) => r.release === release);
+      for (const row of unclassified) {
+        pagesAttempted += 1;
+        gaps.push({
+          release: row.release,
+          url: row.url,
+          reason: `stripe-changelog: index row "${row.title}" has an unrecognized Breaking-change value (${JSON.stringify(row.breakingCell)}) — neither "Breaking" nor "Non-breaking"`,
+        });
+      }
+
       try {
         // Reuses `detectChanges` verbatim, one release at a time — the same
         // seam the CLI has always exercised. Per-PAGE failure
@@ -140,6 +176,8 @@ export function createStripeVendorSource(opts: StripeVendorSourceOptions): Vendo
       autoExecutable,
       reportOnly,
       gaps,
+      pagesAttempted,
+      headingCount,
     };
   }
 
