@@ -51,7 +51,14 @@ import type { VendorDiff } from './detection/vendor-source.js';
 import { loadProject } from './matcher/index.js';
 import { genericSymbolCodemod } from './matcher/symbol.js';
 import { apiVersionNote } from './pr.js';
-import { cleanRunNote } from './cli-summary.js';
+import {
+  cleanRunNote,
+  fetchFailureNote,
+  indexIllegibleNote,
+  nothingAutoFixableNote,
+  pagesUnreadableNote,
+  pinProvenanceNote,
+} from './cli-summary.js';
 import {
   DEFAULT_MAX_CHANGES,
   capBreachLines,
@@ -144,9 +151,14 @@ OPTIONS
 
 INFERENCE (Free tier)
   Default: BYOT if ANTHROPIC_API_KEY is set, otherwise no model at all.
-  Your own code never leaves your machine in either mode. The changelog fetch
-  reads the vendor's PUBLIC documentation and sends nothing of yours; the AI
-  fixer, when you enable it, does send the affected source to your provider.
+  Two DISTINCT network paths — this is not one "your code never leaves your
+  machine" story, because it is not one path:
+    - the changelog walk (this run's default): reads Stripe's PUBLIC
+      documentation at docs.stripe.com and sends NOTHING of your code, ever —
+      not in either inference mode, since it runs regardless of one.
+    - the AI fixer (--ai / BYOT), when you enable it: DOES send the affected
+      source to your model provider. That is the tradeoff of getting a fix
+      instead of a listing.
 
 WITHOUT A MODEL
   apidrift still detects and LISTS every change that affects this repo, with
@@ -163,9 +175,13 @@ COST CAP (detected changes only)
   it costs no tokens.
 
 EXIT CODES
-  0   the run completed and nothing is left for you to do.
+  0   the run completed: no site found IN THIS REPO was left without a fix.
+      response-shaped (report-only) changes and unreadable changelog pages
+      are LISTED in the run above, never counted against this exit code.
   1   the run STOPPED: bad argument, unreachable or unreadable changelog,
-      --offline, or an API version that could not be resolved. No verdict.
+      --offline, an API version that could not be resolved, or a range whose
+      EVERY attempted page came back unreadable (the run established
+      nothing). No verdict.
   ${EXIT_DRIFT_UNFIXED}  drift detected: changes affect this repo and no fix was produced,
       because no model is configured. ${EXIT_DRIFT_UNFIXED}-29 is reserved for verdicts.
 
@@ -295,8 +311,11 @@ const shown = (absPath: string) => {
  * ONE sentence per `WalkStatus`, and none of them renders as a silent green run
  * (AC7d). `fatal` is what separates "we looked and there is nothing" from "we
  * could not look, and saying nothing would be a lie".
+ *
+ * `provenance` (US-16, AC3 sortie 4) is only ever read by the `'up-to-date'`
+ * case — the other statuses have nothing to attach it to.
  */
-function walkVerdict(diff: VendorDiff, indexUrl: string): { fatal: boolean; lines: string[] } {
+function walkVerdict(diff: VendorDiff, indexUrl: string, provenance: string): { fatal: boolean; lines: string[] } {
   switch (diff.status) {
     case 'behind':
       return {
@@ -306,7 +325,11 @@ function walkVerdict(diff: VendorDiff, indexUrl: string): { fatal: boolean; line
     case 'up-to-date':
       return {
         fatal: false,
-        lines: [`${diff.from} IS the latest release published on its line — the vendor has changed nothing since. Checked, not assumed.`],
+        lines: [
+          `${diff.from} IS the latest release published on its line — the vendor has changed nothing since. Checked, not assumed.`,
+          `version resolved from: ${provenance}.`,
+          '  action: nothing — this repo is current.',
+        ],
       };
     case 'ahead-of-index':
       return {
@@ -325,12 +348,11 @@ function walkVerdict(diff: VendorDiff, indexUrl: string): { fatal: boolean; line
         ],
       };
     case 'index-empty':
+      return { fatal: true, lines: indexIllegibleNote(indexUrl, { kind: 'zero-headings' }).split('\n') };
+    case 'index-unclassable':
       return {
         fatal: true,
-        lines: [
-          `the changelog index at ${indexUrl} was read and parsed to ZERO release headings.`,
-          `this is NOT a network failure — the document arrived. Its format is not one we recognize, so we cannot tell "nothing changed" from "we understood none of it". Please report it.`,
-        ],
+        lines: indexIllegibleNote(indexUrl, { kind: 'zero-classable-rows', headingCount: diff.headingCount ?? 0 }).split('\n'),
       };
     case 'line-not-published':
       return {
@@ -364,6 +386,7 @@ export async function runCli(argv: string[], deps: CliDeps = {}): Promise<number
   if (p.offline) {
     return fail(
       '--offline: this run needs the Stripe changelog and you asked for no network. Nothing was fetched.\n'
+      + '       what this avoids is a GET on docs.stripe.com (Stripe\'s PUBLIC docs) — not a code upload: the changelog walk never sends any of your source, with or without --offline.\n'
       + '       to work without the network, use --deterministic-only: it runs the built-in codemod registry, fixes what it can, and exits 0.',
     );
   }
@@ -397,6 +420,11 @@ export async function runCli(argv: string[], deps: CliDeps = {}): Promise<number
   // True when the walk's COVERAGE is holed (an unreadable changelog page, or a
   // bound ahead of the index): the clean-run note must then not be emitted.
   let coverageIncomplete = false;
+  // Hoisted out of the `else` branch below (US-16): sortie (5) and the exit-code
+  // arbitrage (AC3, decision humaine A3) both need the walk's own result AFTER
+  // the branch that produced it, and `undefined` here IS meaningful — it is the
+  // offline-mode / no-walk case, where neither applies.
+  let diffResult: VendorDiff | undefined;
 
   if (offline) {
     // AC2bis: the fallback is ANNOUNCED, never silent. Said on every run
@@ -439,19 +467,19 @@ export async function runCli(argv: string[], deps: CliDeps = {}): Promise<number
         diff = walked.diff;
       }
     } catch (err) {
-      // AC7a. Before this, the exception walked all the way up to a bare
+      // AC7a/AC1. Before this, the exception walked all the way up to a bare
       // `console.error(err)`: a stack trace, with absolute paths off the user's
-      // machine in it (the US-11 leak). Offline, `fetch` throws
-      // `TypeError: fetch failed`, which names no URL at all — so naming it is
-      // this layer's job, not the fetcher's.
-      return fail(
-        `could not read the Stripe changelog at ${DEFAULT_CHANGELOG_INDEX_URL}\n`
-        + `       cause: ${(err as Error).message}\n`
-        + '       nothing was analysed. Check your network access to docs.stripe.com, or use --deterministic-only to run the built-in registry with no network at all.',
-      );
+      // machine in it (the US-11 leak). `fetchFailureNote` names the URL and
+      // derives the ROOT cause (DNS/refused/timeout, or the wrapper's own
+      // message when neither is available) — never the uninformative
+      // `fetch failed` undici wraps every network error in.
+      return fail(fetchFailureNote(DEFAULT_CHANGELOG_INDEX_URL, err as Error));
     }
 
-    const verdict = walkVerdict(diff, DEFAULT_CHANGELOG_INDEX_URL);
+    // US-16, AC3 sortie 4: "up to date" without saying WHERE the bound came
+    // from is exactly the gap US-9 AC7 closed for the skip note, reopened here.
+    const provenance = pinProvenanceNote(pinned, p.since, (abs) => rel(targetDir, abs));
+    const verdict = walkVerdict(diff, DEFAULT_CHANGELOG_INDEX_URL, provenance);
     if (verdict.fatal) {
       console.error(`\n${c.red}error:${c.reset} ${c.bold}${verdict.lines[0]}${c.reset}`);
       for (const line of verdict.lines.slice(1)) console.error(`  ${c.dim}${line}${c.reset}`);
@@ -459,13 +487,21 @@ export async function runCli(argv: string[], deps: CliDeps = {}): Promise<number
     }
     for (const line of verdict.lines) console.log(`${c.dim}${line}${c.reset}`);
     if (diff.status === 'ahead-of-index') coverageIncomplete = true;
+    diffResult = diff;
 
     // A page we could not read is NOT "this release had nothing" (US-13,
-    // AC4/AC5/AC10) — name it, with its URL, and say how many.
+    // AC4/AC5/AC10; rendering per US-16, AC3 sortie 3) — name it, with its
+    // release, URL and reason, how many of how many, and — when NONE of the
+    // attempted pages could be read — a language/proxy hint.
     if (diff.gaps.length > 0) {
       coverageIncomplete = true;
-      console.log(`${c.amber}⚠${c.reset}  ${c.bold}${diff.gaps.length} page(s) could not be read${c.reset}`);
-      for (const gap of diff.gaps) console.log(`  ${c.dim}${gap.url}\n    ${gap.reason}${c.reset}`);
+      const [head, ...rest] = pagesUnreadableNote({
+        unread: diff.gaps.length,
+        attempted: diff.pagesAttempted,
+        gaps: diff.gaps,
+      }).split('\n');
+      console.log(`${c.amber}⚠${c.reset}  ${c.bold}${head}${c.reset}`);
+      for (const line of rest) console.log(`  ${c.dim}${line}${c.reset}`);
     }
 
     // US-13, AC9: a response-shaped change never produces a branch, a patch or
@@ -627,6 +663,27 @@ export async function runCli(argv: string[], deps: CliDeps = {}): Promise<number
     console.log('');
     console.log(`  ${c.amber}an API key is required to generate the fix${c.reset}${c.dim}: set ANTHROPIC_API_KEY and re-run with --ai. apidrift will then write the change, run YOUR test suite on it, and open a pull request.${c.reset}`);
     console.log('');
+  } else if (
+    // US-16, AC3 sortie 5 — STRICT definition: behind, >= 1 breaking change
+    // found in the walked range, and NO forme #1 matched a call site here.
+    // `else`: this and Vision B's listing above are mutually exclusive by
+    // construction (this one requires `plan.matched` empty, that one requires
+    // it non-empty), whether or not a model is configured.
+    diffResult !== undefined
+    && diffResult.status === 'behind'
+    && diffResult.autoExecutable.length + diffResult.reportOnly.length > 0
+    && plan.matched.length === 0
+  ) {
+    console.log(`${c.amber}●${c.reset} ${c.bold}nothing here is auto-fixable${c.reset}`);
+    for (const line of nothingAutoFixableNote({
+      releasesWalked: diffResult.releases.length,
+      formOneNoSite: plan.discarded.length,
+      reportOnly: diffResult.reportOnly.length,
+      gaps: diffResult.gaps.length,
+    }).split('\n')) {
+      console.log(`  ${c.dim}${line}${c.reset}`);
+    }
+    console.log('');
   }
 
   const blockedNote = blocked > 0
@@ -638,17 +695,41 @@ export async function runCli(argv: string[], deps: CliDeps = {}): Promise<number
   const listedNote = listed > 0
     ? `, ${c.amber}${listed} change${listed === 1 ? '' : 's'} detected but NOT fixed (no model)${c.reset}`
     : '';
-  console.log(`${c.bold}done${c.reset} — ${opened} pull request${opened === 1 ? '' : 's'} in ${c.bold}${shown(outputDir)}${c.reset}${blockedNote}${warnedNote}${listedNote}`);
+  // US-16, AC3 sortie 3: the "N/M pages unread" count belongs in the anchor
+  // "done" line too, not only in the gap listing further up.
+  const unreadNote = diffResult !== undefined && diffResult.gaps.length > 0
+    ? `, ${c.amber}${diffResult.gaps.length}/${diffResult.pagesAttempted} page${diffResult.pagesAttempted === 1 ? '' : 's'} unread${c.reset}`
+    : '';
+  console.log(`${c.bold}done${c.reset} — ${opened} pull request${opened === 1 ? '' : 's'} in ${c.bold}${shown(outputDir)}${c.reset}${blockedNote}${warnedNote}${listedNote}${unreadNote}`);
   // `checked` counts what was EVALUATED, which includes the candidates the
   // plan pass evaluated and discarded, and — in the listing mode — the ones it
   // matched and did not hand to run(). Filtering them out of the pipeline must
   // never shrink the coverage this sentence claims.
-  const clean = cleanRunNote({ checked: results.length + plan.discarded.length + listed, opened, warned, blocked, skipped, incomplete: coverageIncomplete });
+  const clean = cleanRunNote({
+    checked: results.length + plan.discarded.length + listed,
+    opened, warned, blocked, skipped,
+    incomplete: coverageIncomplete,
+    reportOnly: diffResult?.reportOnly.length ?? 0,
+  });
   if (clean) console.log(`${c.green}✓${c.reset} ${c.dim}${clean}${c.reset}`);
   if (!capApplies && listed === 0) {
     console.log(`${c.dim}tip: set ANTHROPIC_API_KEY and pass --ai to also fix changes without a codemod.${c.reset}`);
   }
+
+  // US-16, AC3 / decision humaine A3 (2026-09-26): a range whose EVERY
+  // attempted page came back unreadable established nothing at all — same
+  // class as sortie (2), just discovered later in the run. `N < M` stays a
+  // non-fatal listing (exit 0, unless something else already made it 20);
+  // `N == M > 0` is the one case sortie (3) turns fatal. Vision B (listed > 0)
+  // still wins over both — precedence 1 > 20 > 0 is unchanged.
+  const allAttemptedPagesUnread = diffResult !== undefined
+    && diffResult.pagesAttempted > 0
+    && diffResult.gaps.length === diffResult.pagesAttempted;
+  if (listed === 0 && allAttemptedPagesUnread) {
+    console.error(`${c.red}error:${c.reset} ${c.bold}every attempted page in this range (${diffResult!.gaps.length}/${diffResult!.pagesAttempted}) was unreadable — this run established nothing.${c.reset}`);
+  }
   console.log('');
 
-  return listed > 0 ? EXIT_DRIFT_UNFIXED : EXIT_OK;
+  if (listed > 0) return EXIT_DRIFT_UNFIXED;
+  return allAttemptedPagesUnread ? EXIT_ERROR : EXIT_OK;
 }

@@ -17,7 +17,9 @@ codemod (fast path) and an **AI agent** (the general mechanism, enabled with
 
 ## Ship the Free tier tonight
 
-Free = the CLI. Your code never leaves your machine. Two inference modes:
+Free = the CLI. The changelog walk (the default) reads Stripe's PUBLIC docs
+and sends none of your code, ever; the AI fixer (BYOT), when you enable it,
+does send the affected source to your model provider. Two inference modes:
 
 - **deterministic-only** (default, no key): fixes anything covered by the codemod
   library. No model, nothing sent anywhere.
@@ -126,7 +128,9 @@ code. As soon as APIdrift finds call sites it did not change, for any reason and
 whether or not it prints a warning about them, that line is not shown.
 
 **Optional AI fixer (BYOT):** for changes with no built-in codemod, set
-`ANTHROPIC_API_KEY` and add `--ai`. Without it, nothing leaves your machine.
+`ANTHROPIC_API_KEY` and add `--ai`. Without it, none of your code leaves your
+machine — the changelog walk still runs by default, but it only ever reads
+Stripe's public docs.
 
 Contributors: `npm run demo` runs the pipeline on the same fixture and
 `npm test` proves the happy path AND the "moat" (draft on red).
