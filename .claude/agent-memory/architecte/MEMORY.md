@@ -14,3 +14,4 @@
 - [Message "repo propre" du CLI (US-17)](decision_clean_run_message.md) — `skipped` inhibe le message, `needsAi` non ; fonction pure, pas de test sous-processus pour les branches.
 - [Design du Free tier dynamique](decision_free_tier_dynamic_diff.md) — Vision B : sans clé le CLI détecte et liste ; le registre tourne dans TOUS les modes (`alwaysRun`).
 - [Codes de sortie du CLI](decision_cli_exit_codes.md) — 0/1 historiques, 20 = dérive détectée non corrigée, plage 20-29 réservée ; pourquoi pas 2/3-13/64-78/126+.
+- [US-16 : codes de sortie gaps / report-only](decision_us16_exit_codes_gaps_reportonly.md) — arbitrages A/B ouverts ; sentinelle de lignes d'index fatale ; piège AC5 écrasé.
