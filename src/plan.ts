@@ -182,11 +182,12 @@ export async function runPlanned(
   candidates: Codemod[],
   options: Omit<RunOptions, 'codemods'> & PlanOptions & {
     /**
-     * Codemods that bypass the plan entirely: the hardcoded registry. They
+     * Codemods that bypass the plan entirely: the built-in registry. They
      * carry an `apply()`, so they cost no token and the cost cap has no
      * business counting them; and a 0-match hand-written codemod is its
      * ordinary, silent case, which is precisely what `noMatchWarning` refuses
-     * to warn about. Running them unchanged is what keeps `--detect` ADDITIVE.
+     * to warn about. Running them unchanged is what keeps the dynamic diff ADDITIVE: the registry
+     * still runs on every run, whatever detection finds.
      */
     alwaysRun?: Codemod[];
   } = {},

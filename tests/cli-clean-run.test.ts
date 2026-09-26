@@ -10,7 +10,7 @@
  * process and no network. T8 is the ONE subprocess test (the clean repo): it
  * proves the wiring in src/cli.ts and the exit code. The inhibition branches
  * (warned / blocked / skipped) are deliberately NOT tested through a
- * subprocess: warned needs --detect (a real fetch of docs.stripe.com) and
+ * subprocess: warned needs the changelog walk (a real fetch of docs.stripe.com) and
  * skipped needs a matching change without apply() and without an LLM. Zero
  * network in this suite.
  */
@@ -97,4 +97,11 @@ test('T8: subprocess — a clean repo prints the note AFTER "done", exits 0, wri
     fs.rmSync(repo, { recursive: true, force: true });
     fs.rmSync(out, { recursive: true, force: true });
   }
+});
+
+test('T9: an incomplete walk inhibits — an unread page / a bound ahead of the index is a hole in the COVERAGE, not a clean repo (US-14 R1)', () => {
+  assert.strictEqual(cleanRunNote({ ...CLEAN, incomplete: true }), null);
+  // Additive and optional: absent or false leaves the predicate exactly as it was.
+  assert.ok(cleanRunNote({ ...CLEAN, incomplete: false }) !== null);
+  assert.ok(cleanRunNote(CLEAN) !== null);
 });
