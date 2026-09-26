@@ -14,8 +14,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { resolvePinnedApiVersion } from '../src/matcher/api-version.js';
 import { loadProject } from '../src/matcher/index.js';
-import { httpFetcher, type Fetcher } from '../src/detection/index.js';
-import { parseChangelogIndex } from '../src/detection/stripe-changelog.js';
+import { FETCH_TIMEOUT_MS, httpFetcher, type Fetcher } from '../src/detection/index.js';
+import { parseChangelogIndex, parseReleaseHeadings } from '../src/detection/stripe-changelog.js';
 import { createStripeVendorSource, vendorSourceFor } from '../src/detection/stripe-source.js';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -85,6 +85,25 @@ test('httpFetcher: always sends Accept-Language: en-US — without it docs.strip
     { 'Accept-Language': 'en-US' },
     'this is the entire rempart against the silent-French-response failure mode — if this assertion goes red, the choke point was lost',
   );
+});
+
+test('US-16, AC1b: httpFetcher passes an AbortSignal to fetch, bounding every request individually — same technique as the Accept-Language regression test above', async () => {
+  const originalFetch = globalThis.fetch;
+  let capturedSignal: AbortSignal | undefined;
+
+  globalThis.fetch = (async (_url: string, init?: RequestInit) => {
+    capturedSignal = init?.signal as AbortSignal | undefined;
+    return { ok: true, text: async () => 'stub body' } as Response;
+  }) as typeof fetch;
+
+  try {
+    await httpFetcher('https://docs.stripe.com/changelog.md');
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+
+  assert.ok(capturedSignal instanceof AbortSignal, 'no timeout at all is the "block for undici\'s own 300s default" failure mode US-16 AC1b closes');
+  assert.strictEqual(FETCH_TIMEOUT_MS, 30_000, 'the constant the reported "timeout after 30s" sentence (src/cli-summary.ts) is built from');
 });
 
 test('httpFetcher: a non-ok response throws rather than returning a body that looks like "no content"', async () => {
@@ -296,6 +315,72 @@ test('AC4/AC10: a gap reaches the caller with its URL, its release and its reaso
     reason: `simulated HTTP 503: ${FORM1_URL}`,
   });
   assert.strictEqual(diff.reportOnly.length, 1, 'the releases before and after the hole still contribute');
+});
+
+// ── US-16, AC3(3)/AC4: M — pages Breaking ATTEMPTED, and the index's own headingCount ──
+
+test('US-16: pagesAttempted (M) counts every Breaking page the walk attempted, readable or not — gaps.length (N) is always <= it', async () => {
+  const { fetcher } = channelsFetcher();
+  const failing: Fetcher = async (url) => (url === FORM1_URL ? Promise.reject(new Error(`simulated HTTP 503: ${url}`)) : fetcher(url));
+  const source = createStripeVendorSource({ fetcher: failing, indexUrl, fetchedAt: () => '2026-09-19' });
+
+  const diff = await source.changesSince('2023-08-16');
+
+  assert.strictEqual(diff.pagesAttempted, 3, 'one Breaking page per walked release on this fixture (2024-06-20, 2024-09-30.acacia, 2025-03-31.basil)');
+  assert.strictEqual(diff.gaps.length, 1);
+  assert.ok(diff.gaps.length <= diff.pagesAttempted, 'N <= M always');
+});
+
+test('US-16: pagesAttempted is 0 when nothing is walked (up-to-date / ahead-of-index / unresolved), never undefined', async () => {
+  const { fetcher } = channelsFetcher();
+  const source = createStripeVendorSource({ fetcher, indexUrl, fetchedAt: () => '2026-09-19' });
+
+  const upToDate = await source.changesSince('2025-03-31.basil');
+  assert.strictEqual(upToDate.pagesAttempted, 0);
+
+  const ahead = await source.changesSince('2030-01-01.dahlia');
+  assert.strictEqual(ahead.pagesAttempted, 0);
+
+  const unreadable = await source.changesSince('latest');
+  assert.strictEqual(unreadable.pagesAttempted, 0);
+});
+
+test('US-16, AC2b: headingCount is the number of `## <date>[.<channel>]` headings the index carried, and undefined only for an unreadable bound (index never fetched)', async () => {
+  const { fetcher } = channelsFetcher();
+  const source = createStripeVendorSource({ fetcher, indexUrl, fetchedAt: () => '2026-09-19' });
+
+  const diff = await source.changesSince('2023-08-16');
+  assert.strictEqual(diff.headingCount, parseReleaseHeadings(CHANNELS_INDEX_MD).length);
+
+  const unreadable = await source.changesSince('latest');
+  assert.strictEqual(unreadable.headingCount, undefined, 'the index was never fetched — there is no count to report');
+});
+
+test('US-16, AC2c: an index row with a link and an unrecognized Breaking value, in a WALKED release, becomes a named gap — never silently dropped', async () => {
+  const AMBIGUOUS_URL = 'https://docs.stripe.com/changelog/acacia/2025-02-01/ambiguous-breaking-value.md';
+  const index = readFixture('index-unknown-breaking-column.md');
+  const fetcher: Fetcher = async (url) => {
+    if (url === indexUrl) return index;
+    if (url === FORM1_URL) return FORM1_MD;
+    throw new Error(`simulated fetch failure: ${url}`);
+  };
+  const source = createStripeVendorSource({ fetcher, indexUrl, fetchedAt: () => '2026-09-19' });
+
+  const diff = await source.changesSince('2023-08-16');
+
+  assert.strictEqual(diff.releases.length, 1, 'the fixture carries exactly one release, 2025-02-01.acacia');
+  // The recognized row (FORM1) still contributes its 5 auto-executable changes.
+  assert.strictEqual(diff.autoExecutable.length, 5);
+  // The ambiguous row is NEVER fetched (`AMBIGUOUS_URL` is not in the fetcher
+  // map above — reaching it at all would be this test's own bug) and shows up
+  // as exactly one gap, named.
+  const ambiguousGap = diff.gaps.find((g) => g.url === AMBIGUOUS_URL);
+  assert.ok(ambiguousGap, 'the unrecognized-Breaking-value row must be a named gap');
+  assert.strictEqual(ambiguousGap!.release, '2025-02-01.acacia');
+  assert.match(ambiguousGap!.reason, /Maybe/, 'the raw value read, not a generic message');
+  // It counts towards M too — it was never fetched, but it is squarely in
+  // scope of the walked range, same as an unreadable page.
+  assert.strictEqual(diff.pagesAttempted, 2, 'the recognized row + the ambiguous row');
 });
 
 // ── AC6: every URL requested is a public vendor URL, nothing about the target repo leaves ──
