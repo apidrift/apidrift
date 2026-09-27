@@ -8,6 +8,45 @@ the `0.x` caveat that any minor version may include breaking changes).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-09-27
+
+Product behavior change: the default run is now on-the-fly detection + AI fix
+(BYOT). Minor bump, not a patch.
+
+### Changed
+
+- **The default path is the dynamic diff.** `apidrift run <repo>` with no flag
+  resolves the Stripe API version the repo is pinned to (on the client, or
+  imposed by the installed `stripe` package), walks the Stripe changelog from
+  there to the latest release on its line, and works on what it finds. With
+  `ANTHROPIC_API_KEY` set, detected changes go to the AI fixer (BYOT).
+- **No key no longer means "deterministic-only".** Without a model, apidrift
+  detects and LISTS every change that affects the repo, then exits `20`. It
+  never reports "nothing to do" while sites are left unfixed.
+- `--deterministic-only` is now the explicit OFFLINE mode: built-in codemod
+  registry only, zero network, exit `0`.
+- **Breaking:** `--detect` and `--release <id>` are retired. Passing either is
+  an explicit error naming its replacement (drop `--detect`; use
+  `--since <api-version>` instead of `--release`).
+
+### Added
+
+- `--since <api-version>`: override the lower bound of the walk.
+- `--offline`: refuse the run (exit `1`) rather than reach the network.
+- Cost cap on detected changes before any reaches the model (default 5;
+  `--max-changes <n>`, `--yes`). The built-in registry is never capped.
+- Exit-code taxonomy: `0` run complete · `1` run stopped · `20` drift detected,
+  not fixed (no model). `20`–`29` reserved for verdicts.
+
+### Fixed
+
+- Fail loud, never skip silently: an unreachable changelog, a timeout, an
+  index with no classable row, or a range whose every page is unreadable stops
+  the run (exit `1`) with the URL and the reason. Individually unreadable pages
+  are listed with their release, URL and reason.
+- The "no known API change affects this repo" note is never printed over a
+  walk with holes in its coverage.
+
 ## [0.2.0] - 2026-09-01
 
 ### Added
