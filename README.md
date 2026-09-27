@@ -11,30 +11,54 @@ uses it, fixes the code, runs your own tests to prove the fix is safe, and opens
 a pull request. Push model, not pull — you don't have to notice the change.
 
 This repo is a **working tool**: one vendor (Stripe), one language (JS/TS), a
-real git branch + PR artifact, and **two fixer tiers** — a deterministic AST
-codemod (fast path) and an **AI agent** (the general mechanism, enabled with
-`ANTHROPIC_API_KEY`). Automated change detection is the documented next step.
+real git branch + PR artifact, **on-the-fly change detection** (the Stripe
+changelog, walked from the API version your repo is pinned to), and **two
+fixer tiers** — an **AI agent** (the general mechanism, with your own token)
+and a deterministic AST codemod (the fast path for the changes it covers).
 
-## Ship the Free tier tonight
+## How a run works (the default)
 
-Free = the CLI. The changelog walk (the default) reads Stripe's PUBLIC docs
-and sends none of your code, ever; the AI fixer (BYOT), when you enable it,
-does send the affected source to your model provider. Two inference modes:
+`apidrift run .` needs no flag and no release number:
 
-- **deterministic-only** (default, no key): fixes anything covered by the codemod
-  library. No model, nothing sent anywhere.
-- **BYOT** (bring your own token): set `ANTHROPIC_API_KEY` and pass `--ai` to also
-  fix changes with no codemod, using *your* key.
+1. **Detect, on the fly.** APIdrift reads the Stripe API version your repo is
+   pinned to (set on your client, or imposed by the installed `stripe`
+   package) and walks Stripe's public changelog from there to the latest
+   release on your line.
+2. **Fix with AI (BYOT).** With `ANTHROPIC_API_KEY` set, the AI fixer migrates
+   every change that touches your code, using *your* key. Built-in codemods
+   handle the changes they cover first, at no token cost.
+3. **Verify.** Your own, unmodified test suite gates every fix.
 
 ```bash
-# try it (npx installs @apidrift/cli, which provides the `apidrift` command)
-npx @apidrift/cli run .                    # deterministic-only
-ANTHROPIC_API_KEY=sk-ant-... \
-  npx @apidrift/cli run . --ai             # + AI fixer (BYOT)
-
-apidrift run . --deterministic-only        # force no-model mode
+# npx installs @apidrift/cli, which provides the `apidrift` command
+ANTHROPIC_API_KEY=sk-ant-... npx @apidrift/cli run .   # detect + fix (BYOT)
+npx @apidrift/cli run .                                # no key: detect + list, exit 20 if drift
+apidrift run . --deterministic-only                    # offline: built-in codemods only
 apidrift --help
 ```
+
+- **No key?** APIdrift still detects and **lists** every change that affects
+  your repo, with its call sites, then exits `20`. It never tells you there is
+  nothing to do when there is — set a key to get the fix.
+- **`--deterministic-only`** is the explicit offline mode: no network, no
+  model, built-in codemod library only, exit `0`. A choice you make, never a
+  fallback for a missing key.
+- **Cost cap.** Before any detected change reaches the model, APIdrift counts
+  how many actually match your code. Above 5 it lists them and stops; re-run
+  with `--yes` or `--max-changes <n>`.
+
+**What leaves your machine.** The changelog walk reads Stripe's PUBLIC docs
+and sends none of your code, ever. The AI fixer sends the affected source to
+*your* model provider — that is the tradeoff of getting a fix instead of a
+listing.
+
+Exit codes: `0` run complete, nothing left unfixed in this repo · `1` the run
+stopped (bad argument, unreachable changelog, unresolvable pin, cost cap) ·
+`20` drift detected, not fixed because no model is configured.
+
+## Ship the Free tier
+
+Free = the CLI.
 
 Publish it:
 
@@ -54,7 +78,7 @@ deps — Free users never install them.
   Release, with **provenance** (supply-chain attestation). Flow:
 
   ```bash
-  npm version patch          # bumps package.json + creates a git tag
+  npm version minor          # or patch — bumps package.json + creates a git tag
   git push --follow-tags
   # then create a Release for that tag on GitHub -> the workflow publishes
   ```
@@ -65,27 +89,30 @@ both already true in this repo.
 
 ## Quick Start (2 minutes)
 
-From a clone of this repo, no API key needed:
+Against your own repo, straight from npm (`@apidrift/cli`, binary `apidrift`):
+
+```bash
+export ANTHROPIC_API_KEY=sk-ant-...   # your token (BYOT)
+npx @apidrift/cli run .               # detect on the fly + fix with AI
+```
+
+To try it from a clone of this repo without a key or a network connection,
+run the bundled sample repo in offline mode:
 
 ```bash
 npm install
-npx tsx src/cli.ts run ./fixtures/acme-payments
+npx tsx src/cli.ts run ./fixtures/acme-payments --deterministic-only
 ```
 
-Against your own repo, straight from npm (`@apidrift/cli` v0.3.0, binary
-`apidrift`):
-
-```bash
-npx @apidrift/cli run .
-```
-
-Real output for the first command (`fixtures/acme-payments`, deterministic
-mode, colors stripped; that sample repo has not run `npm install`, hence the
-`api version:` line):
+Real output (offline mode, colors stripped; the sample repo has not run
+`npm install`, hence the `api version:` line):
 
 ```text
-apidrift v0.3.0  scanning ./fixtures/acme-payments
+apidrift v0.4.0  scanning ./fixtures/acme-payments
 inference: deterministic-only (no model — codemod library only)
+
+offline mode (--deterministic-only): the changelog walk did NOT run and nothing was fetched.
+only the built-in codemod registry ran. To detect what Stripe changed since your pinned API version, drop it and re-run.
 
 ● Migrate deprecated Charges.create to PaymentIntents.create
   vendor: stripe  confidence: high  via: deterministic
@@ -127,24 +154,25 @@ It only appears when every known change was checked and none touched your
 code. As soon as APIdrift finds call sites it did not change, for any reason and
 whether or not it prints a warning about them, that line is not shown.
 
-**Optional AI fixer (BYOT):** for changes with no built-in codemod, set
-`ANTHROPIC_API_KEY` and add `--ai`. Without it, none of your code leaves your
-machine — the changelog walk still runs by default, but it only ever reads
-Stripe's public docs.
+Drop `--deterministic-only` and the same repo goes through the default path:
+the changelog walk (pass `--since <api-version>` here, since the sample repo
+has no installed `stripe` package to read the pin from), then the AI fixer if
+a key is set.
 
-Contributors: `npm run demo` runs the pipeline on the same fixture and
+Contributors: `npm run demo` runs the pipeline on the same fixture (offline) and
 `npm test` proves the happy path AND the "moat" (draft on red).
 
 ## What it does, end to end
 
 For each known change, on a disposable copy of the target repo:
 
-1. **Detect** — the change is described as a normalized `Change` record
-   (hardcoded in the MVP; emitted by a diff engine in production).
+1. **Detect** — `src/detection` walks the Stripe changelog from the repo's
+   pinned API version and turns each breaking change into a normalized
+   `Change` record; the built-in codemod registry (`src/changes`) adds its own.
 2. **Locate** — `src/matcher` uses the TypeScript AST (via ts-morph) to find
    exactly where the changed symbol is used. AST, never regex.
-3. **Fix** — `src/fixer` applies a deterministic codemod, touching only the
-   matched code, and reformats to house style.
+3. **Fix** — `src/fixer` applies a deterministic codemod when one exists, else
+   the AI agent (BYOT), touching only the matched code.
 4. **Verify** — `src/verifier` runs the target repo's **own, unmodified** test
    suite in the workspace. This is the moat: a red suite never ships as a real PR.
 5. **Open PR** — `src/githost` creates a real branch + commit and emits the PR
@@ -166,10 +194,12 @@ The fix step has two tiers (see `src/fixer`):
 1. **Deterministic codemod** — when a change ships a hand-written `apply`, use it.
    Fast, free, no tokens. This is the fast path / cache.
 2. **AI agent** (`src/fixer/agent.ts`) — for any change with no codemod (the
-   common case). An agentic loop with tools (`read_file`, `write_file`,
-   `run_tests`) migrates the code. Selected by inference policy (`--ai`/`--deterministic-only`, `apidrift.json`, or env); the
-   LLM client is injectable (`src/fixer/llm.ts`) so it runs for real with a key
-   and is proven by tests with a mock (`tests/ai-fixer.test.ts`).
+   common case, and most of what the changelog walk detects). An agentic loop
+   with tools (`read_file`, `write_file`, `run_tests`) migrates the code. On by
+   default when `ANTHROPIC_API_KEY` is set (or with `--ai`); `--deterministic-only`,
+   `apidrift.json` or `APIDRIFT_INFERENCE` turn it off. The LLM client is
+   injectable (`src/fixer/llm.ts`) so it runs for real with a key and is proven
+   by tests with a mock (`tests/ai-fixer.test.ts`).
 
 Guardrails are enforced **in code**, not just the prompt: the agent may edit
 only blast-radius files, never tests, never outside the repo — and the verifier
@@ -185,7 +215,8 @@ npx @apidrift/cli run .   # AI fixer: ON
 ```
 src/
   types.ts            Change record + shared types (the pivot of the system)
-  changes/            the "change feed": one Codemod per supported change
+  detection/          the default change feed: Stripe changelog walk from the pinned version
+  changes/            built-in registry: one Codemod per supported change (tier 1)
   matcher/            ts-morph AST matching
   fixer/
     index.ts            picks tier 1 (codemod) or tier 2 (AI agent)
@@ -212,7 +243,8 @@ docs/
 
 ## The three surfaces (see docs/USAGE.md)
 
-- **Free** — `npm run demo` / `npx @apidrift/cli run .` (LocalGitHost, code stays local).
+- **Free** — `npx @apidrift/cli run .` (LocalGitHost: branch + patch stay local;
+  only the AI fixer, with your key, sends affected source to your provider).
 - **Enterprise** — add `examples/enterprise-workflow.yml` to a repo; the engine
   runs in the client CI via `action.yml`, code never leaves.
 - **Pro** — `src/service/job.ts` is the per-repo job our backend runs; `poller.ts`
@@ -229,8 +261,8 @@ A change ships as all four, or it doesn't ship:
 
 ## Roadmap (see `docs/backlog.md`)
 
-- AI fixer (tier 2) for changes with no deterministic codemod yet.
-- Automated change detection: poll OpenAPI specs (oasdiff) + SDK releases.
+- More vendors and languages, once Stripe + JS/TS is proven on real repos.
+- Scheduled detection (a background poller) on top of today's per-run changelog walk.
 - `GitHubHost` (Octokit) and `GitLabHost` behind the existing interface.
 - Self-hosted runner (GitHub Action / GitLab CI component).
 

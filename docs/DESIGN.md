@@ -52,7 +52,7 @@ and a bank.
 
 | Plan | Boundary (where the data plane runs) | Inference | Code leaves? | For |
 |---|---|---|---|---|
-| **Free** | your machine (CLI) | **BYOT** (your token) or deterministic-only | no | solo / OSS |
+| **Free** | your machine (CLI) | **BYOT** (your token, the default) · deterministic-only = explicit offline mode | only to your own model provider, for the AI fix | solo / OSS |
 | **Cloud** | our ephemeral micro-VM (Firecracker) | **managed** gateway, org token, billed in plan | visits, then wiped | teams |
 | **Enterprise** | your VPC / CI (self-hosted runner) | **BYO-endpoint** (Bedrock/Vertex/Azure/self-hosted) or deterministic-only | no | regulated |
 
@@ -111,7 +111,7 @@ seats, annual, self-hosted / BYO-endpoint / deterministic-only.
 
 1. ✅ Engine + verification gate (shipped, this repo).
 2. ✅ Three deployment seams: CLI / runner+Action / service job (shipped).
-3. Automated detection (watchers + spec/SDK diff → signed library).
+3. Automated detection (watchers + spec/SDK diff → signed library). Per-run Stripe changelog walk ✅ shipped; scheduled multi-vendor detection next.
 4. Control plane + managed inference gateway (org token, metering, dashboard).
 5. BYO-endpoint adapters (Bedrock/Vertex/Azure) + library signing/verification.
 5b. ✅ Pluggable inference (policy + providers) — shipped.
@@ -124,4 +124,5 @@ seats, annual, self-hosted / BYO-endpoint / deterministic-only.
 - `src/fixer/llm.ts` + `src/fixer/providers.ts` + `src/config.ts` → the inference seam, **implemented**: policy `deterministic-only | byot | managed | byo-endpoint`; Bedrock/Vertex via lazy optional deps.
 - `src/service/` → seed of **Cloud**; `poller.ts` outlines the **Control Plane**.
 - `src/runner.ts` + `action.yml` → **Enterprise** data plane.
-- Not yet built: control-plane services, detection, library signing, BYO-endpoint adapters (see §9).
+- `src/detection/` → per-run detection for **one vendor** (Stripe changelog, walked from the repo's pinned API version); the default feed of the Free CLI.
+- Not yet built: control-plane services, scheduled multi-vendor detection (watchers + spec/SDK diff), library signing, BYO-endpoint adapters (see §9).

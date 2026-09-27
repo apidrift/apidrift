@@ -30,7 +30,7 @@ resolves the Stripe API version the repo is pinned to (written on the client, or
 imposed by the installed `stripe` package), walks the Stripe changelog from that
 version to the latest release on its line, and works on what it finds. Nobody types
 a release number. Three things follow:
-- **With a model** (`ANTHROPIC_API_KEY` + `--ai`): detected changes go through the
+- **With a model** (`ANTHROPIC_API_KEY` set — BYOT is then the default; `--ai` forces it): detected changes go through the
   cost cap (default 5, `--max-changes` / `--yes`) and then the pipeline.
 - **Without a model**: apidrift still detects and LISTS every change that affects
   the repo, does not fix them, says an API key is required, and exits `20`. It never
