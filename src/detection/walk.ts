@@ -104,7 +104,23 @@ export type WalkStatus =
    * changelog at all) and its remedy (report it; do not trust this run) are
    * distinct from both a network failure and an empty line.
    */
-  | 'index-empty';
+  | 'index-empty'
+  /**
+   * THE INDEX-LINE SENTINEL (US-16, AC2b). The index carries >= 1 release
+   * heading (so `'index-empty'` does not apply) but ZERO row anywhere in the
+   * WHOLE document classifies as a title link with a recognized
+   * Breaking/Non-breaking cell. Before this value existed, a document shaped
+   * like this read as `walked: []` under whichever heading-derived status
+   * applied — most likely `'behind'` with zero changes, i.e. "checked, and
+   * there is nothing" — the exact false negative this value exists to name
+   * instead. Distinct from `'index-empty'` (headings themselves are missing)
+   * and from any network failure (the document arrived and its headings
+   * parsed): this is "we read further than the headings and understood none
+   * of the tables". Live measurement (2026-09-26): 877/877 rows classable in
+   * BOTH English and French on the real changelog — this is a zero-observed,
+   * loud-by-design sentinel, not a tuned heuristic.
+   */
+  | 'index-unclassable';
 
 export interface ReleaseSelection {
   /** Releases strictly after `from` on `from`'s line, chronological ascending — the intended walk path. */
@@ -138,14 +154,33 @@ export interface ReleaseSelection {
  * means nothing chronologically, and the document order of the headings is not
  * reliable either (verified: `2026-04-22.preview` precedes `2026-04-22.dahlia`
  * in the live file while every other date has the stable channel first).
+ *
+ * `classifiableRowCount` (US-16, AC2b) is OPTIONAL and additive: it is the
+ * total number of rows `parseChangelogIndex` classified anywhere in the whole
+ * document (not filtered to `from`'s line or range — the sentinel is about
+ * the INDEX, not the walk). Every caller that predates this check (this
+ * module's own tests) omits it and gets the exact behaviour it always had:
+ * the branch below only fires when a caller actually supplies `0`.
  */
-export function selectReleases(releases: readonly string[], from: string): ReleaseSelection {
+export function selectReleases(
+  releases: readonly string[],
+  from: string,
+  classifiableRowCount?: number,
+): ReleaseSelection {
   // AC7b, BEFORE the bound is even considered: an index that publishes no
   // heading at all is not a statement about any line — it is a statement about
   // the INDEX. Answering "line-not-published" here would hand the caller an
   // empty walk that is indistinguishable from a genuinely up-to-date one.
   if (releases.length === 0) {
     return { walked: [], to: from, skippedPreview: [], unreadableBound: false, status: 'index-empty' };
+  }
+
+  // AC2b: headings exist, but the index carries not one classable row —
+  // same class of failure ("we looked and could not read it"), one document
+  // section further in. Checked before the bound: like `index-empty`, this is
+  // a statement about the INDEX, not about `from`'s line.
+  if (classifiableRowCount === 0) {
+    return { walked: [], to: from, skippedPreview: [], unreadableBound: false, status: 'index-unclassable' };
   }
 
   const fromDate = apiVersionDate(from);

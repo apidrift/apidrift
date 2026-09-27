@@ -19,6 +19,18 @@
  *                          unreachable page.
  *   APIDRIFT_FIXTURE_FAIL  when set, EVERY fetch throws with this message —
  *                          the "changelog unreachable" case.
+ *   APIDRIFT_FIXTURE_FAIL_CAUSE_CODE
+ *                          (US-16, AC1) optional, only read alongside
+ *                          APIDRIFT_FIXTURE_FAIL: attaches `{ cause: { code,
+ *                          message: <the FAIL message> } }` to the thrown
+ *                          error — the shape undici wraps a DNS/refused/reset
+ *                          failure in. Additive: omitting it keeps the
+ *                          pre-US-16 shape (a plain `Error(message)`) exactly.
+ *   APIDRIFT_FIXTURE_FAIL_TIMEOUT
+ *                          (US-16, AC1) optional, only read alongside
+ *                          APIDRIFT_FIXTURE_FAIL: names the thrown error
+ *                          `TimeoutError` — the shape `AbortSignal.timeout`
+ *                          rejects with, real network or not.
  *   APIDRIFT_FETCH_LOG     file to write the fetched URLs to, one per line.
  *                          An EMPTY file is the proof of "zero fetcher call".
  *   APIDRIFT_STUB_LLM      when set, a model IS configured (a stub one).
@@ -38,7 +50,18 @@ if (logPath) flushLog(); // the file exists from the start: absent != empty
 const fetcher: Fetcher = async (url) => {
   fetched.push(url);
   flushLog();
-  if (process.env.APIDRIFT_FIXTURE_FAIL) throw new Error(process.env.APIDRIFT_FIXTURE_FAIL);
+  if (process.env.APIDRIFT_FIXTURE_FAIL) {
+    const message = process.env.APIDRIFT_FIXTURE_FAIL;
+    const err = new Error(message);
+    // US-16, AC1: additive shapes only — a run with neither env var set gets
+    // the exact plain `Error(message)` this stub always threw.
+    if (process.env.APIDRIFT_FIXTURE_FAIL_TIMEOUT) {
+      err.name = 'TimeoutError';
+    } else if (process.env.APIDRIFT_FIXTURE_FAIL_CAUSE_CODE) {
+      (err as Error & { cause?: unknown }).cause = { code: process.env.APIDRIFT_FIXTURE_FAIL_CAUSE_CODE, message };
+    }
+    throw err;
+  }
   const file = map[url];
   if (!file) throw new Error(`fixture-cli: no fixture mapped for ${url}`);
   return fs.readFileSync(file, 'utf8');

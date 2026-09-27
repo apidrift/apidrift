@@ -35,6 +35,16 @@ export type Fetcher = (url: string) => Promise<string>;
 export const DEFAULT_CHANGELOG_INDEX_URL = 'https://docs.stripe.com/changelog.md';
 
 /**
+ * Per-request timeout for `httpFetcher` (US-16, AC1b). Before this, a server
+ * that accepted a connection and never answered blocked on undici's own
+ * defaults — 300s per request, x 70 requests for a full walk — with no
+ * message at all until then. Exported so the sentence that reports a timeout
+ * (`src/cli-summary.ts`'s `fetchFailureNote`) and the value that produces it
+ * can never drift apart.
+ */
+export const FETCH_TIMEOUT_MS = 30_000;
+
+/**
  * The one real network `Fetcher` this project ships — every caller that talks
  * to the live changelog (`src/cli.ts`, and `VendorSource` via
  * `stripe-source.ts`) goes through this, instead of each defining its own
@@ -50,9 +60,18 @@ export const DEFAULT_CHANGELOG_INDEX_URL = 'https://docs.stripe.com/changelog.md
  * caller to remember it — is the fix: see
  * `tests/vendor-source.test.ts` for the regression test that fails if this
  * header is ever dropped.
+ *
+ * `signal: AbortSignal.timeout(FETCH_TIMEOUT_MS)` (US-16, AC1b) bounds every
+ * request individually — aborting via THIS specific API (rather than a manual
+ * `AbortController` + `setTimeout`) is what makes the rejection a `TimeoutError`
+ * distinguishable from a user-triggered abort, which `src/cli-summary.ts`'s
+ * `fetchFailureNote` relies on to name it "timeout" instead of a generic cause.
  */
 export const httpFetcher: Fetcher = async (url) => {
-  const res = await fetch(url, { headers: { 'Accept-Language': 'en-US' } });
+  const res = await fetch(url, {
+    headers: { 'Accept-Language': 'en-US' },
+    signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+  });
   if (!res.ok) throw new Error(`detection: GET ${url} -> HTTP ${res.status}`);
   return res.text();
 };

@@ -105,3 +105,12 @@ test('T9: an incomplete walk inhibits — an unread page / a bound ahead of the 
   assert.ok(cleanRunNote({ ...CLEAN, incomplete: false }) !== null);
   assert.ok(cleanRunNote(CLEAN) !== null);
 });
+
+test('T10 (US-16): reportOnly > 0 inhibits — a forme #2 change is never matched against this repo, so it cannot set `skipped`, but it is still NOT a clean bill of health', () => {
+  assert.strictEqual(cleanRunNote({ ...CLEAN, reportOnly: 1 }), null);
+  // Additive and optional, same convention as `incomplete`: absent, undefined
+  // or 0 leaves every pre-US-16 caller (and T1..T9 above) exactly as it was.
+  assert.ok(cleanRunNote({ ...CLEAN, reportOnly: 0 }) !== null);
+  assert.ok(cleanRunNote({ ...CLEAN, reportOnly: undefined }) !== null);
+  assert.ok(cleanRunNote(CLEAN) !== null);
+});

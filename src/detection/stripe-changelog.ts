@@ -135,6 +135,63 @@ export function parseChangelogIndex(markdown: string): ChangelogEntry[] {
   return entries;
 }
 
+/**
+ * One index ROW with a title link whose Breaking column is neither
+ * `'Breaking'` nor `'Non-breaking'` — the exact rows `parseChangelogIndex`
+ * silently `continue`s past today (US-16, AC2c).
+ */
+export interface UnclassifiedBreakingRow {
+  /** The heading this row was found under, verbatim — same contract as `ChangelogEntry.release`. */
+  release: string;
+  /** The detail page URL, verbatim from the row's link. */
+  url: string;
+  /** Verbatim link text — for the message this feeds (`src/cli-summary.ts`). */
+  title: string;
+  /** The raw, unrecognized value read from the Breaking column. */
+  breakingCell: string;
+}
+
+/**
+ * A SEPARATE pass over the same document, deliberately NOT folded into
+ * `parseChangelogIndex` (US-16, AC2c — decision humaine 3 du 2026-09-19: that
+ * function's contract and its existing tests are frozen, additions only).
+ * Shares its row-splitting rules byte for byte (`splitTableRow`,
+ * `isSeparatorRow`, `LINK_RE`) so the two passes can never classify the same
+ * row differently by accident.
+ *
+ * Live measurement (2026-09-26): 0 rows of this shape on 877 link-carrying
+ * rows, in both English and French — this exists to make a vendor format
+ * drift LOUD (a named gap, US-16 AC3 sortie 3), not to fire on anything
+ * observed today.
+ */
+export function findUnclassifiedBreakingRows(markdown: string): UnclassifiedBreakingRow[] {
+  const headingMatches = [...markdown.matchAll(RELEASE_HEADING_RE)];
+  const rows: UnclassifiedBreakingRow[] = [];
+
+  for (let i = 0; i < headingMatches.length; i++) {
+    const match = headingMatches[i];
+    const release = match[1];
+    const start = (match.index ?? 0) + match[0].length;
+    const end = i + 1 < headingMatches.length ? (headingMatches[i + 1].index ?? markdown.length) : markdown.length;
+    const section = markdown.slice(start, end);
+
+    for (const line of section.split('\n')) {
+      const cells = splitTableRow(line);
+      if (!cells || cells.length < 4 || isSeparatorRow(cells)) continue;
+
+      const linkMatch = LINK_RE.exec(cells[0]);
+      if (!linkMatch) continue; // header row, same exclusion as parseChangelogIndex
+
+      const breakingCell = cells[2];
+      if (breakingCell === 'Breaking' || breakingCell === 'Non-breaking') continue; // the recognized shape
+
+      rows.push({ release, url: linkMatch[2], title: linkMatch[1], breakingCell });
+    }
+  }
+
+  return rows;
+}
+
 /** Slices out the body of a `#`-heading section, up to the next heading of equal-or-lower level. */
 function extractSection(markdown: string, heading: string, level: number): string | null {
   const escaped = heading.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');

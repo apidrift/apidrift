@@ -59,7 +59,15 @@ interface CliRun {
 
 function runCli(
   args: string[],
-  opts: { fixtures?: Record<string, string>; env?: Record<string, string>; fetchFails?: string } = {},
+  opts: {
+    fixtures?: Record<string, string>;
+    env?: Record<string, string>;
+    fetchFails?: string;
+    /** US-16, AC1: attaches `{ cause: { code } }` to the thrown fetch error. */
+    fetchFailsCauseCode?: string;
+    /** US-16, AC1: names the thrown fetch error `TimeoutError`. */
+    fetchFailsTimeout?: boolean;
+  } = {},
 ): CliRun {
   const log = path.join(fs.mkdtempSync(path.join(os.tmpdir(), 'apidrift-fetchlog-')), 'urls.txt');
   const env: NodeJS.ProcessEnv = {
@@ -74,6 +82,8 @@ function runCli(
   delete env.APIDRIFT_MODEL;
   if (!opts.env?.APIDRIFT_INFERENCE) delete env.APIDRIFT_INFERENCE;
   if (opts.fetchFails) env.APIDRIFT_FIXTURE_FAIL = opts.fetchFails;
+  if (opts.fetchFailsCauseCode) env.APIDRIFT_FIXTURE_FAIL_CAUSE_CODE = opts.fetchFailsCauseCode;
+  if (opts.fetchFailsTimeout) env.APIDRIFT_FIXTURE_FAIL_TIMEOUT = '1';
 
   const r = spawnSync('npx', ['tsx', 'tests/fixture-cli.ts', ...args], { cwd: repoRoot, encoding: 'utf8', env });
   const fetched = fs.existsSync(log) ? fs.readFileSync(log, 'utf8').split('\n').filter(Boolean) : [];
@@ -297,6 +307,25 @@ test('AC3 — the help no longer presents detection as opt-in, and names no reti
   assert.match(help.stdout, /--since <api-version>/);
 });
 
+test('US-16, AC6 — the help distinguishes the changelog walk from the AI fixer by name, and drops the false blanket claim', () => {
+  const help = runCli(['--help']);
+
+  assert.strictEqual(help.status, 0);
+  assert.ok(
+    !help.stdout.includes('never leaves your machine in either mode'),
+    'the two inference MODES (deterministic-only/BYOT) are not the two network PATHS (changelog walk/AI fixer) — the old sentence conflated them',
+  );
+  assert.match(help.stdout, /changelog walk/i);
+  assert.match(help.stdout, /AI fixer/i);
+  assert.match(help.stdout, /sends? NOTHING of your code/i, 'what IS true of the changelog walk must still be said');
+  assert.match(help.stdout, /DOES send the affected\s+source/i, 'what is true of the AI fixer must not be hidden either');
+
+  // AC6(b): the --offline refusal states the SAME distinction in one line.
+  const offline = runCli(['run', makeRepo(AFFECTED), '--offline', '--out', tmp('out')]);
+  assert.match(offline.stderr, /docs\.stripe\.com/);
+  assert.match(offline.stderr, /not a code upload/i);
+});
+
 test('AC3 — --detect is refused by name, and the error says what replaced it', () => {
   const r = runCli(['run', makeRepo(AFFECTED), '--detect']);
 
@@ -389,6 +418,31 @@ test('AC7(a) — an unreachable changelog names the URL, exits 1, and prints NO 
   assert.ok(!r.stderr.includes(repo));
 });
 
+test('US-16, AC1 — a DNS/refused/reset failure names the root CAUSE (err.cause.code), not the uninformative "fetch failed" wrapper', () => {
+  const r = runCli(['run', makeRepo(AFFECTED), '--out', tmp('out')], {
+    fetchFails: 'fetch failed', fetchFailsCauseCode: 'ENOTFOUND',
+  });
+
+  assert.strictEqual(r.status, 1);
+  assert.match(r.stderr, /ENOTFOUND/, 'the root cause, not the generic wrapper message');
+  assert.match(r.stderr, /https:\/\/docs\.stripe\.com\/changelog\.md/, 'the URL is still named');
+});
+
+test('US-16, AC1 — a timeout is named as a timeout, distinctly from a DNS/refused failure', () => {
+  const r = runCli(['run', makeRepo(AFFECTED), '--out', tmp('out')], {
+    fetchFails: 'fetch failed', fetchFailsTimeout: true,
+  });
+
+  assert.strictEqual(r.status, 1);
+  assert.match(r.stderr, /timeout after 30s/i);
+  assert.ok(!/ENOTFOUND/.test(r.stderr));
+
+  const dns = runCli(['run', makeRepo(AFFECTED), '--out', tmp('out')], {
+    fetchFails: 'fetch failed', fetchFailsCauseCode: 'ENOTFOUND',
+  });
+  assert.notStrictEqual(r.stderr, dns.stderr, 'a timeout and a DNS failure must never read as the same cause');
+});
+
 test('AC7(b) — THE INDEX SENTINEL: an index parsed to zero headings is FATAL, and says so differently from a network failure', () => {
   // The hole that made this whole switch dangerous: `parseReleaseHeadings`
   // returns [] without raising, `selectReleases` used to answer
@@ -411,6 +465,37 @@ test('AC7(b) — THE INDEX SENTINEL: an index parsed to zero headings is FATAL, 
 test('AC7(b) unit — selectReleases tells "the index published nothing" apart from "this line is not published"', () => {
   assert.strictEqual(selectReleases([], '2023-08-16').status, 'index-empty');
   assert.strictEqual(selectReleases(['2026-04-22.preview'], '2023-08-16').status, 'line-not-published');
+});
+
+test('US-16, AC2b — an index with >= 1 heading but ZERO classable row anywhere is FATAL, and reads differently from index-empty and from a network failure', () => {
+  const repo = makeRepo(AFFECTED);
+  const r = runCli(['run', repo, '--out', tmp('out')], {
+    fixtures: { ...WALK_FIXTURES, [INDEX_URL]: fx('index-headings-no-classable-rows.md') },
+  });
+
+  assert.strictEqual(r.status, 1, 'same class of failure as index-empty — we looked and could not read it');
+  assert.match(r.stderr, /ZERO classable row/);
+  assert.match(r.stderr, /2 release heading\(s\)/, 'the heading COUNT is named — this fixture carries two');
+  assert.match(r.stderr, /NOT a network failure/i);
+  assert.match(r.stderr, /NOT the zero-heading case either/i, 'distinct from index-empty, not merely "also fatal"');
+  assert.ok(!/no known API change affects this repo/.test(r.stdout));
+
+  const zeroHeadings = runCli(['run', repo, '--out', tmp('out')], {
+    fixtures: { ...WALK_FIXTURES, [INDEX_URL]: fx('index-no-release-headings.md') },
+  });
+  const network = runCli(['run', repo, '--out', tmp('out')], { fetchFails: 'fetch failed' });
+  const sentences = [r.stderr, zeroHeadings.stderr, network.stderr];
+  assert.strictEqual(new Set(sentences).size, 3, 'three distinct causes, three distinct messages');
+});
+
+test('US-16, AC2c — an index row with a link and an unrecognized Breaking value is a named gap in the CLI output, not a silent drop', () => {
+  const repo = makeRepo(AFFECTED);
+  const r = runCli(['run', repo, '--out', tmp('out')], {
+    fixtures: { [INDEX_URL]: fx('index-unknown-breaking-column.md'), [FORM1_URL]: fx('removes-payment-method-types-parameter-from-payment-intents-setup-intents.md') },
+  });
+
+  assert.match(r.stdout, /ambiguous-breaking-value\.md/, 'the unrecognized row is listed among the unreadable pages');
+  assert.match(r.stdout, /"Maybe"/, 'the raw value read is quoted, not paraphrased');
 });
 
 test('AC7(c) — --offline fails CLOSED before any fetch, and names --deterministic-only as what still works', () => {
@@ -566,12 +651,21 @@ test('R1 (a) — unreadable detail pages: the walk found NOTHING because it coul
   // detects 0. Before the fix this printed "4 page(s) could not be read" and,
   // two lines later, "✓ no known API change affects this repo… (checked 2)":
   // a false "nothing to do" whose `checked` counted the registry, not the walk.
+  //
+  // US-16 ECART (decision humaine A3, 2026-09-26, DECISION_HUMAINE_2026_09_26):
+  // this fixture's every attempted Breaking page is unreadable (N == M == 4,
+  // "unreachable-detail-page.md"-shaped for all four walked releases) — the
+  // exact case A3 arbitrates to exit 1 ("the run established nothing"), not 0.
+  // This assertion predates that decision (2026-09-19 QA repro) and the
+  // literal exit-code contradiction was not visible until A3 was tranché;
+  // updated here rather than left silently red — see the dev report's
+  // `ecarts`.
   const r = runCli(['run', makeRepo(AFFECTED), '--out', tmp('out')], { fixtures: INDEX_ONLY });
 
   assert.match(r.stdout, /\d+ page\(s\) could not be read/, 'the hole is named');
   assert.match(r.stdout, /detected: 0 auto-executable change\(s\)/, 'and it really did detect nothing');
   assert.ok(!CLEAN_NOTE.test(r.stdout), 'a cleanliness claim over a walk whose coverage has a hole is a false bill of health');
-  assert.strictEqual(r.status, 0, 'the exit code is untouched: only the false affirmation is withdrawn');
+  assert.strictEqual(r.status, 1, 'US-16 AC3/A3: N == M > 0 (every attempted page unreadable) established nothing — exit 1, not the prior 0');
 });
 
 test('R1 (a\') — the same hole under --since: the override does not make the coverage complete', () => {
@@ -674,4 +768,64 @@ test('R3 (converse) — the same run WITH --yes passes the cap: the flag is hono
 
   assert.ok(!/above the cap/i.test(r.stderr), `--yes must lift the cap:\n${r.stderr}`);
   assert.strictEqual(r.status, 0, `${r.stdout}\n${r.stderr}`);
+});
+
+// ══════════════════════════════════════════════════════════════════════════
+// US-16 — AC3 sortie (3)/(4)/(5), and the decision humaine A3/B1 exit codes.
+// ══════════════════════════════════════════════════════════════════════════
+
+test('US-16, AC3/A3 — N < M unreadable pages, nothing matched: exit 0, and N/M is counted in the "done" line', () => {
+  // UNAFFECTED never calls one of the fixture walk's 5 detected symbols, so
+  // nothing matches — `listed` stays 0 and Vision B cannot fire. Of the walk's
+  // 4 attempted pages, 2 are unreadable (the default WALK_FIXTURES shape):
+  // N (2) < M (4), so decision humaine A3 keeps this at exit 0.
+  const r = runCli(['run', makeRepo(UNAFFECTED), '--out', tmp('out')]);
+
+  assert.strictEqual(r.status, 0, `A3: N < M must stay 0:\n${r.stdout}\n${r.stderr}`);
+  assert.match(r.stdout, /2\/4 pages? unread/, 'the "done" line counts N\\/M');
+  assert.ok(!/error:.*established nothing/i.test(r.stderr), 'N < M is not the "established nothing" case');
+});
+
+test('US-16, AC3/A3 — N == M > 0 (every attempted page unreadable), nothing matched: exit 1, "established nothing"', () => {
+  // Same premise as R1(a) above, restated with UNAFFECTED (decoupled from
+  // AFFECTED's own matching behaviour) to isolate A3's own condition.
+  const r = runCli(['run', makeRepo(UNAFFECTED), '--out', tmp('out')], { fixtures: INDEX_ONLY });
+
+  assert.strictEqual(r.status, 1, `A3: N == M > 0 must be 1:\n${r.stdout}\n${r.stderr}`);
+  assert.match(r.stderr, /established nothing/i);
+});
+
+test('US-16, AC3 sortie (4) — "up to date" names the PROVENANCE of the resolved bound: an explicit pin names file:line', () => {
+  const PINNED_AT_LATEST = `'use strict';
+const stripe = require('stripe')(process.env.STRIPE_KEY, { apiVersion: '2025-04-01.acacia' });
+async function listCustomers() { return stripe.customers.list({ limit: 3 }); }
+module.exports = { listCustomers };
+`;
+  const r = runCli(['run', makeRepo(PINNED_AT_LATEST), '--out', tmp('out')]);
+
+  assert.strictEqual(r.status, 0);
+  assert.match(r.stdout, /IS the latest release published on its line/);
+  assert.match(r.stdout, /pinned explicitly in your source/);
+  assert.match(r.stdout, /src[/\\]pay\.js:2/, 'the exact file:line the literal was read from');
+});
+
+test('US-16, AC3 sortie (4) — --since names an explicit override, not the resolved pin\'s file', () => {
+  const r = runCli(['run', makeRepo(UNAFFECTED), '--since', '2025-04-01.acacia', '--out', tmp('out')]);
+
+  assert.strictEqual(r.status, 0);
+  assert.match(r.stdout, /IS the latest release published on its line/);
+  assert.match(r.stdout, /--since 2025-04-01\.acacia \(explicit override/);
+  assert.ok(!/pay\.js/.test(r.stdout), '--since wins: the resolved pin\'s file is not named');
+});
+
+test('US-16, AC3 sortie (5) / decision humaine B1 — a range with ONLY report-only (forme #2) changes, no forme #1 matched: exit 0, "nothing here is auto-fixable", and NO clean-run note', () => {
+  const r = runCli(['run', makeRepo(UNAFFECTED), '--out', tmp('out')], {
+    fixtures: { [INDEX_URL]: fx('index-report-only-only.md'), [FORM2_URL]: fx('deprecate-subscription-current-period-start-and-end.md') },
+  });
+
+  assert.strictEqual(r.status, 0, `B1: report-only alone must stay 0:\n${r.stdout}\n${r.stderr}`);
+  assert.match(r.stdout, /nothing here is auto-fixable/);
+  assert.match(r.stdout, /1 response-shaped/);
+  assert.ok(!/no known API change affects this repo/.test(r.stdout), 'a report-only change is not a clean bill of health (US-16, cleanRunNote reportOnly inhibition)');
+  assert.ok(!/WARNING: change detected but no matching call site/.test(r.stdout), 'no forme #1 at all here — nothing for that guard to warn about');
 });
