@@ -6,14 +6,22 @@ per tier is effort and where the engine runs.
 
 ## Free — CLI  (`src/cli.ts`)
 
-The dev runs it against a repo. Code never leaves their machine (workspace mode:
-we operate on a temp copy and emit a branch + patch).
+The dev runs it against a repo. By default a run **detects on the fly** — it
+walks the Stripe changelog from the API version the repo is pinned to — and
+**fixes with AI** using the dev's own token (BYOT). We operate on a temp copy
+and emit a branch + patch; the repo itself is untouched.
 
 ```bash
-npx @apidrift/cli run .            # or: npm run demo
+ANTHROPIC_API_KEY=sk-ant-... npx @apidrift/cli run .   # detect + fix (BYOT)
 # -> apidrift-out/apidrift-<change-id>.md + a matching .patch you can `git am`
 #    (one pair per change that matched)
+
+npx @apidrift/cli run .                    # no key: detect + list, exit 20 on drift
+npx @apidrift/cli run . --deterministic-only   # offline: built-in codemods only (= npm run demo)
 ```
+
+What leaves the machine: the changelog walk only reads Stripe's public docs;
+the AI fixer sends the affected source to the dev's own model provider.
 
 Zero trust barrier — this is the top of funnel.
 
@@ -48,6 +56,6 @@ is the upstream skeleton (queue/DB/webhooks are infra, not product logic).
 
 | Tier | Effort | Trust asked | Engine runs |
 |---|---|---|---|
-| Free | dev runs CLI | none (local) | user's machine |
+| Free | dev runs CLI | none (local; AI fix goes to the dev's own provider) | user's machine |
 | Pro | install + pick repos | code visits us (ephemeral) | our infra |
 | Enterprise | add 1 CI file | none (code stays) | client CI |
