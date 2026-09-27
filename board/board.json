@@ -9968,6 +9968,152 @@
       "actor": "orchestrateur",
       "us": "US-16",
       "note": "ready"
+    },
+    {
+      "ts": "2026-09-26T08:37:47.201Z",
+      "type": "move",
+      "actor": "dev",
+      "us": "US-16",
+      "note": "ready>in_progress"
+    },
+    {
+      "ts": "2026-09-26T08:37:47.265Z",
+      "type": "update",
+      "actor": "orchestrateur",
+      "us": "US-16",
+      "payload": {
+        "fields": [
+          "assignee"
+        ],
+        "before": {
+          "assignee": "dev"
+        },
+        "after": {
+          "assignee": "orchestrateur"
+        }
+      },
+      "note": "assignee restaure apres move"
+    },
+    {
+      "ts": "2026-09-26T08:37:47.327Z",
+      "type": "delegate",
+      "actor": "orchestrateur",
+      "target": "dev",
+      "us": "US-16",
+      "payload": {
+        "branche": "feature/US-16-fail-loud-exit-taxonomy",
+        "base": "origin/main (8df90a4) ; main local c00ab15 = commit board seul, non pousse",
+        "worktree": "isole",
+        "perimetre": "L1..L8 de RE_CADRAGE_2026_09_26_apres_US_14 + DECISION_HUMAINE_2026_09_26 (A3, B1)",
+        "ac": "13 AC de board/backlog.json US-16",
+        "interdits": [
+          "board/ architecture/ .claude/ jamais commites",
+          "aucune assertion de test existante modifiee (ajouts seulement)",
+          "aucun nouveau code de sortie (0/1/20)",
+          "pas de cache (US-15)",
+          "zero reseau dans les tests"
+        ],
+        "sortie": "rapport JSON : branche, commits, PR, DoD (tsc + N tests), ecarts declares"
+      }
+    },
+    {
+      "ts": "2026-09-26T09:24:30.241Z",
+      "type": "report",
+      "actor": "dev",
+      "us": "US-16",
+      "payload": {
+        "status": "done",
+        "pr": "https://github.com/apidrift/apidrift/pull/17",
+        "branche": "feature/US-16-fail-loud-exit-taxonomy",
+        "commits": [
+          "cee733b",
+          "fb067ff",
+          "c7ad9bb"
+        ],
+        "dod": "tsc clean + 300/300",
+        "ecarts": [
+          {
+            "quoi": "tests/cli-default-path.test.ts R1(a) : assertion status 0 -> 1",
+            "justification": "fixture N==M>0, decision humaine A3"
+          },
+          {
+            "quoi": "tests/walk.test.ts AC3(d) : fixture enrichi (heading anterieure classable), aucune assertion touchee",
+            "justification": "fixture minimal declenchait la nouvelle sentinelle index-unclassable"
+          }
+        ]
+      }
+    },
+    {
+      "ts": "2026-09-26T09:24:30.309Z",
+      "type": "move",
+      "actor": "orchestrateur",
+      "us": "US-16",
+      "note": "in_progress>review"
+    },
+    {
+      "ts": "2026-09-26T09:24:30.373Z",
+      "type": "delegate",
+      "actor": "orchestrateur",
+      "target": "qa",
+      "us": "US-16",
+      "payload": {
+        "objet": "revue US-16 PR #17",
+        "focus": [
+          "ecart 1 : assertion existante modifiee malgre interdit - legitime au regard de A3 ?",
+          "ecart 2 : fixture existant modifie",
+          "A3/B1 et aucun nouveau code",
+          "test deux a deux des 5 phrases",
+          "AC6 aide + README + CLAUDE.md",
+          "mutations sur sentinelle index-unclassable et regle N==M",
+          "diff board/architecture/.claude vide",
+          "ecart non declare"
+        ]
+      }
+    },
+    {
+      "ts": "2026-09-26T09:46:40.010Z",
+      "type": "report",
+      "actor": "qa",
+      "us": "US-16",
+      "payload": {
+        "verdict": "ACCEPTE",
+        "ac": "13/13",
+        "dod_rejouee": "tsc clean + 300/300",
+        "ecarts": "2/2 acceptables",
+        "mutations": "5/5 detectees (A3, sentinelle index-unclassable, B1, deux a deux, cause racine)",
+        "board_diff": "VIDE",
+        "note_hors_perimetre": "README l.24 deterministic-only (default, no key) desynchronise depuis US-14",
+        "demo": ".lavish/qa-us-16.html"
+      }
+    },
+    {
+      "ts": "2026-09-26T09:46:40.074Z",
+      "type": "verification",
+      "actor": "orchestrateur",
+      "us": "US-16",
+      "note": "DoD rejouee par orchestrateur sur origin/feature/US-16 : 300/300 exit 0. CI node 20/22 SUCCESS, PR #17 MERGEABLE. diff board/architecture/.claude VIDE. STOP AVANT MERGE, porte humaine."
+    },
+    {
+      "ts": "2026-09-26T09:46:40.138Z",
+      "type": "human_gate",
+      "actor": "orchestrateur",
+      "target": "human",
+      "us": "US-16",
+      "note": "Gate humain de merge OUVERT (non bloquant). PR #17, QA ACCEPTE 13/13, artefact .lavish/qa-us-16.html."
+    },
+    {
+      "ts": "2026-09-27T15:59:56.414Z",
+      "type": "move",
+      "actor": "orchestrateur",
+      "us": "US-16",
+      "note": "review>done"
+    },
+    {
+      "ts": "2026-09-27T15:59:56.493Z",
+      "type": "human_gate",
+      "actor": "orchestrateur",
+      "us": "US-16",
+      "note": "Porte humaine levee: 2 ecarts revus par l'humain (renforcement exit 0->1 selon A3, fixture walk enrichie sans assertion touchee), PR #17 squash-mergee (a1f4e53), CI verte node 20/22, QA 13/13, 300/300."
     }
   ]
 }

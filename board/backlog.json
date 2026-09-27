@@ -1050,7 +1050,7 @@
         "AC11 - Invariants inchanges et non redefinis : gate = suite de tests de l'utilisateur (jamais de PR non draft sur suite rouge), tests en lecture seule pour le fixer IA, blast radius only. Aucun test existant modifie (decision humaine 3 du 2026-09-19) : un changement d'assertion existante est un ecart a declarer.",
         "AC12 - npx tsc --noEmit et npm test verts (scripts/dod.sh)."
       ],
-      "status": "ready",
+      "status": "done",
       "priority": 2,
       "component": "cli",
       "epic": "EPIC-free-dynamic-diff",
